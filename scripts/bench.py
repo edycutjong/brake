@@ -38,14 +38,14 @@ def export(db, rpc_url, deployment):
     # one row per agent STOP that reached the chain: the email that triggered it = the run's latest inbox row at/before the decision
     lat = psql(db, """
       select d.run_id, d.idx, r.scenario, d.tx, q.settled_at is not null,
-             extract(epoch from (q.settled_at - m.received_at)) * 1000, m.id, m.source
+             extract(epoch from (q.settled_at - m.received_at)) * 1000, m.id, m.source, d.model
         from decisions d
         join runs r on r.id = d.run_id
         join tx_queue q on q.tx_hash = d.tx and q.status = 'mined' and q.action = 'stop'
         join lateral (select id, received_at, source from inbox where run_id = d.run_id and received_at <= d.created_at order by received_at desc limit 1) m on true
        where d.verdict = 'STOP' and q.settled_at is not null and d.model is not null and d.model <> 'finance'
        order by d.created_at""")
-    latency = [dict(run=a, line=int(b) + 1, scenario=c, stop_tx=d, latency_ms=round(float(f)), trigger_message=g, trigger_source=h) for a, b, c, d, e, f, g, h in lat if float(f) >= 0]
+    latency = [dict(run=a, line=int(b) + 1, scenario=c, stop_tx=d, latency_ms=round(float(f)), trigger_message=g, trigger_source=h, model=mo) for a, b, c, d, e, f, g, h, mo in lat if float(f) >= 0]
     acts = psql(db, "select action, tx_hash from tx_queue where status = 'mined' and tx_hash is not null order by created_at")
     gas = []
     for action, h in acts:
@@ -71,6 +71,7 @@ def compute():
     res = dict(
         deployment=d["deployment"],
         label="FORK — anvil fork of Aevum 44005, not the live chain" if d["deployment"] != "live" else "live Aevum testnet 44005",
+        models=sorted({r.get("model", "?") for r in d["latency"]}),
         latency_email_to_cancel_confirmed_ms=dict(n=len(lat), p50=pct(lat, 50), p95=pct(lat, 95), mean=round(statistics.mean(lat)) if lat else None, min=min(lat, default=None), max=max(lat, default=None)),
         gas_used_median={a: int(statistics.median(v)) for a, v in sorted(by_action.items())},
         gas_samples={a: len(v) for a, v in sorted(by_action.items())},
