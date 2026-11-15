@@ -1,4 +1,5 @@
 {
+ "deployment": "fork",
  "label": "FORK \u2014 anvil fork of Aevum 44005, not the live chain; these tx hashes exist only on the local fork (no explorer links)",
  "purpose": "the runs recorded for the demo video (2026-11-16): every hash shown on screen in the film comes from this file",
  "model": "claude-sonnet-5-5 (claude-cli adapter)",
