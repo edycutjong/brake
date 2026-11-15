@@ -3,7 +3,7 @@
   Brake: pitch deck (v1.0 · 2026-11-16)
   Keys: → / Space next · ← previous · Home / End · Esc slide overview · P presenter mode (speaker notes)
   Print: Cmd/Ctrl+P → Save as PDF → one slide per page (16in × 9in), backgrounds on.
-  Images: ../assets/demo-line3.png, a crop of the real run sheet (line 3 stopped) from a fork run, labelled FORK.
+  Images: ../assets/demo-line3-deck.png (header + line 3), a crop of the real run sheet (line 3 stopped) from a fork run, labelled FORK.
   Fonts: ../assets/fonts/ (self-hosted, SIL OFL 1.1, see LICENSE-fonts.txt).
   QR: inline SVG, encodes https://github.com/edycutjong/brake (decoded and checked at build time).
   Tokens: the same :root as ../index.html.
@@ -62,7 +62,8 @@ code, .data { font-family: var(--font-data); font-variant-numeric: tabular-nums;
   background-image: repeating-linear-gradient(to bottom, transparent 0 47px, color-mix(in srgb, var(--rule) 50%, transparent) 47px 48px);
 }
 .slide.on { display: flex; flex-direction: column; justify-content: center; }
-.slide::before { content: ""; position: absolute; left: 96px; top: 0; bottom: 0; width: 2px; background: color-mix(in srgb, var(--after) 35%, transparent); z-index: -1; }
+.slide.s-demo.on { justify-content: flex-start; padding-top: 172px; }
+.slide::before { content: ""; position: absolute; left: 96px; top: 0; bottom: 0; width: 2px; background: var(--rule); z-index: -1; }
 .lbl { position: absolute; top: 96px; left: 128px; font: 600 24px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); display: flex; gap: 16px; align-items: center; }
 .lbl .no { font-family: var(--font-data); letter-spacing: 0; border: 1.5px solid var(--muted); padding: 3px 10px; color: var(--ink); }
 h1, h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; margin: 0; }
@@ -123,11 +124,12 @@ h2 { font-size: 120px; line-height: 1.03; margin: 0 0 44px; }
 .flow text { font-family: var(--font-body); }
 
 /* s6 demo */
-.demo-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 56px; margin-top: 12px; align-items: start; }
+.demo-grid { display: grid; grid-template-columns: 760px 1fr; gap: 56px; margin-top: 36px; align-items: start; max-width: 1340px; }
+.demo-full { margin-top: 0; max-width: 1340px; }
 .pic { position: relative; }
 .callout { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 28px/56px var(--font-data); text-align: center; box-shadow: 0 0 0 5px var(--bg); }
 .callout.red { background: var(--after); }
-.keys { list-style: none; padding: 0; margin: 40px 0 0; display: grid; gap: 22px; font: 32px/1.35 var(--font-body); }
+.keys { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 22px; font: 32px/1.35 var(--font-body); }
 .keys li { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; }
 .keys li span { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 22px/44px var(--font-data); text-align: center; }
 .keys li span.red { background: var(--after); }
@@ -138,7 +140,7 @@ h2 { font-size: 120px; line-height: 1.03; margin: 0 0 44px; }
 .ledger > div + div { border-left: 3px solid var(--ink); background: var(--paper-2); }
 .ledger h3 { font: 600 26px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin: 0 0 22px; }
 .ledger ul { list-style: none; margin: 0; padding: 0; font: 60px/1.7 var(--font-data); }
-.ledger .can li::before { content: "✓  "; color: var(--cleared); }
+.ledger .can li::before { content: "✓  "; color: var(--ink); }
 .ledger .cannot li { color: var(--after); text-decoration: line-through 3px; }
 .ledger .cannot li span { color: var(--ink-soft); }
 
@@ -231,9 +233,9 @@ body.overview #grid { display: grid; }
 <section class="slide hook" data-title="Hook">
   <div class="lbl"><span class="no">L-02</span> Business email compromise, 2024</div>
   <div class="big rise"><span class="cur">$</span>2,770,151,146</div>
-  <p class="body rise d2">in reported losses across <b>21,442 complaints</b> to the FBI’s IC3. On a stablecoin chain, a paid line is final.</p>
+  <p class="body rise d2">in reported losses across <b>21,442 complaints</b> to the FBI’s IC3. Once a stablecoin payment lands, the payer cannot recall it.</p>
   <p class="src">Source: FBI IC3 2024 Internet Crime Report, complaint and loss tables</p>
-  <aside class="speaker-notes">The attack is mundane: a vendor's mailbox says the bank details changed. On a stablecoin chain a paid line is final, so the only safe moment to act is before payday. That is the gap Brake closes.</aside>
+  <aside class="speaker-notes">The attack is mundane: a vendor's mailbox says the bank details changed. Once a payment lands there is no recall, so the only safe moment to act is before payday. That is the gap Brake closes.</aside>
 </section>
 
 <!-- 3 · PROBLEM -->
@@ -243,11 +245,11 @@ body.overview #grid { display: grid; }
   <h2 class="rise">Signed Monday. Wrong by Tuesday.</h2>
   <p class="body rise d2">Today, stopping it needs the key holder online.</p></div>
   <div class="days3 rise d3">
-    <div><b>Monday</b><span>Rina, the AP clerk, signs four vendor lines.</span></div>
+    <div><b>Monday</b><span>Rina, in finance, approves four vendor lines.</span></div>
     <div><b class="red">Tuesday</b><span>“Acme” confirms a new payout address.</span></div>
     <div><b>Payday</b><span>The line pays wherever it points.</span></div>
   </div></div>
-  <aside class="speaker-notes">Rina is our persona, an AP clerk. She approves on Monday, the fraud arrives Tuesday, and she is in meetings. Today her choices are to stay online with the key, or to hand a bot a key that can pay.</aside>
+  <aside class="speaker-notes">Rina is the finance contact our seed emails are addressed to. She approves on Monday, the fraud arrives Tuesday, and she is in meetings. Today her choices are to stay online with the key, or to hand a bot a key that can pay.</aside>
 </section>
 
 <!-- 4 · SOLUTION -->
@@ -297,16 +299,14 @@ body.overview #grid { display: grid; }
 </section>
 
 <!-- 6 · DEMO -->
-<section class="slide" data-title="Demo">
+<section class="slide s-demo" data-title="Demo">
   <div class="lbl"><span class="no">L-06</span> The hero run · fork</div>
-  <h2 class="rise" style="margin:20px 0 34px">Line 3 never cleared.</h2>
+  <h2 class="rise" style="margin:0 0 30px">Line 3 never cleared.</h2>
+  <div class="frame rise d2 demo-full"><div class="bar"><i></i><i></i><i></i>&nbsp; fork run B</div><div class="pic"><img src="../assets/demo-line3-deck.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
+      <span class="callout red" style="left:calc(77.6% - 28px);top:calc(66% - 28px)">1</span><span class="callout" style="left:calc(56.2% - 28px);top:calc(33% - 28px)">2</span></div></div>
   <div class="demo-grid">
-    <div class="frame rise d2"><div class="bar"><i></i><i></i><i></i>&nbsp; separate fork run</div><div class="pic"><img src="../assets/demo-line3.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
-      <span class="callout red" style="left:calc(79.6% - 66px);top:calc(81% - 28px)">1</span><span class="callout" style="left:calc(56.6% - 34px);top:calc(62.5% - 28px)">2</span></div></div>
-    <div class="rise d3">
-      <div class="tape"><span class="cap">pnpm demo:hero</span><span class="t">+13.4s</span> line 3 <span class="no">STOP</span><br><span class="t">      </span> rules fired 0<br><span class="t">+44.5s</span> <span class="ok">paid [1, 2, 4]</span><br><span class="t">      </span> line 3 <span class="no">reverted</span></div>
-      <ul class="keys"><li><span class="red">1</span>Serial = the cancel tx.</li><li><span>2</span>Amount struck through.</li></ul>
-    </div>
+    <div class="tape rise d3"><span class="cap">fork run A</span><span class="t">+13.4s</span> line 3 <span class="no">STOP</span><br><span class="t">      </span> rules fired 0<br><span class="t">+44.5s</span> <span class="ok">paid [1, 2, 4]</span><br><span class="t">      </span> line 3 <span class="no">reverted</span></div>
+    <ul class="keys rise d3"><li><span class="red">1</span>Run B’s cancel tx.</li><li><span>2</span>Struck amount.</li></ul>
   </div>
   <aside class="speaker-notes">The screenshot is the real run sheet from a separate fork run; the timings come from evidence/hero-fork.json, recorded before the final contract change. The model alone stopped line 3; no rule fired. Payday paid the other three in one batch and the stopped line's replay reverted. The CLI run took 64 seconds.</aside>
 </section>
@@ -340,10 +340,10 @@ body.overview #grid { display: grid; }
 <!-- 9 · AEVUM -->
 <section class="slide" data-title="Built on Aevum">
   <div class="lbl"><span class="no">L-09</span> Aevum testnet 44005</div>
-  <h2 class="rise">Built on what is live.</h2>
+  <h2 class="rise">What we used on Aevum.</h2>
   <div class="cols3 rise d2">
-    <div><h3>Live, used</h3><ul><li>tUSD8 EIP-3009</li><li>isBlacklisted</li><li>Multicall3</li><li>CREATE2 deployer</li></ul></div>
-    <div><h3>Self-deployed (fork only)</h3><ul><li>ERC-8004 Identity</li><li>ERC-8004 Validation</li><li>Brake.sol</li></ul></div>
+    <div><h3>Live, used on fork</h3><ul><li>tUSD8 EIP-3009</li><li>isBlacklisted</li><li>Multicall3</li><li>CREATE2 deployer</li></ul></div>
+    <div><h3>Self-deployed (fork only)</h3><ul><li>8004 Identity</li><li>8004 Validation</li><li>Brake.sol</li></ul></div>
     <div class="not"><h3>Not live, not used</h3><ul><li>@qday-io/sdk</li><li>PQ precompiles</li><li>public bundler</li></ul></div>
   </div>
   <aside class="speaker-notes">We probed the chain with eth_getCode and eth_call before building. Everything Brake depends on is live on 44005, except ERC-8004, which we deploy ourselves from the reference contracts.</aside>

@@ -44,7 +44,7 @@ Screens of the product running against a local anvil fork of Aevum 44005 (labell
 
 ### The Problem
 
-Finance teams approve vendor payments days before payday, and things change in between: an invoice is disputed, goods do not arrive, or a "we changed our bank details" email turns out to be fraud. Business email compromise drew $2,770,151,146 in reported losses across 21,442 complaints to the FBI's IC3 in 2024 ([FBI IC3 2024 Internet Crime Report](https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf), complaint and loss tables). On a stablecoin chain a paid line is final. Today, stopping a scheduled crypto payment needs the key holder online, and giving a bot a key that can pay means a hijacked bot can pay.
+Finance teams approve vendor payments days before payday, and things change in between: an invoice is disputed, goods do not arrive, or a "we changed our bank details" email turns out to be fraud. Business email compromise drew $2,770,151,146 in reported losses across 21,442 complaints to the FBI's IC3 in 2024 ([FBI IC3 2024 Internet Crime Report](https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf), complaint and loss tables). On a stablecoin chain the payer cannot recall a payment once it lands. Today, stopping a scheduled crypto payment needs the key holder online, and giving a bot a key that can pay means a hijacked bot can pay.
 
 ### The Solution
 
@@ -52,7 +52,7 @@ For every line of a payment run, finance signs two EIP-712 messages once: the pa
 
 - **Stop:** the `Brake` contract submits the pre-signed cancel to tUSD8 with a reason code and an evidence hash, and records the decision in an ERC-8004 Validation Registry. The paid-line attempt on payday then reverts with the token's own error (`FiatTokenV2: authorization is used or canceled.`).
 - **Hold:** Brake's keeper will not pay the line until finance decides, and the hold is recorded on-chain; one payer `allow` releases it without re-signing. A hold is not a token-level block: the signed payment stays valid at tUSD8 until `validBefore`, so a confirmed risk is a `stop`.
-- **Re-issue:** finance replaces a falsely stopped line in one click.
+- **Re-issue:** finance replaces a falsely stopped line in one click (demo mode; a non-custodial run re-signs from the payer's own wallet).
 
 The agent holds 0 tUSD8 and no allowance (checked on `/verify`). A hijacked agent can delay a payment; it cannot create one or change where one goes. Brake does not claim to stop BEC in general. It stops a signed line when a signal arrives before payday (see [Honest Limitations](#attacks-defeated-and-honest-limitations)).
 

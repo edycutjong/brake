@@ -168,15 +168,14 @@ code, .data { font-family: var(--font-data); font-variant-numeric: tabular-nums;
 .rc { padding: 30px 22px 26px; border-right: 1px solid var(--rule); }
 .rc:first-child { padding-left: 0; } .rc:last-child { border-right: 0; }
 .rc .n { font: 700 clamp(2.4rem, 4.4vw, 3.6rem)/1 var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
-.rc .n.red { color: var(--after); }
-.rc .n.blue { color: var(--before); }
 .rc p { margin: 10px 0 8px; font-size: .95rem; line-height: 1.4; }
 .rc code { font-size: .72rem; color: var(--label); }
-.rnote { grid-column: 1 / -1; font-size: .8rem; color: var(--label); padding: 0 0 18px; margin: 0; max-width: 75ch; }
+.rnote { grid-column: 1 / -1; font-size: .8rem; color: var(--label); padding: 14px 0 18px; margin: 0; max-width: 75ch; }
 
 /* ── sections ── */
 section.blk { padding: 92px 0; }
 section[id] { scroll-margin-top: 62px; }
+section.blk.tight { padding-top: 20px; }
 .blk h2 { font: 600 clamp(2rem, 3.8vw, 3.2rem)/1.08 var(--font-display); letter-spacing: -.015em; margin: 12px 0 16px; text-wrap: balance; max-width: 22em; }
 .blk .lede { max-width: var(--measure); color: var(--ink-soft); font-size: 1.06rem; margin: 0 0 40px; }
 
@@ -245,7 +244,7 @@ figure { margin: 0; }
 .slip b { display: block; font: 600 .66rem/1.4 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--label); }
 .slip.pay { border-left: 3px solid var(--before); } .slip.cx { border-left: 3px solid var(--after); }
 .powers { list-style: none; padding: 0; margin: 4px 0; font: .82rem/1.9 var(--font-data); }
-.powers li::before { content: "✓ "; color: color-mix(in srgb, var(--bg) 60%, var(--cleared)); }
+.powers li::before { content: "✓ "; color: var(--bg); }
 .powers li.x::before { content: "✗ "; color: color-mix(in srgb, var(--after) 55%, var(--bg)); }
 .icon { width: 38px; height: 38px; stroke: currentColor; fill: none; stroke-width: 1.6; }
 
@@ -371,11 +370,11 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <div class="copy">
       <div class="label"><span class="no">SP-1</span> <span class="opt">Stop-payment order ·</span> <b>QDay Aevum Builder Challenge</b></div>
       <h1>The agent reads the inbox. It can <span class="nw"><span class="stamp">stop</span>,</span> never pay.</h1>
-      <p class="sub">Finance signs each vendor payment with its own cancellation. When a payout-change email lands before payday, a monitor agent submits that cancel and the line can’t clear. The agent holds <strong>0 tUSD8</strong>. In <strong>5 of 5</strong> recorded hero runs, the model alone stopped line 3: <strong>0 rules fired</strong>.</p>
+      <p class="sub">Rina in finance approves Monday’s four vendor payments, each signed with its own cancellation. On Tuesday “Acme” confirms a new payout address and asks her not to call. The agent stops that line before payday. It holds <strong>0 tUSD8</strong>, and in <strong>5 of 5</strong> recorded runs the model alone made the stop.</p>
       <div class="ctas">
         <a class="btn primary" href="https://github.com/edycutjong/brake"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>View on GitHub</a>
         <a class="btn" href="pitch/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="13"/><path d="M12 17v4M8 21h8"/></svg>Pitch deck</a>
-        <a class="btn" href="https://github.com/edycutjong/brake/blob/main/DEMO.md"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 10l3 2-3 2M13 15h3"/></svg>Reproduce on a fork</a>
+        <a class="btn" href="https://github.com/edycutjong/brake/blob/main/DEMO.md"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 10l3 2-3 2M13 15h3"/></svg>Run on a fork</a>
       </div>
     </div>
     <div class="meta">
@@ -383,17 +382,17 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
         <span class="cmd"><span id="cmdtext">pnpm fork:up &amp;&amp; pnpm demo:hero</span><button type="button" id="copy" aria-label="Copy the demo command">Copy</button></span>
         <span>121 tests · 0 agent-initiated transfers</span>
       </div>
-      <p class="status">Built and tested on an anvil fork of Aevum 44005 at real tUSD8 state. The live testnet run is scripted and waits on faucet funding, so every transaction hash on this page is labelled <span class="fork">FORK</span> and has no explorer link. The footer links only the live tUSD8 address.</p>
+      <p class="status">Ran on an anvil fork of Aevum 44005: transaction hashes are labelled <span class="fork">FORK</span> (<code>fork:</code> in the terminal) and have no explorer link. The live testnet run is pending faucet funding.</p>
     </div>
 
     <div class="register" aria-label="Payment run, week 47, from evidence/hero-fork.json">
       <header><h2>Payment run · week 47</h2><span>run_001a6364d0ca4997<br>tUSD8 · seed × 0.0001</span></header>
       <div class="rl head"><span>#</span><span>Vendor · invoice</span><span style="text-align:right">Amount</span><span>Status</span></div>
       <div class="rl"><span>1</span><span class="v">Kopi Nusantara Supplies<small>INV-1204 · 0x669D…5f7a</small></span><span class="amt">0.125</span><span class="st"><span class="paid">PAID</span><span class="h">0x688f…ad16 <span class="fork">FORK</span></span></span></div>
-      <div class="rl"><span>2</span><span class="v">Studio Garis<small>INV-2047 · 0x9068…801d</small></span><span class="amt">0.240</span><span class="st"><span class="paid">PAID</span><span class="h">0x688f…ad16 <span class="fork">FORK</span></span></span></div>
+      <div class="rl"><span>2</span><span class="v">Studio Garis<small>INV-2047 · 0x9068…801d</small></span><span class="amt">0.240</span><span class="st"><span class="paid">PAID</span><span class="h">same batch</span></span></div>
       <div class="rl stopped"><span>3</span><span class="v">Acme Logistics<small>INV-8812 · 0xFe83…a5De</small></span><span class="amt">0.500</span>
-        <span class="stamp bigstamp" role="img" aria-label="Stop payment, cancel tx 0x5bf4…7db8 on the fork">Stop payment<small>No. 0x5bf4…7db8 <span class="fork">FORK</span></small><small>review E4 · +13.4 s</small></span></div>
-      <div class="rl"><span>4</span><span class="v">Cloudnine Hosting<small>INV-0311 · 0x1AC8…8330</small></span><span class="amt">0.038</span><span class="st"><span class="paid">PAID</span><span class="h">0x688f…ad16 <span class="fork">FORK</span></span></span></div>
+        <span class="stamp bigstamp" role="img" aria-label="Stop payment, cancel tx 0x5bf4…7db8 on the fork">Stop payment<small>No. 0x5bf4…7db8 <span class="fork">FORK</span></small><small>Tuesday · email E4</small></span></div>
+      <div class="rl"><span>4</span><span class="v">Cloudnine Hosting<small>INV-0311 · 0x1AC8…8330</small></span><span class="amt">0.038</span><span class="st"><span class="paid">PAID</span><span class="h">same batch</span></span></div>
       <footer>Line 3’s replay on payday reverted: <code>FiatTokenV2: authorization is used or canceled.</code></footer>
     </div>
   </div>
@@ -405,7 +404,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <div class="rc"><div class="n" data-count="0">0</div><p>agent-initiated transfers. The agent holds no tUSD8 and no allowance.</p><code>bench/results.json</code></div>
     <div class="rc"><div class="n" data-count="4.1" data-dec="1" data-suffix=" s">4.1 s</div><p>median, vendor email to cancel confirmed (p95 6.3 s, n = 11, fork, commit 494c2a6)</p><code>bench/results.json</code></div>
     <div class="rc"><div class="n" data-count="25" data-suffix="/25">25/25</div><p>injection-suite emails decided correctly by the model (rules alone: 6). n = 25, a regression suite.</p><code>evidence/g4/ · README</code></div>
-    <p class="rnote">Model numbers were measured with claude-sonnet-5-5 through a local CLI adapter at commit dbb1acb and latency at 494c2a6, both before the architecture review’s changes; re-measuring them is on the roadmap. Four collateral stops (lines whose on-file payee is the fraud wallet) are reported per row in the README.</p>
+    <p class="rnote">5 of 5: <code>evidence/g4/hero-sonnet-5-5-cli.json</code>. Model numbers were measured with claude-sonnet-5-5 through a local CLI adapter at commit dbb1acb and latency at 494c2a6, both before the architecture review’s changes; re-measuring them is on the roadmap. Four collateral stops (lines whose on-file payee is the fraud wallet) are reported per row in the README.</p>
   </div>
 </section>
 
@@ -418,7 +417,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
       <figure class="frame">
         <div class="bar"><i></i><i></i><i></i><span>Run sheet · line 3 stopped · separate fork run</span></div>
         <picture><source media="(max-width: 640px)" srcset="assets/demo-line3-mobile.png" width="680" height="220"><img src="assets/demo-line3.png" width="1150" height="480" alt="Brake run sheet: lines 1 and 2 scheduled and allowed; line 3, Acme Logistics, 0.5 tUSD8, struck through under a red STOP PAYMENT stamp labelled FORK." loading="lazy"></picture>
-        <figcaption>The real run sheet after the agent’s stop, from a separate fork run (stamp No. 0xf1aa…6043). The register above and the terminal use <code>evidence/hero-fork.json</code>.</figcaption>
+        <figcaption>The real run sheet after the agent’s stop, from a separate fork run; its stamp carries that run’s cancel tx. The register above and the terminal use <code>evidence/hero-fork.json</code>.</figcaption>
       </figure>
       <div class="tape">
         <div class="tbar"><span>pnpm demo:hero · fork</span><button class="btn sm" type="button" id="replay">Replay</button></div>
@@ -439,7 +438,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
   </div>
 </section>
 
-<section class="blk" id="how" style="padding-top:20px">
+<section class="blk tight" id="how">
   <div class="wrap">
     <div class="label"><span class="no">L-03</span> How it works</div>
     <h2>One payment run, three days</h2>
@@ -457,7 +456,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
       </div>
       <div class="day">
         <div class="d">Payday<small>pay and prove</small></div>
-        <div><h3>One batch pays; the stopped line cannot clear</h3><p>Multicall3 pays every allowed line in one transaction. The stopped line is replayed and reverts with the token’s own error. After a phone check (simulated in the demo), finance re-issues it to the vendor’s verified wallet in one click.</p></div>
+        <div><h3>One batch pays; the stopped line cannot clear</h3><p>Multicall3 pays every allowed line in one transaction. The stopped line is replayed and reverts with the token’s own error. After a phone check (simulated in the demo), finance re-issues it to the vendor’s on-file wallet with one click in demo mode.</p></div>
         <div class="act green">Multicall3.aggregate3<br>replay → authorization is used or canceled</div>
       </div>
     </div>
@@ -532,7 +531,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <div class="label"><span class="no">L-05</span> Questions a judge would ask</div>
     <h2>Before you score it</h2>
     <div class="faq">
-      <details><summary><span class="q">Q1</span>Is this running on the live Aevum chain?<span class="pm">+</span></summary><div class="a"><p>Not yet. The testnet wallets were unfunded at build time, so every transaction ran on an anvil fork of Aevum 44005, which carries the live tUSD8 bytecode and state. The live re-run (deploy, explorer verification, hero, TOO LATE, flood) is a scripted first step once the faucet funds the wallets.</p></div></details>
+      <details><summary><span class="q">Q1</span>Is this running on the live Aevum chain?<span class="pm">+</span></summary><div class="a"><p>Not yet. The live run is pending faucet funding, so every transaction ran on an anvil fork of Aevum 44005, which carries the live tUSD8 bytecode and state. The live re-run (deploy, explorer verification, hero, TOO LATE, flood) is a scripted first step once the faucet funds the wallets.</p></div></details>
       <details><summary><span class="q">Q2</span>What happens if the agent itself is hijacked?<span class="pm">+</span></summary><div class="a"><p>It can delay a run: cancel up to <code>maxStops</code> lines (set per run by the payer) and hold lines. It cannot create a payment or change where one goes. Each stop is re-issuable, one payer <code>allow</code> releases a hold, and <code>revokeAgent</code> blocks Brake-routed stops at once.</p></div></details>
       <details><summary><span class="q">Q3</span>Anyone can submit the cancel. Isn’t that a hole?<span class="pm">+</span></summary><div class="a"><p>It is the mechanism: tUSD8 accepts a payer-signed cancel from any caller, which is what lets an agent with no funds stop a payment (G1, 7 fork tests). The stop budget binds only the Brake path, and the README says so: anyone holding a raw cancel signature can submit it to tUSD8 directly.</p></div></details>
       <details><summary><span class="q">Q4</span>What is mocked or simulated?<span class="pm">+</span></summary><div class="a"><p>Demo mode uses a labelled custodial testnet payer; <code>scripts/sign_local.ts</code> is the mode where your key signs. Seed emails are authored demo data, amounts are seed invoices × 0.0001 for the faucet, the vendor phone check in the re-issue step is simulated, and the model ran through a local CLI adapter (the SDK path was not measured).</p></div></details>
@@ -573,7 +572,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
       }
       return p;
     };
-    [[300, 52, 118, 13, 2600, 'var(--before)', .32], [250, 37, 92, 37, 3200, 'var(--rule)', .9], [410, 72, 40, 18, 2400, 'var(--before)', .16]].forEach(([R, r, d, turns, steps, c, o]) => {
+    [[300, 52, 118, 13, 2600, 'var(--muted)', .3], [250, 37, 92, 37, 3200, 'var(--rule)', .9], [410, 72, 40, 18, 2400, 'var(--muted)', .16]].forEach(([R, r, d, turns, steps, c, o]) => {
       const path = document.createElementNS(NS, 'path');
       path.setAttribute('d', curve(R, r, d, turns, steps));
       path.setAttribute('fill', 'none'); path.setAttribute('stroke', c); path.setAttribute('stroke-width', '.7'); path.setAttribute('opacity', o);
@@ -610,7 +609,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
   }, { threshold: .6 });
   counts.forEach((c) => countIO.observe(c));
 
-  // terminal replay of the recorded run (~8x faster than the recording)
+  // terminal replay of the recorded run (~7x faster than the recording)
   const term = document.getElementById('term');
   const lines = term ? [...term.querySelectorAll('.tl')] : [];
   const at = [0, 0, .3, 1.5, 6.5, 6.5, 13.4, 13.4, 44.5, 44.5, 46.7, 63.3, 64.4];
