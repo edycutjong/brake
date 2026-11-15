@@ -121,14 +121,17 @@ interface RawFinding {
 
 /**
  * Validate the record_findings payload. A missing or non-array `findings` is an invalid model response and throws, so the
- * review fails and the keeper HOLDS the lines (fail-closed) — it never reads as "no findings" (a2a arch r01). Individual
- * malformed items (unknown intent, non-integer line) are dropped.
+ * review fails and the keeper HOLDS the lines (fail-closed) — it never reads as "no findings" (a2a arch r01). So does
+ * any malformed item (r02).
  */
 export function parseFindings(raw: unknown): Finding[] {
   const arr = (raw as { findings?: RawFinding[] } | null | undefined)?.findings;
   if (!Array.isArray(arr)) throw new Error("invalid model output: no findings array");
+  // any malformed item (unknown intent, non-integer line) makes the whole response invalid: a dropped item could have
+  // been the only stop for its line (a2a arch r02 — was: filtered out silently)
+  const bad = arr.find((f) => !Number.isInteger(f?.line) || !(INTENTS as readonly string[]).includes(f?.intent));
+  if (bad) throw new Error(`invalid model output: malformed finding ${JSON.stringify(bad).slice(0, 120)}`);
   return arr
-    .filter((f) => Number.isInteger(f.line) && (INTENTS as readonly string[]).includes(f.intent))
     .map((f) => ({
       line: f.line,
       intent: f.intent as Finding["intent"],

@@ -30,7 +30,7 @@ const cursorName = (ctx: ChainCtx) => `reconciler:${ctx.cfg.brake.toLowerCase()}
  */
 export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigint } = {}): Promise<ReconcileResult> {
   const conf = BigInt(ctx.cfg.confirmations);
-  return withTx(db, async (c) => {
+  const res = await withTx(db, async (c) => {
     await lock(c, "reconciler");
     const head = await ctx.pub.getBlockNumber();
     const cur = await c.query<{ last_block: string }>(`select last_block from cursors where name = $1`, [cursorName(ctx)]);
@@ -165,9 +165,15 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
       `insert into cursors (name, last_block) values ($1, $2) on conflict (name) do update set last_block = excluded.last_block`,
       [cursorName(ctx), head.toString()],
     );
+    return { from, to: head, head, events, updates };
+  });
 
-    // receipts that failed and are still pending → retryReceipt (anyone may call; the validator stays Brake)
-    const retried: ReconcileResult["retried"] = [];
+  // receipts that failed and are still pending → retryReceipt (anyone may call; the validator stays Brake). Outside the
+  // reconciler lock and transaction: a receipt wait must not hold ingestion up, and retries need no serialisation with
+  // it — pending is re-read right before each send and the key is idempotent (a2a arch r02)
+  const retried: ReconcileResult["retried"] = [];
+  {
+    const c = db;
     const failed = await c.query<{ run_id: string; idx: number; chain_run: Hex }>(
       `select distinct e.run_id, e.idx, r.run_id as chain_run from chain_events e join runs r on r.id = e.run_id
         where e.name = 'ReceiptFailed' and lower(e.address) = lower($1)`,
@@ -196,8 +202,8 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
         /* registry still failing — try again next tick */
       }
     }
-    return { from, to: head, head, events, updates, retried };
-  });
+  }
+  return { ...res, retried };
 }
 
 async function firstRunBlock(ctx: ChainCtx, c: { query: Db["query"] }): Promise<bigint | null> {

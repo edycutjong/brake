@@ -172,7 +172,8 @@ export interface EvidenceInput {
 
 /** Canonical evidence bundle: line params, rules fired, verified quotes + message ids, model id, policy version. */
 export function buildEvidence(e: EvidenceInput) {
-  const usedIds = new Set(e.decision.findings.flatMap((f) => f.quotes.map((q) => q.messageId)));
+  // every finding that can move the verdict binds its messages' metadata — unverified ones (HOLD) included (a2a arch r02)
+  const usedIds = new Set([...e.decision.findings, ...(e.decision.unverified ?? [])].flatMap((f) => f.quotes.map((q) => q.messageId)));
   const bundle = {
     v: 1,
     chainId: e.chainId,

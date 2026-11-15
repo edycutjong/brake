@@ -230,6 +230,17 @@ describe("evidence", () => {
     expect(b.hash).not.toBe(a.hash);
     expect(buildEvidence({ ...base, model: "claude-sonnet-5-5" }).hash).not.toBe(a.hash);
   });
+
+  it("an unverified finding that HOLDs binds its cited message's metadata too", () => {
+    const lines = heroLines();
+    const msgs = heroMessages([...MONDAY, "E4"]);
+    const f: Finding = { line: 2, intent: "PAYMENT_DETAIL_CHANGE", quotes: [{ messageId: "E4", text: "not in the email" }], note: "" };
+    const d = decide(lines[2]!, [], [], [f]);
+    expect(d.verdict).toBe("HOLD");
+    const ev = buildEvidence({ chainId: 44005, brake: "0x00000000000000000000000000000000000000AA" as Address, runId: `0x${"01".repeat(32)}` as Hex, line: lines[2]!, decision: d, messages: msgs, model: "none" });
+    expect(ev.bundle.messages.map((m) => m.id)).toEqual(["E4"]);
+    expect(ev.bundle.unverified).toHaveLength(1);
+  });
 });
 
 describe("model output parsing", () => {
@@ -246,8 +257,9 @@ describe("model output parsing", () => {
     expect(modelFromEnv({}).id).toBe("unconfigured");
   });
 
-  it("drops unknown intents and non-integer lines", () => {
-    const f = parseFindings({ findings: [{ line: 2, intent: "PAY_NOW", quotes: [], note: "" }, { line: "2", intent: "DISPUTE" }, { line: 1, intent: "BENIGN", quotes: [] }] });
-    expect(f).toEqual([{ line: 1, intent: "BENIGN", quotes: [], note: "" }]);
+  it("any malformed item (unknown intent, non-integer line) invalidates the response; well-formed items parse", () => {
+    expect(() => parseFindings({ findings: [{ line: 2, intent: "PAY_NOW", quotes: [], note: "" }, { line: 1, intent: "BENIGN", quotes: [] }] })).toThrow(/malformed finding/);
+    expect(() => parseFindings({ findings: [{ line: "2", intent: "DISPUTE" }] })).toThrow(/malformed finding/);
+    expect(parseFindings({ findings: [{ line: 1, intent: "BENIGN", quotes: [] }] })).toEqual([{ line: 1, intent: "BENIGN", quotes: [], note: "" }]);
   });
 });

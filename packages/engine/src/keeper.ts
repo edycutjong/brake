@@ -94,7 +94,12 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
           res.skipped.push({ idx: l.idx, why: "changed since the scan (held, stopped or consumed) — not paid, not re-held" });
           continue;
         }
-        res.held.push({ idx: l.idx, reason: `REVIEW_STALE (${why})`, tx: h.tx });
+        // a reverted hold (revoked grant, expired agent) is reported as such: the line is still not paid (a2a arch r02)
+        res.held.push(
+          h.chainStatus === "HELD"
+            ? { idx: l.idx, reason: `REVIEW_STALE (${why})`, tx: h.tx }
+            : { idx: l.idx, reason: `not paid: REVIEW_STALE (${why}); on-chain hold ${h.chainStatus ?? "failed"}`, tx: h.tx },
+        );
       } catch (e) {
         res.held.push({ idx: l.idx, reason: `not paid: REVIEW_STALE (${why}); on-chain hold failed: ${String((e as Error).message).slice(0, 120)}` });
       }
