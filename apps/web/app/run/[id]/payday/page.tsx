@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ApiError, useRunCtx } from "@/lib/client";
 import { fmtTime, short, tusd } from "@/lib/format";
-import { ExplorerLink, PaidMark, RecoveryTicket, StopStamp } from "@/components/ui";
+import { ExplorerLink, PaidMark, RecoveryTicket, StopStamp, TxStatus } from "@/components/ui";
 
 export default function Payday() {
   const { run, act, payday } = useRunCtx();
@@ -22,7 +22,7 @@ export default function Payday() {
       <h2>Payday &amp; receipts</h2>
       <p className="lede">Payday is one batched <span className="data">transferWithAuthorization</span> call for every allowed line. A stopped line is replayed too — and must revert.</p>
       <div className="actions">
-        <button className="btn" disabled={!run.session || payday.busy || !!run.settledAt} onClick={() => void payday.run(!run.lines.some((l) => l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx)))}>
+        <button className="btn" disabled={!run.session || payday.busy || !!run.settledAt} onClick={() => { if (run.scenario === "hero" && !run.decisions.some((d) => d.verdict === "STOP") && !window.confirm("No vendor email has been delivered yet, so every allowed line — including line 3 — pays the address on file. To see the agent stop line 3, cancel and use Play the hero on the Run sheet. Run payday anyway?")) return; void payday.run(!run.lines.some((l) => l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx))); }}>
           {payday.busy ? "Running payday…" : "Run payday now"}
         </button>
         <span className="note" role="status">{payday.busy ? payday.note : `Scheduled for ${fmtTime(new Date(due).toISOString())}; the keeper also runs it by itself.`}</span>
@@ -55,7 +55,7 @@ export default function Payday() {
                 {l.proofTx ? <p className="note">Expected: this payment can no longer clear.</p> : null}
                 {l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx) ? (
                   <div style={{ marginTop: 10 }}>
-                    <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}>
+                    <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0", minHeight: 44 }}>
                       <input type="checkbox" style={{ width: 24, minHeight: 24 }} checked={!!phoned[l.idx]} onChange={(e) => setPhoned({ ...phoned, [l.idx]: e.target.checked })} />
                       <span>I phoned {v?.name} on the number in our contract file <span className="tag">simulated in demo</span></span>
                     </label>
@@ -86,6 +86,7 @@ export default function Payday() {
             {l.status === "EXTERNALLY_CANCELLED" ? <p className="err" role="alert">Unexplained cancel — this payment was cancelled outside Brake. Finance should investigate.</p> : null}
             {l.status === "REISSUED" ? <p className="note">Superseded by line {(run.lines.find((x) => x.reissuedFrom === l.idx)?.idx ?? 0) + 1} — re-issued to the vendor&apos;s genuine wallet.</p> : null}
             {["OPEN", "ALLOWED", "SIGNED"].includes(l.status) ? <p className="note">Scheduled — pays at {fmtTime(l.validAfter)}.</p> : null}
+            {payday.busy && ["OPEN", "ALLOWED"].includes(l.status) ? <p role="status"><TxStatus run={run} hash={null} state="sent" /> payment batch</p> : null}
           </section>
         );
       })}

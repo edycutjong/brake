@@ -15,7 +15,7 @@ export default function RunSheet() {
       <HeroWalk />
       <h2>Run sheet</h2>
       <p className="note" role="status">
-        Signed {signed} of {signed} · <b>demo mode</b>: the server signed these with a labelled custodial demo payer
+        {signed} lines signed · <b>demo mode</b>: the server signed these with a labelled custodial demo payer
         (non-custodial signing: <span className="data">scripts/sign_local.ts</span>). Run{" "}
         <span className="data" title={run.runId}>{short(run.runId, 8, 6)}</span> opened by{" "}
         <ExplorerLink run={run} hash={run.openTx} label="open tx" />.
@@ -36,7 +36,7 @@ export default function RunSheet() {
                 <td className="n">{l.idx + 1}</td>
                 <td>{v?.name ?? l.vendorId}{l.reissuedFrom !== null ? <span className="sub">re-issue of line {l.reissuedFrom + 1}</span> : null}</td>
                 <td><span className="data">{short(l.payee)}</span><span className="sub">{v?.domain}</span></td>
-                <td className="data">{l.invoice}</td>
+                <td className="data nowrap">{l.invoice}</td>
                 <td className="amt"><span className="v">{tusd(l.amountUnits)}</span></td>
                 <td>{fmtTime(l.validAfter)}</td>
                 <td className="stampcell">

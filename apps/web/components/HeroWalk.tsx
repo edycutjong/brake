@@ -22,6 +22,7 @@ export default function HeroWalk() {
   const reissued = run.lines.some((l) => l.reissuedFrom !== null);
   const finished = run.lines.some((l) => l.reissuedFrom !== null && l.status === "PAID");
 
+  const missed = paidDay && !tuesday && !run.lines.some((l) => l.stopTx);
   const cur = !monday ? 1 : !tuesday ? 2 : !paidDay ? 3 : !finished ? 4 : 5;
   const state = (n: number) => (n < cur ? "done" : n === cur ? "cur" : "todo");
 
@@ -30,6 +31,22 @@ export default function HeroWalk() {
     try { await fn(); } catch (e) { setErr(e instanceof ApiError ? e.message : e instanceof Error ? e.message : String(e)); } finally { setBusy(null); }
   }
 
+  if (!run.session) {
+    return (
+      <section className="panel" aria-labelledby="hero-h">
+        <h2 id="hero-h" style={{ marginTop: 0 }}>Play the hero</h2>
+        <p>This run belongs to someone else&apos;s session, so its buttons are off. <Link href="/">Start your own demo run</Link> — two minutes, no wallet.</p>
+      </section>
+    );
+  }
+  if (missed) {
+    return (
+      <section className="panel alarm" aria-labelledby="hero-h" role="alert">
+        <h2 id="hero-h" style={{ marginTop: 0 }}>Payday already ran</h2>
+        <p>Payday ran before Tuesday&apos;s email, so every line was paid to the address on file — including line 3. That is what happens with no agent review. <Link href="/">Start a new demo run</Link> to play the hero from the top.</p>
+      </section>
+    );
+  }
   return (
     <section className="panel" aria-labelledby="hero-h">
       <h2 id="hero-h" style={{ marginTop: 0 }}>Play the hero</h2>
@@ -53,14 +70,14 @@ export default function HeroWalk() {
           <div><div className="t">Payday — pay the clean lines, prove the stopped one can&apos;t clear</div>
             <div className="d" role="status">{payday.busy ? payday.note : "One batched transfer pays what was allowed; the stopped line is replayed and reverts."}</div></div>
           {state(3) === "cur" ? (
-            <button className="btn small" disabled={!run.session || payday.busy || !tuesday} onClick={() => void payday.run()}>{payday.busy ? "Running payday…" : "Run payday now"}</button>
+            <button className="btn small" disabled={!run.session || payday.busy || !tuesday} onClick={() => void payday.run()}>{payday.busy ? (payday.note?.startsWith("Payment window") ? payday.note.replace(" — payday will run by itself.", "") : "Running payday…") : "Run payday now"}</button>
           ) : <span />}
         </li>
         <li className={state(4)}>
           <div><div className="t">Re-issue — finance pays the vendor&apos;s genuine wallet</div>
             <div className="d">Out-of-band check first: finance phones the vendor on the number in the contract file (simulated in demo).</div>
             {state(4) === "cur" ? (
-              <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}>
+              <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0", minHeight: 44 }}>
                 <input type="checkbox" style={{ width: 24, minHeight: 24 }} checked={phoned} onChange={(e) => setPhoned(e.target.checked)} />
                 <span>I phoned the vendor on the number in our contract file <span className="tag">simulated</span></span>
               </label>

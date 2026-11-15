@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-15T18:39:41Z",
+  "recordedAt": "2026-11-15T19:20:45Z",
   "forge": {
     "command": "forge test",
     "passed": 49,
@@ -20,9 +20,13 @@
   },
   "engine": {
     "command": "pnpm --filter @brake/engine test",
-    "passed": 49,
+    "passed": 50,
     "failed": 0,
-    "note": "agent 15 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 15 (skipped when the fork or local keys are absent)"
+    "note": "agent 15 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 15 (skipped when the fork or local keys are absent) | P1c: +1 wallet-mode test (signature recovery, server never needs the payer key)"
   },
-  "total": 110
+  "total": 111,
+  "webE2E": {
+    "command": "python3 apps/web/e2e/hero_walk.py",
+    "note": "full hero through the real UI on a local fork, ~61 s; interaction_qa.py 0 failures; 390 px no horizontal scroll on 5 pages"
+  }
 }

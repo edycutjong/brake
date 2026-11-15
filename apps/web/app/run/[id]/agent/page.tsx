@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { ApiError, useRunCtx } from "@/lib/client";
 import { fmtClock, fmtTime, short, tusd } from "@/lib/format";
-import { Copy, ExplorerLink } from "@/components/ui";
+import { Copy, TxStatus } from "@/components/ui";
 import type { DecisionView, Message } from "@/lib/types";
 
 function highlight(body: string, quotes: string[]): ReactNode {
@@ -48,11 +48,17 @@ function DecisionCard({ d, older, explain }: { d: DecisionView; older: DecisionV
       </p>
       <dl className="kv">
         <dt>Evidence</dt><dd className="data hash">{short(d.evidence_hash, 10, 8)} <Link href={`/verify?hash=${d.evidence_hash}`}>recompute</Link> <Copy text={d.evidence_hash} /></dd>
-        <dt>Tx</dt><dd><ExplorerLink run={run} hash={d.tx} /></dd>
+        <dt>Tx</dt><dd>{d.verdict === "HOLD" && !d.tx ? "—" : <TxStatus run={run} hash={d.tx} state={d.tx ? "confirmed" : "sent"} />}</dd>
         {d.model && d.model !== "finance" ? <><dt>Model</dt><dd className="data">{d.model}</dd></> : null}
       </dl>
       {older.length ? (
-        <div className="hist">History: {older.map((o) => `${fmtClock(o.created_at)} ${o.verdict}`).join(" · ")} → {fmtClock(d.created_at)} {d.verdict}</div>
+        <div className="hist">
+          History: {[...older, d].map((o) => `${fmtTime(o.created_at)} ${o.verdict}`).join(" → ")}
+          {older.map((o) => {
+            const why = o.findings?.map((f) => f.note).filter(Boolean).join(" ");
+            return why ? <div key={o.created_at}>Earlier {o.verdict} ({fmtClock(o.created_at)}): {why}</div> : null;
+          })}
+        </div>
       ) : null}
     </div>
   );
@@ -139,7 +145,7 @@ export default function AgentDesk() {
           {[...byLine.entries()].sort((a, b) => a[0] - b[0]).map(([idx, ds]) => {
             const latest = ds[ds.length - 1]!;
             const v = vendorOf(idx);
-            const explain = latest.verdict === "ALLOW" && v?.payee_change_verified
+            const explain = (latest.verdict === "ALLOW" || ds.some((x) => x.verdict === "ALLOW")) && v?.payee_change_verified
               ? `${v.name}'s payee changed earlier — verified by ${v.payee_change_verified} (clerk attestation in the vendor file), so the agent let it through.` : undefined;
             return <DecisionCard key={idx} d={latest} older={ds.slice(0, -1)} explain={explain} />;
           })}

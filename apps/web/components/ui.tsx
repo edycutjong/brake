@@ -23,9 +23,17 @@ export function PaidMark({ run, tx }: { run: RunView; tx: string | null }) {
 
 /** Signature element: the STOP PAYMENT stamp. Serial = short cancel tx hash, date = when the stop was recorded. */
 export function StopStamp({ run, tx, at, small }: { run: RunView; tx: string | null; at?: string | null; small?: boolean }) {
+  // entrance animation plays once per stop: only the first mount of this tx in this browser session animates
+  const [animate] = useState(() => {
+    if (!tx || typeof sessionStorage === "undefined") return true;
+    const k = `brake:stamp:${tx}`;
+    const seen = sessionStorage.getItem(k);
+    sessionStorage.setItem(k, "1");
+    return !seen;
+  });
   if (small) return <span className="stamp sm" aria-label="stopped"><b>STOP</b></span>;
   return (
-    <span className="stamp" role="img" aria-label={`Stop payment stamp, serial ${tx ?? "pending"}`}>
+    <span className={`stamp${animate ? "" : " still"}`} role="img" aria-label={`Stop payment stamp, serial ${tx ?? "pending"}`}>
       <b>STOP PAYMENT</b>
       <small>No. <ExplorerLink run={run} hash={tx} /></small>
       {at ? <small title="time the stop was recorded">{fmtTime(at)}</small> : null}
@@ -63,8 +71,17 @@ export function AlarmBanner({ run }: { run: RunView }) {
   if (!alarm && stops < run.maxStops) return null;
   return (
     <div className="panel alarm" role="alert">
-      <h3>Agent has used its {run.maxStops} stops for this run.</h3>
-      <p>Further stops need you: a line the agent can no longer stop is held — <b>Stop it or Allow it yourself</b> on the Payday screen.</p>
+      {stops >= run.maxStops ? (
+        <>
+          <h3>Agent has used its {run.maxStops} stops for this run.</h3>
+          <p>Further stops need you: a line the agent can no longer stop is held — <b>Stop it or Allow it yourself</b> on the Payday screen.</p>
+        </>
+      ) : (
+        <>
+          <h3>A line needs your decision.</h3>
+          <p>{alarm?.body} <b>Stop it or Allow it yourself</b> on the Payday screen.</p>
+        </>
+      )}
     </div>
   );
 }

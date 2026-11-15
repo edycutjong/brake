@@ -215,6 +215,7 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
   ).rows.map((x) => (session ? x : { ...x, quotes: undefined, findings: undefined }));
   const jobs = (await db.query(`select id, trigger, status, attempts, error, created_at from review_jobs where run_id = $1 order by created_at`, [p.id])).rows;
   const tickets = (await db.query(`select id, kind, idx, body, status, created_at from tickets where run_id = $1 order by created_at`, [p.id])).rows;
+  const revoke = (await db.query(`select tx_hash, settled_at from tx_queue where run_id = $1 and action = 'revokeAgent' and status = 'mined' limit 1`, [p.id])).rows[0];
   const vendors = (await db.query(`select vendor_id, name, domain, payee, payee_change_verified from run_vendors where run_id = $1`, [p.id])).rows;
   return json(200, {
     id: run.id,
@@ -243,6 +244,8 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
     decisions,
     jobs,
     tickets,
+    revokedTx: revoke?.tx_hash ?? null,
+    revokedAt: revoke?.settled_at ?? null,
     session,
   });
 });
