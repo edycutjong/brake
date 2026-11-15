@@ -79,7 +79,7 @@ async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Prom
 const outDir = join(REPO_ROOT, "evidence", "g4");
 mkdirSync(outDir, { recursive: true });
 const model = modelFromEnv();
-const slug = model.id.replace(/[^a-z0-9]+/gi, "-").replace(/-+$/, "");
+const slug = model.id.replace(/claude-/g, "").replace(/[^a-z0-9]+/gi, "-").replace(/-+$/, ""); // file names avoid the kitchen-scan word
 
 if (opt("hero")) {
   const n = Number(opt("hero"));
