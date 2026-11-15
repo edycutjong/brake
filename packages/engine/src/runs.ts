@@ -438,37 +438,44 @@ export async function runMessages(db: Db | Tx, id: string): Promise<(Message & {
  */
 export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: number, opts: { delaySec?: number } = {}) {
   const run = await getRun(db, id);
-  const lines = await getLines(db, id);
-  const old = lines.find((l) => l.idx === oldIdx);
-  if (!old) throw new HttpError(404, "line not found");
-  const existing = lines.find((l) => l.reissued_from === oldIdx);
-  if (existing) return { newIdx: existing.idx, reused: true, reissueTx: null as Hex | null, allowTx: null as Hex | null };
-  if (old.status !== "STOPPED") throw new HttpError(409, `line ${oldIdx} is ${old.status}, only STOPPED lines can be re-issued`);
-  const v = (await db.query(`select genuine_payee from run_vendors where run_id = $1 and vendor_id = $2`, [id, old.vendor_id])).rows[0];
-  const payee = v.genuine_payee as Address;
   const fx = runFixtures()[run.scenario]!;
-  const t = await chainNow(ctx);
-  const validAfter = t + BigInt(opts.delaySec ?? fx.paydayDelaySec);
-  const validBefore = validAfter + BigInt(fx.windowHours * 3600);
-  const payer = wallet(ctx, "payer");
-  const pair = await signPair(payer.account, await ctx.domain(), { to: payee, value: BigInt(old.amount_units), validAfter, validBefore });
-  const newIdx = lines.length;
-  const data = encodeFunctionData({
-    abi: brakeAbi,
-    functionName: "reissue",
-    args: [run.run_id, BigInt(oldIdx), { payee, amount: BigInt(old.amount_units), nonce: pair.authorization.nonce }, validAfter, validBefore],
-  });
-  const now = new Date();
-  await withTx(db, async (c) => {
+  // under the run lock: one fresh line per stopped line (a double click or a retry resumes it, never forks a second one)
+  const prep = await withTx(db, async (c) => {
     await lock(c, `run:${id}`);
+    const lines = await getLines(c, id);
+    const old = lines.find((l) => l.idx === oldIdx);
+    if (!old) throw new HttpError(404, "line not found");
+    const existing = lines.find((l) => l.reissued_from === oldIdx);
+    if (existing && existing.status !== "SIGNED" && existing.status !== "OPEN") return { done: existing.idx };
+    if (!existing && old.status !== "STOPPED") throw new HttpError(409, `line ${oldIdx} is ${old.status}, only STOPPED lines can be re-issued`);
+    if (existing) {
+      // resume: the fresh line was signed (and maybe registered) by an earlier attempt
+      const p = await loadSig(c, ctx.cfg.sigEncKey!, id, existing.idx, "payment");
+      return { old, newIdx: existing.idx, payee: existing.payee, nonce: p.authorization.nonce, validAfter: p.authorization.validAfter, validBefore: p.authorization.validBefore, registered: existing.status === "OPEN" };
+    }
+    const v = (await c.query(`select genuine_payee from run_vendors where run_id = $1 and vendor_id = $2`, [id, old.vendor_id])).rows[0];
+    const payee = v.genuine_payee as Address;
+    const t = await chainNow(ctx);
+    const validAfter = t + BigInt(opts.delaySec ?? fx.paydayDelaySec);
+    const validBefore = validAfter + BigInt(fx.windowHours * 3600);
+    const pair = await signPair(wallet(ctx, "payer").account, await ctx.domain(), { to: payee, value: BigInt(old.amount_units), validAfter, validBefore });
+    const newIdx = lines.length;
     await c.query(
       `insert into lines (run_id, idx, vendor_id, invoice_id, payee, amount_units, nonce, status, valid_after, valid_before,
          window_start, reissued_from, payee_idx)
        values ($1,$2,$3,$4,$5,$6,$7,'SIGNED',to_timestamp($8),to_timestamp($9),$10,$11,$12)`,
       [id, newIdx, old.vendor_id, old.invoice_id, payee, old.amount_units, pair.authorization.nonce, Number(validAfter),
-        Number(validBefore), now, oldIdx, genuineIdx(old.vendor_id)],
+        Number(validBefore), new Date(), oldIdx, genuineIdx(old.vendor_id)],
     );
     await storePair(c, ctx.cfg.sigEncKey!, id, newIdx, pair);
+    return { old, newIdx, payee, nonce: pair.authorization.nonce, validAfter, validBefore, registered: false };
+  });
+  if ("done" in prep) return { newIdx: prep.done, reused: true, reissueTx: null as Hex | null, allowTx: null as Hex | null };
+  const { old, newIdx, payee, validAfter, validBefore } = prep;
+  const data = encodeFunctionData({
+    abi: brakeAbi,
+    functionName: "reissue",
+    args: [run.run_id, BigInt(oldIdx), { payee, amount: BigInt(old.amount_units), nonce: prep.nonce }, validAfter, validBefore],
   });
   const tx = await sendQueued(db, ctx, { role: "payer", runId: id, idx: newIdx, action: "reissue", idempotencyKey: `${id}:reissue:${oldIdx}`, to: ctx.cfg.brake, data });
   if (tx.status !== "mined") throw new Error(`reissue reverted: ${tx.hash}`);
@@ -515,19 +522,24 @@ export async function payerAllow(db: Db, ctx: ChainCtx, id: string, idx: number,
 /** Finance decides a HELD/flagged line: payer `allow` (FINANCE_ALLOW) or `financeStop` (no budget, same receipt). */
 export async function financeDecide(db: Db, ctx: ChainCtx, id: string, idx: number, action: "allow" | "stop", findingId?: string) {
   const run = await getRun(db, id);
-  const line = (await getLines(db, id)).find((l) => l.idx === idx);
-  if (!line) throw new HttpError(404, "line not found");
-  if (TERMINAL.includes(line.status)) throw new HttpError(409, `line ${idx} is ${line.status}`);
   const { evidenceHash } = await import("brake-signer");
   const verdict = action === "allow" ? "FINANCE_ALLOW" : "FINANCE_STOP";
-  const evidence = { v: 1, kind: verdict, runId: run.run_id, idx, rev: line.evidence_rev, finding: findingId ?? null };
-  const hash = evidenceHash(evidence);
-  const key = `${id}:${idx}:r${line.evidence_rev}:${verdict}`;
-  await db.query(
-    `insert into decisions (id, run_id, idx, verdict, rev, reason_code, model, evidence, evidence_hash, idempotency_key)
-     values ($1,$2,$3,$4,$5,$6,'finance',$7,$8,$9) on conflict (idempotency_key) do nothing`,
-    [newId("dec"), id, idx, verdict, line.evidence_rev, action === "stop" ? "BANK_CHANGE_UNVERIFIED" : "FINANCE_REVIEWED", evidence, hash, key],
-  );
+  // the decision row is written under the run lock against the line's CURRENT revision (finance acknowledges what it saw)
+  const { hash, key } = await withTx(db, async (c) => {
+    await lock(c, `run:${id}`);
+    const line = (await getLines(c, id)).find((l) => l.idx === idx);
+    if (!line) throw new HttpError(404, "line not found");
+    if (TERMINAL.includes(line.status)) throw new HttpError(409, `line ${idx} is ${line.status}`);
+    const evidence = { v: 1, kind: verdict, runId: run.run_id, idx, rev: line.evidence_rev, finding: findingId ?? null };
+    const hash = evidenceHash(evidence);
+    const key = `${id}:${idx}:r${line.evidence_rev}:${verdict}`;
+    await c.query(
+      `insert into decisions (id, run_id, idx, verdict, rev, reason_code, model, evidence, evidence_hash, idempotency_key)
+       values ($1,$2,$3,$4,$5,$6,'finance',$7,$8,$9) on conflict (idempotency_key) do nothing`,
+      [newId("dec"), id, idx, verdict, line.evidence_rev, action === "stop" ? "BANK_CHANGE_UNVERIFIED" : "FINANCE_REVIEWED", evidence, hash, key],
+    );
+    return { hash, key };
+  });
   if (action === "allow") return { tx: await payerAllow(db, ctx, id, idx, hash, key) };
   const c = await loadSig(db, ctx.cfg.sigEncKey!, id, idx, "cancel");
   const { reasonToBytes32 } = await import("brake-signer");

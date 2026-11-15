@@ -17,7 +17,8 @@ import { deliver, getLines, lineContexts, openRunOnChain, runMessages, createRun
 import { runReviewJobs } from "../src/jobs.js";
 import { payday } from "../src/keeper.js";
 import { reconcile } from "../src/reconciler.js";
-import { revokeAgent } from "../src/runs.js";
+import { revokeAgent, reissueLine } from "../src/runs.js";
+import { modelFromEnv } from "../src/agent/model.js";
 import { verifyEvidence } from "brake-signer";
 
 const FORK = "http://127.0.0.1:8545";
@@ -66,7 +67,7 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
         method,
         headers: {
           "content-type": "application/json",
-          "x-forwarded-for": opts.ip ?? "10.0.0.1",
+          "x-real-ip": opts.ip ?? "10.0.0.1",
           ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}),
         },
         body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
@@ -261,6 +262,27 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(p.proofs.length).toBe(2);
     expect(p.proofs.every((x) => /used or canceled/.test(x.replayed))).toBe(true);
     expect(p.held.length).toBe(1);
+    // finance re-issues a stopped line; a double click (two concurrent calls) resolves to ONE fresh line
+    const [a, b] = await Promise.all([reissueLine(db, ctx, run.id, 0, { delaySec: 0 }), reissueLine(db, ctx, run.id, 0, { delaySec: 0 })]);
+    expect(a.newIdx).toBe(b.newIdx);
+    const ls = await getLines(db, run.id);
+    expect(ls.filter((l) => l.reissued_from === 0).length).toBe(1);
+    expect(ls.find((l) => l.idx === a.newIdx)!.status).toBe("ALLOWED");
+  });
+
+  it("no model configured → reviews fail, lines stay undecided, payday HOLDS them (fail-closed)", async () => {
+    const m = modelFromEnv({});
+    expect(m.id).toBe("unconfigured");
+    const run = await createRun(db, ctx, { scenario: "hero" });
+    await openRunOnChain(db, ctx, run.id);
+    const jobs = await runReviewJobs(db, ctx, m, { runId: run.id });
+    expect(jobs[0]!.error).toMatch(/no model configured/);
+    await ctx.pub.request({ method: "evm_increaseTime" as never, params: [61] as never });
+    await ctx.pub.request({ method: "evm_mine" as never, params: [] as never });
+    const p = await payday(db, ctx, run.id);
+    expect(p.paid.length).toBe(0);
+    expect(p.held.length).toBe(4);
+    await db.query(`update review_jobs set status = 'done' where run_id = $1`, [run.id]);
   });
 
   it("verifyEvidence: a stored ALLOW bundle recomputes to the ERC-8004 response hash on-chain", async () => {

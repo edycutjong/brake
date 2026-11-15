@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { formatEther, type Hex } from "viem";
 import { eip3009Abi } from "brake-signer";
 import type { ChainCtx } from "./chain.js";
-import { sha256, type Db } from "./db.js";
+import { lock, sha256, withTx, type Db } from "./db.js";
 import type { ModelClient } from "./agent/model.js";
 import { runReviewJobs } from "./jobs.js";
 import { dueRuns, payday, sweep } from "./keeper.js";
@@ -81,7 +81,8 @@ export function createApi(deps: ApiDeps) {
 // ------------------------------------------------------------------------------------------------- helpers
 
 export function clientIp(req: Request) {
-  return (req.headers.get("x-forwarded-for")?.split(",")[0] ?? req.headers.get("x-real-ip") ?? "local").trim();
+  // x-real-ip is set by the platform proxy (Vercel); the first x-forwarded-for hop is client-controlled elsewhere
+  return (req.headers.get("x-real-ip") ?? req.headers.get("x-forwarded-for")?.split(",").at(-1) ?? "local").trim();
 }
 
 function bearer(req: Request) {
@@ -142,11 +143,15 @@ route("POST", "/api/runs", async (req, _p, { db, ctx, limits, defer, model }) =>
   // global daily spend cap (rows in Postgres), then the payer's free liquidity after other unsettled runs' reservations
   const spent = await db.query<{ s: string }>(SPENT_TODAY);
   if (BigInt(spent.rows[0]!.s) >= limits.dailySpendUnits) throw new HttpError(429, "daily demo spend cap reached — try tomorrow");
-  const res = await admit(db, ctx);
-  if (!res.ok) {
-    throw new HttpError(409, `a demo run is in progress, yours starts in ~${res.waitMin} min`, { busy: true, waitMin: res.waitMin });
-  }
-  const run = await createRun(db, ctx, { scenario, ip: clientIp(req) });
+  // admission is atomic: the balance check and the reservation insert happen under one advisory lock
+  const run = await withTx(db, async (c) => {
+    await lock(c, "admission");
+    const res = await admit(db, ctx);
+    if (!res.ok) {
+      throw new HttpError(409, `a demo run is in progress, yours starts in ~${res.waitMin} min`, { busy: true, waitMin: res.waitMin });
+    }
+    return createRun(db, ctx, { scenario, ip: clientIp(req) });
+  });
   if (b.open !== false) {
     defer(
       openRunOnChain(db, ctx, run.id).then(() => runReviewJobs(db, ctx, model, { runId: run.id })),

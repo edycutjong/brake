@@ -140,7 +140,7 @@ export class AnthropicModel implements ModelClient {
     this.client = new Anthropic({ apiKey });
   }
   async findings(input: ModelInput): Promise<ModelResult> {
-    if (!hasMessages(input)) return { model: this.id, findings: [] };
+    if (!hasMessages(input)) return { model: "none (no linked messages)", findings: [] };
     const res = await this.client.messages.create({
       model: MODEL_ID,
       max_tokens: 2048,
@@ -161,7 +161,7 @@ export class AnthropicModel implements ModelClient {
 export class ClaudeCliModel implements ModelClient {
   readonly id = `${MODEL_ID} (claude-cli)`;
   async findings(input: ModelInput): Promise<ModelResult> {
-    if (!hasMessages(input)) return { model: this.id, findings: [] };
+    if (!hasMessages(input)) return { model: "none (no linked messages)", findings: [] };
     const args = [
       "-p",
       "--model",
@@ -204,8 +204,20 @@ export class NullModel implements ModelClient {
   }
 }
 
+/**
+ * No model configured (no BRAKE_MODEL, no key): every review fails, so lines stay undecided and the keeper HOLDS them at
+ * payday — fail-closed, like an LLM outage. Ablation must be asked for explicitly (BRAKE_MODEL=none).
+ */
+export class UnconfiguredModel implements ModelClient {
+  readonly id = "unconfigured";
+  async findings(): Promise<ModelResult> {
+    throw new Error("no model configured (set ANTHROPIC_API_KEY, or BRAKE_MODEL=none for the ablation)");
+  }
+}
+
 export function modelFromEnv(env = process.env): ModelClient {
-  const mode = env.BRAKE_MODEL ?? (env.ANTHROPIC_API_KEY ? "anthropic" : "none");
+  const mode = env.BRAKE_MODEL ?? (env.ANTHROPIC_API_KEY ? "anthropic" : "unconfigured");
+  if (mode === "unconfigured") return new UnconfiguredModel();
   if (mode === "anthropic") {
     if (!env.ANTHROPIC_API_KEY) throw new Error("BRAKE_MODEL=anthropic needs ANTHROPIC_API_KEY");
     return new AnthropicModel(env.ANTHROPIC_API_KEY);

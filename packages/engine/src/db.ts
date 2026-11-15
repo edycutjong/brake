@@ -6,7 +6,7 @@ export type Db = pg.Pool;
 export type Tx = pg.PoolClient;
 
 export function connect(url: string): Db {
-  return new pg.Pool({ connectionString: url, max: 5 });
+  return new pg.Pool({ connectionString: url, max: 8 });
 }
 
 export async function migrate(db: Db) {

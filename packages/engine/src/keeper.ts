@@ -67,21 +67,39 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
     const fresh = on === "ALLOWED" && d && (d.verdict === "ALLOW" || d.verdict === "FINANCE_ALLOW") && d.rev === l.evidence_rev;
     if (!fresh) {
       const why = on === "OPEN" ? "never reviewed" : `decision rev ${d?.rev} ≠ line rev ${l.evidence_rev}`;
-      const h = await sendHold(db, ctx, id, run.run_id, l.idx, "REVIEW_STALE", ("0x" + "0".repeat(64)) as Hex, `${id}:${l.idx}:r${l.evidence_rev}:STALE`);
+      // never paid either way; a failing hold (revoked grant, expired agent) must not block the other lines' payday
+      try {
+        const h = await sendHold(db, ctx, id, run.run_id, l.idx, "REVIEW_STALE", ("0x" + "0".repeat(64)) as Hex, `${id}:${l.idx}:r${l.evidence_rev}:STALE`);
+        res.held.push({ idx: l.idx, reason: `REVIEW_STALE (${why})`, tx: h.tx });
+      } catch (e) {
+        res.held.push({ idx: l.idx, reason: `not paid: REVIEW_STALE (${why}); on-chain hold failed: ${String((e as Error).message).slice(0, 120)}` });
+      }
       await enqueueReview(db, id, "stale");
-      res.held.push({ idx: l.idx, reason: `REVIEW_STALE (${why})`, tx: h.tx });
       continue;
     }
     payable.push({ line: l, data: twaData(await loadSig(db, key, id, l.idx, "payment")) });
   }
 
   if (payable.length) {
-    const calls = payable.map((p) => ({ target: ctx.cfg.token, allowFailure: true, callData: p.data }));
-    const keeper = wallet(ctx, "keeper");
-    const sim = await ctx.pub.simulateContract({ address: ctx.cfg.multicall3, abi: multicall3Abi, functionName: "aggregate3", args: [calls], account: keeper.account });
-    res.simulation = sim.result.map((r, i) => ({ idx: payable[i]!.line.idx, success: r.success }));
+    // freshness at broadcast: under the per-run lock (the one inbox linking, holds and finance decisions take) re-read each
+    // line's revision, latest decision and Brake status; anything that changed since the scan above is dropped, not paid
     const tx = await withTx(db, async (c) => {
-      await lock(c, `payday:${id}`);
+      await lock(c, `run:${id}`);
+      const still: typeof payable = [];
+      for (const p of payable) {
+        const cur = (await c.query<{ evidence_rev: number; status: string }>(`select evidence_rev, status from lines where run_id = $1 and idx = $2`, [id, p.line.idx])).rows[0]!;
+        const d = (await c.query<{ rev: number; verdict: string }>(`select rev, verdict from decisions where run_id = $1 and idx = $2 order by created_at desc limit 1`, [id, p.line.idx])).rows[0];
+        const on = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, p.line.idx)).status;
+        const ok = on === "ALLOWED" && cur.status === "ALLOWED" && d && (d.verdict === "ALLOW" || d.verdict === "FINANCE_ALLOW") && d.rev === cur.evidence_rev;
+        if (ok) still.push(p);
+        else res.skipped.push({ idx: p.line.idx, why: "changed at broadcast (new evidence, hold or finance decision) — not paid, re-review queued" });
+      }
+      payable.length = 0;
+      payable.push(...still);
+      if (!payable.length) return null;
+      const calls = payable.map((p) => ({ target: ctx.cfg.token, allowFailure: true, callData: p.data }));
+      const sim = await ctx.pub.simulateContract({ address: ctx.cfg.multicall3, abi: multicall3Abi, functionName: "aggregate3", args: [calls], account: wallet(ctx, "keeper").account });
+      res.simulation = sim.result.map((r, i) => ({ idx: payable[i]!.line.idx, success: r.success }));
       return sendQueued(db, ctx, {
         role: "keeper",
         runId: id,
@@ -92,6 +110,8 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
         gas: 150_000n + 120_000n * BigInt(calls.length),
       });
     });
+    if (res.skipped.length) await enqueueReview(db, id, "stale");
+    if (!tx) return res;
     res.batchTx = tx.hash;
     const rc = await ctx.pub.getTransactionReceipt({ hash: tx.hash });
     const used = parseEventLogs({ abi: eip3009Abi, eventName: "AuthorizationUsed", logs: rc.logs });
@@ -117,6 +137,7 @@ async function proofOfStop(db: Db, ctx: ChainCtx, id: string, l: LineRow) {
     to: ctx.cfg.token,
     data: twaData(s),
     gas: 120_000n,
+    retryReverted: false, // designed to revert
   });
   const replayed = tx.status === "reverted" ? await replayRevert(ctx, tx.hash) : "(did not revert — investigate)";
   await db.query(`update lines set proof_tx = $3, proof_reason = $4 where run_id = $1 and idx = $2`, [id, l.idx, tx.hash, replayed]);

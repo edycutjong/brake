@@ -2,8 +2,8 @@
   "deployment": "fork",
   "note": "Anvil fork of Aevum 44005 — these hashes exist only on the local fork, never on the explorer.",
   "scenario": "hero",
-  "run": "run_4136ef89793e5a2e",
-  "runId": "0x7ed731d768924700ca49b9620b7579735c63784f793a98d67facfff6f823bbc4",
+  "run": "run_35d51b4189163ede",
+  "runId": "0x0d4a7ed63fe7c46b21a1a7375b3b921a45ec7393e7cf96fc3b77a968ff327581",
   "brake": "0xE92AF9439c95505335C578F7584ADC0B6A35956B",
   "seedScale": 0.0001,
   "model": "claude-sonnet-5-5 (claude-cli)",
@@ -14,7 +14,7 @@
       "payee": "0x669D8351C0619383d4680753Fd2726548cEA5f7a",
       "amount": "0.125",
       "status": "PAID",
-      "paidTx": "0xb165a3bd966f166486cbfd613da90e7ef2329b23ee05e0ebf210f8a84e61b78a",
+      "paidTx": "0x61a60f33d204298693e603d740681330ebcd73648208630618ec7aa9ad1f2988",
       "stopTx": null,
       "proofTx": null,
       "proofReason": null,
@@ -26,7 +26,7 @@
       "payee": "0x9068521AeA6782FDA7Dac855CB877Ce8fB6e801d",
       "amount": "0.24",
       "status": "PAID",
-      "paidTx": "0xb165a3bd966f166486cbfd613da90e7ef2329b23ee05e0ebf210f8a84e61b78a",
+      "paidTx": "0x61a60f33d204298693e603d740681330ebcd73648208630618ec7aa9ad1f2988",
       "stopTx": null,
       "proofTx": null,
       "proofReason": null,
@@ -39,8 +39,8 @@
       "amount": "0.5",
       "status": "REISSUED",
       "paidTx": null,
-      "stopTx": "0xbe34c6664dec4368a387ba7a5722651a203305f797c87b9392bfd1640e14c7b5",
-      "proofTx": "0xea1db3379f917feb66eb932d3fb3218df3057d3fc78d560f2f76beff24fcc321",
+      "stopTx": "0x776e47e04d8a53b63611c75939ccbbe4469fce1a8c559d892fd500b707cd8052",
+      "proofTx": "0x58df4284eb97090a9d9ed79108fca42265b1fffd67a226b8a2826693e7e7ac66",
       "proofReason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled.",
       "reissuedFrom": null
     },
@@ -50,7 +50,7 @@
       "payee": "0x1AC8e535247450EB282a19E89DF514d8335f8330",
       "amount": "0.038",
       "status": "PAID",
-      "paidTx": "0xb165a3bd966f166486cbfd613da90e7ef2329b23ee05e0ebf210f8a84e61b78a",
+      "paidTx": "0x61a60f33d204298693e603d740681330ebcd73648208630618ec7aa9ad1f2988",
       "stopTx": null,
       "proofTx": null,
       "proofReason": null,
@@ -62,7 +62,7 @@
       "payee": "0x51013B077d417b1679007FfCFcf8567A828c395E",
       "amount": "0.5",
       "status": "PAID",
-      "paidTx": "0x5cef1e67d129717eee0c42a61c3bc541ec4b7aeaa01f0c0d2cc1deb0f94c1056",
+      "paidTx": "0xd9075f9b8c8f82d29582a471f8cc5c8c0f10bb7e7b0d516102e6f7c9897047e6",
       "stopTx": null,
       "proofTx": null,
       "proofReason": null,
@@ -77,8 +77,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0xd89d2e8e8b4db6bad97f239c6559e3b930936ca4e142f64b1b2043fd4bd76c35",
-      "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+      "evidence_hash": "0xf12e14088d61ed27775c2b4faa28eac3a6ed749fc6f37edda0a6135c50f9e98d",
+      "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
       "chain_status": "ALLOWED"
     },
     {
@@ -88,8 +88,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0x2c901a4bce2116d01fd61e76ae717918138d68737356c17b5d792eaee3a9d4b8",
-      "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+      "evidence_hash": "0x5f6ece21abeca51006f24e92b10f8d4bfed721d593e678d449ef712be8b69ed6",
+      "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
       "chain_status": "ALLOWED"
     },
     {
@@ -99,8 +99,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0xace07abea70d9246cbf90046419662201018d63d2f77cb6892212d2a741f2885",
-      "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+      "evidence_hash": "0x160cd36c9baac9a299af45a7e49b49090d8a704fff45ca928b077af2c9ba8616",
+      "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
       "chain_status": "ALLOWED"
     },
     {
@@ -110,8 +110,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0xdf86269e3f11696f1e450e971056716e65d5517b6eb29d67b51f7046a795e8e9",
-      "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+      "evidence_hash": "0x159d0ef7dd334b7751b1759d0772050dde9e8df7aa5508a5a8b84b419b30ab9a",
+      "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
       "chain_status": "ALLOWED"
     },
     {
@@ -121,8 +121,8 @@
       "reason_code": "PAYMENT_DETAIL_CHANGE",
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0x7dd91c62ce457800db1404b7ba3f79c326602645676ee32fee25c747453dfc0c",
-      "tx": "0xbe34c6664dec4368a387ba7a5722651a203305f797c87b9392bfd1640e14c7b5",
+      "evidence_hash": "0x2d7235d8f606eea9f54a0030426f67362c6a539753ff84ec10dd60768f97ccb0",
+      "tx": "0x776e47e04d8a53b63611c75939ccbbe4469fce1a8c559d892fd500b707cd8052",
       "chain_status": "STOPPED"
     },
     {
@@ -132,78 +132,78 @@
       "reason_code": "REISSUE_PHONE_VERIFIED",
       "rules_fired": [],
       "model": "finance",
-      "evidence_hash": "0x4789340d44ef3685317dc62fef516f9599f9d59eb516a8f6c8f643ba5ba228c3",
-      "tx": "0xa1ca6ddc4e48a282e6581de743e9434efdc5c6205b92c36b0c9c251e8cc50fcd",
+      "evidence_hash": "0x0c7dd5ee5486dc6fc1d5496a9947114b706ebc512bd4a3def26374b6cebba65f",
+      "tx": "0xae856d55c2d3a9ae7425a48db9d9fce0cfd7dbc4eccf5169ab30caf41a606188",
       "chain_status": "ALLOWED"
     }
   ],
   "steps": [
     {
       "step": "run created + signed (payment + paired cancel per line, sealed at rest)",
-      "at": "2026-11-15T18:06:14.918Z",
-      "sinceStartMs": 311,
-      "run": "run_4136ef89793e5a2e",
-      "runId": "0x7ed731d768924700ca49b9620b7579735c63784f793a98d67facfff6f823bbc4",
+      "at": "2026-11-15T18:19:41.167Z",
+      "sinceStartMs": 301,
+      "run": "run_35d51b4189163ede",
+      "runId": "0x0d4a7ed63fe7c46b21a1a7375b3b921a45ec7393e7cf96fc3b77a968ff327581",
       "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
       "step": "openRun (payer)",
-      "at": "2026-11-15T18:06:16.106Z",
-      "sinceStartMs": 1499,
-      "tx": "0xd23b0824f0db70e35782043f733ef5514efdd8b2efb64ed20def267cf334bbec",
-      "link": "fork:0xd23b0824f0db70e35782043f733ef5514efdd8b2efb64ed20def267cf334bbec"
+      "at": "2026-11-15T18:19:42.328Z",
+      "sinceStartMs": 1462,
+      "tx": "0x8e016e3e372d382f5de926e01b0dc802c26b542b057c3a827d24837645deeae4",
+      "link": "fork:0x8e016e3e372d382f5de926e01b0dc802c26b542b057c3a827d24837645deeae4"
     },
     {
       "step": "review (open)",
-      "at": "2026-11-15T18:06:21.132Z",
-      "sinceStartMs": 6525,
+      "at": "2026-11-15T18:19:47.268Z",
+      "sinceStartMs": 6402,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 5021,
+      "ms": 4937,
       "executed": [
         {
           "idx": 0,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+          "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 1,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+          "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 2,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+          "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 3,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x2fb2e6377a4dc8b73f5447564d709d76955efa6be2aaffe792546b7804c68966",
+          "tx": "0x9d2dc63bd04addffc781a0e240dcb1f178856821a75ee914c2aff08fe3e55406",
           "chainStatus": "ALLOWED"
         }
       ]
     },
     {
       "step": "deliver E4 (Tuesday's email)",
-      "at": "2026-11-15T18:06:21.170Z",
-      "sinceStartMs": 6563,
+      "at": "2026-11-15T18:19:47.299Z",
+      "sinceStartMs": 6433,
       "linkedLines": [
         3
       ]
     },
     {
       "step": "review (seed:E4)",
-      "at": "2026-11-15T18:06:27.245Z",
-      "sinceStartMs": 12638,
+      "at": "2026-11-15T18:19:52.972Z",
+      "sinceStartMs": 12106,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 6073,
+      "ms": 5671,
       "executed": [
         {
           "idx": 0,
@@ -221,7 +221,7 @@
           "idx": 2,
           "verdict": "STOP",
           "action": "stop",
-          "tx": "0xbe34c6664dec4368a387ba7a5722651a203305f797c87b9392bfd1640e14c7b5",
+          "tx": "0x776e47e04d8a53b63611c75939ccbbe4469fce1a8c559d892fd500b707cd8052",
           "chainStatus": "STOPPED",
           "note": "PAYMENT_DETAIL_CHANGE"
         },
@@ -236,22 +236,22 @@
     },
     {
       "step": "payday 1: waiting for validAfter",
-      "at": "2026-11-15T18:06:27.252Z",
-      "sinceStartMs": 12645,
-      "secondsLeft": 48
+      "at": "2026-11-15T18:19:52.976Z",
+      "sinceStartMs": 12110,
+      "secondsLeft": 49
     },
     {
       "step": "payday 1: waiting for validAfter",
-      "at": "2026-11-15T18:06:58.775Z",
-      "sinceStartMs": 44168,
-      "secondsLeft": 17
+      "at": "2026-11-15T18:20:24.510Z",
+      "sinceStartMs": 43644,
+      "secondsLeft": 18
     },
     {
       "step": "payday 1",
-      "at": "2026-11-15T18:07:18.921Z",
-      "sinceStartMs": 64314,
-      "batchTx": "0xb165a3bd966f166486cbfd613da90e7ef2329b23ee05e0ebf210f8a84e61b78a",
-      "link": "fork:0xb165a3bd966f166486cbfd613da90e7ef2329b23ee05e0ebf210f8a84e61b78a",
+      "at": "2026-11-15T18:20:46.135Z",
+      "sinceStartMs": 65269,
+      "batchTx": "0x61a60f33d204298693e603d740681330ebcd73648208630618ec7aa9ad1f2988",
+      "link": "fork:0x61a60f33d204298693e603d740681330ebcd73648208630618ec7aa9ad1f2988",
       "simulation": [
         {
           "idx": 0,
@@ -274,8 +274,8 @@
       "proofs": [
         {
           "line": 3,
-          "tx": "0xea1db3379f917feb66eb932d3fb3218df3057d3fc78d560f2f76beff24fcc321",
-          "link": "fork:0xea1db3379f917feb66eb932d3fb3218df3057d3fc78d560f2f76beff24fcc321",
+          "tx": "0x58df4284eb97090a9d9ed79108fca42265b1fffd67a226b8a2826693e7e7ac66",
+          "link": "fork:0x58df4284eb97090a9d9ed79108fca42265b1fffd67a226b8a2826693e7e7ac66",
           "replayed": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
         }
       ],
@@ -283,31 +283,31 @@
     },
     {
       "step": "re-issue line 3 → genuine wallet (phone-verified) + payer allow (FINANCE_ALLOW)",
-      "at": "2026-11-15T18:07:21.051Z",
-      "sinceStartMs": 66444,
+      "at": "2026-11-15T18:20:48.251Z",
+      "sinceStartMs": 67385,
       "newLine": 5,
-      "reissueTx": "0x5f5f601a55758e13f938b0b7627a90af78232dce8c049b30e0645e605b5448a1",
-      "allowTx": "0xa1ca6ddc4e48a282e6581de743e9434efdc5c6205b92c36b0c9c251e8cc50fcd",
-      "link": "fork:0x5f5f601a55758e13f938b0b7627a90af78232dce8c049b30e0645e605b5448a1"
+      "reissueTx": "0xa700e2d26460721f8e0096f9e450b07790cd7d8e0083715bf012faacc7ef93b2",
+      "allowTx": "0xae856d55c2d3a9ae7425a48db9d9fce0cfd7dbc4eccf5169ab30caf41a606188",
+      "link": "fork:0xa700e2d26460721f8e0096f9e450b07790cd7d8e0083715bf012faacc7ef93b2"
     },
     {
       "step": "payday 2: waiting for validAfter",
-      "at": "2026-11-15T18:07:21.053Z",
-      "sinceStartMs": 66446,
+      "at": "2026-11-15T18:20:48.255Z",
+      "sinceStartMs": 67389,
       "secondsLeft": 59
     },
     {
       "step": "payday 2: waiting for validAfter",
-      "at": "2026-11-15T18:07:52.582Z",
-      "sinceStartMs": 97975,
+      "at": "2026-11-15T18:21:19.775Z",
+      "sinceStartMs": 98909,
       "secondsLeft": 28
     },
     {
       "step": "payday 2 (re-issued line)",
-      "at": "2026-11-15T18:08:23.164Z",
-      "sinceStartMs": 128557,
-      "batchTx": "0x5cef1e67d129717eee0c42a61c3bc541ec4b7aeaa01f0c0d2cc1deb0f94c1056",
-      "link": "fork:0x5cef1e67d129717eee0c42a61c3bc541ec4b7aeaa01f0c0d2cc1deb0f94c1056",
+      "at": "2026-11-15T18:21:50.376Z",
+      "sinceStartMs": 129510,
+      "batchTx": "0xd9075f9b8c8f82d29582a471f8cc5c8c0f10bb7e7b0d516102e6f7c9897047e6",
+      "link": "fork:0xd9075f9b8c8f82d29582a471f8cc5c8c0f10bb7e7b0d516102e6f7c9897047e6",
       "paid": [
         5
       ],
@@ -315,21 +315,21 @@
     },
     {
       "step": "reconcile",
-      "at": "2026-11-15T18:08:23.208Z",
-      "sinceStartMs": 128601,
-      "from": "3255425",
-      "to": "3255585",
-      "events": 56,
+      "at": "2026-11-15T18:21:50.432Z",
+      "sinceStartMs": 129566,
+      "from": "3256267",
+      "to": "3256401",
+      "events": 20,
       "updates": 0,
       "retried": 0
     },
     {
       "step": "sweep-back to payer",
-      "at": "2026-11-15T18:08:24.324Z",
-      "sinceStartMs": 129717,
-      "tx": "0x5f9d968628aab1448f5d1d0140f9a20c99dc697d74e14af8731ca7a86a4fb155",
+      "at": "2026-11-15T18:21:51.032Z",
+      "sinceStartMs": 130166,
+      "tx": "0x3348dd6da645924393733f91c724dbbcd2374c44f062185076e0f6cdffa7067d",
       "swept": 4
     }
   ],
-  "totalMs": 129718
+  "totalMs": 130167
 }

@@ -15,6 +15,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { readTokenDomain, type TokenDomain } from "brake-signer";
 import type { Config } from "./config.js";
+import pg from "pg";
 import { lock, newId, withTx, type Db } from "./db.js";
 
 export type Wallet = WalletClient<Transport, Chain, Account>;
@@ -101,18 +102,23 @@ export async function sendQueued(
     to: Address;
     data: Hex;
     gas?: bigint;
+    /** a mined-reverted tx under the same key is re-sent unless the tx is designed to revert (proof-of-stop) */
+    retryReverted?: boolean;
   },
 ): Promise<QueuedTx> {
   const w = wallet(ctx, p.role);
   const sender = w.account.address.toLowerCase();
-  const sent = await withTx(db, async (c) => {
+  // the queue uses its own pool: callers often hold a connection in an outer transaction (run lock) while sending
+  const qdb = queuePool(db);
+  const sent = await withTx(qdb, async (c) => {
     await lock(c, `sender:${sender}`);
     const prev = await c.query<{ id: string; tx_hash: Hex; status: string }>(
       `select id, tx_hash, status from tx_queue where idempotency_key = $1`,
       [p.idempotencyKey],
     );
     const row = prev.rows[0];
-    if (row && row.tx_hash && row.status !== "dropped") {
+    const retry = row?.status === "reverted" && p.retryReverted !== false;
+    if (row && row.tx_hash && row.status !== "dropped" && !retry) {
       return { id: row.id, hash: row.tx_hash, status: row.status as QueuedTx["status"], reused: true };
     }
     const chainNonce = await ctx.pub.getTransactionCount({ address: w.account.address, blockTag: "pending" });
@@ -121,7 +127,10 @@ export async function sendQueued(
       [sender],
     );
     const queueNext = q.rows[0]?.n == null ? 0 : Number(q.rows[0].n) + 1;
-    const nonce = Math.max(chainNonce, queueNext);
+    // the queue's nonce covers an RPC whose pending count lags; with nothing in flight, the chain is authoritative
+    // (a dropped or reorged tx would otherwise leave a permanent nonce gap)
+    const inflight = await c.query(`select 1 from tx_queue where sender = $1 and status = 'sent' limit 1`, [sender]);
+    const nonce = inflight.rowCount ? Math.max(chainNonce, queueNext) : chainNonce;
     const id = row?.id ?? newId("tx");
     let hash: Hex;
     try {
@@ -148,10 +157,26 @@ export async function sendQueued(
     return { id, hash, status: "sent" as const, reused: false };
   });
   if (sent.status !== "sent") return sent;
+  // (a reused row still 'sent' is another caller's in-flight tx: wait for the same receipt instead of failing)
   const rc = await ctx.pub.waitForTransactionReceipt({ hash: sent.hash, timeout: 120_000 });
   const status = rc.status === "success" ? "mined" : "reverted";
-  await db.query(`update tx_queue set status = $2 where id = $1`, [sent.id, status]);
+  await qdb.query(`update tx_queue set status = $2 where id = $1`, [sent.id, status]);
   return { ...sent, status };
+}
+
+const pools = new WeakMap<Db, Db>();
+function queuePool(db: Db): Db {
+  let q = pools.get(db);
+  if (!q) {
+    q = new pg.Pool({ connectionString: (db.options as { connectionString?: string }).connectionString, max: 3 });
+    pools.set(db, q);
+    const end = db.end.bind(db);
+    db.end = (async () => {
+      await q!.end();
+      return end();
+    }) as Db["end"];
+  }
+  return q;
 }
 
 /** Replay a mined tx's call at its parent block to read the revert reason (shown raw, labelled "replayed"). */

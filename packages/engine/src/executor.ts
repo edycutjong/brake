@@ -120,7 +120,7 @@ export async function sendHold(db: Db, ctx: ChainCtx, id: string, runId: Hex, id
   await db.query(
     `insert into tickets (id, kind, run_id, idx, body) select $1,'held',$2,$3,$4
       where not exists (select 1 from tickets where kind = 'held' and run_id = $2 and idx = $3 and status = 'open')`,
-    [newId("tkt"), id, idx, `line ${idx} held (${reason}) — finance decides: allow or stop`],
+    [newId("tkt"), id, idx, `line ${idx + 1} held (${reason}) — finance decides: allow or stop`],
   );
   return { idx, verdict, action: "hold", tx: tx.hash, chainStatus: ok ? "HELD" : "reverted", note: reason };
 }
@@ -149,7 +149,7 @@ export async function sendStop(db: Db, ctx: ChainCtx, id: string, runId: Hex, id
     if (name === "StopBudgetExhausted") {
       const held = await sendHold(db, ctx, id, runId, idx, "BUDGET_EXHAUSTED", r.evidenceHash, key, "STOP");
       await db.query(`insert into tickets (id, kind, run_id, idx, body) values ($1,'escalation',$2,$3,$4)`, [
-        newId("tkt"), id, idx, `stop budget exhausted: line ${idx} wanted STOP (${reason}); held for finance`,
+        newId("tkt"), id, idx, `stop budget exhausted: agent wants to stop line ${idx + 1} (${reason}) — confirm? Held for finance`,
       ]);
       return { ...held, action: "budget-hold", note: `StopBudgetExhausted → held (${reason})` };
     }
