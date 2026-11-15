@@ -50,7 +50,9 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
     const open = now > BigInt(va);
     // the proof-of-stop runs inside the payment window, so its revert is "used or canceled", not "not yet valid"
     if (on === "STOPPED") {
-      if (!l.proof_tx && open) res.proofs.push(await proofOfStop(db, ctx, id, l));
+      // only inside [validAfter, validBefore): after validBefore the token reverts for expiry, which proves nothing
+      const inWindow = open && now < BigInt(Math.floor(l.valid_before.getTime() / 1000));
+      if (!l.proof_tx && inWindow) res.proofs.push(await proofOfStop(db, ctx, id, l));
       continue;
     }
     if (TERMINAL.includes(l.status) || on === "CONSUMED" || on === "REISSUED") continue;
@@ -70,9 +72,28 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
     const fresh = on === "ALLOWED" && d && (d.verdict === "ALLOW" || d.verdict === "FINANCE_ALLOW") && d.rev === l.evidence_rev;
     if (!fresh) {
       const why = on === "OPEN" ? "never reviewed" : `decision rev ${d?.rev} ≠ line rev ${l.evidence_rev}`;
-      // never paid either way; a failing hold (revoked grant, expired agent) must not block the other lines' payday
+      // never paid either way; a failing hold (revoked grant, expired agent) must not block the other lines' payday.
+      // The hold is a queued action too: under the run lock, re-read revision, latest decision and Brake status first,
+      // so a finance allow that landed since the scan is not turned back into HELD (a2a arch r01)
       try {
-        const h = await sendHold(db, ctx, id, run.run_id, l.idx, "REVIEW_STALE", ("0x" + "0".repeat(64)) as Hex, `${id}:${l.idx}:r${l.evidence_rev}:STALE`);
+        const h = await withTx(db, async (c) => {
+          await lock(c, `run:${id}`);
+          const cur = (await c.query<{ evidence_rev: number }>(`select evidence_rev from lines where run_id = $1 and idx = $2`, [id, l.idx])).rows[0]!;
+          const d2 = (await c.query<{ rev: number; verdict: string }>(`select rev, verdict from decisions where run_id = $1 and idx = $2 order by created_at desc limit 1`, [id, l.idx])).rows[0];
+          const on2 = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, l.idx)).status;
+          if (on2 === "ALLOWED" && d2 && (d2.verdict === "ALLOW" || d2.verdict === "FINANCE_ALLOW") && d2.rev === cur.evidence_rev) return "fresh" as const;
+          if (on2 !== "OPEN" && on2 !== "ALLOWED") return "moved" as const;
+          return sendHold(db, ctx, id, run.run_id, l.idx, "REVIEW_STALE", ("0x" + "0".repeat(64)) as Hex, `${id}:${l.idx}:r${cur.evidence_rev}:STALE`);
+        });
+        if (h === "fresh") {
+          // decided since the scan: it joins the batch, where the broadcast re-check runs again under the lock
+          payable.push({ line: l, data: twaData(await loadSig(db, key, id, l.idx, "payment")) });
+          continue;
+        }
+        if (h === "moved") {
+          res.skipped.push({ idx: l.idx, why: "changed since the scan (held, stopped or consumed) — not paid, not re-held" });
+          continue;
+        }
         res.held.push({ idx: l.idx, reason: `REVIEW_STALE (${why})`, tx: h.tx });
       } catch (e) {
         res.held.push({ idx: l.idx, reason: `not paid: REVIEW_STALE (${why}); on-chain hold failed: ${String((e as Error).message).slice(0, 120)}` });
@@ -94,11 +115,12 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
         const d = (await c.query<{ rev: number; verdict: string }>(`select rev, verdict from decisions where run_id = $1 and idx = $2 order by created_at desc limit 1`, [id, p.line.idx])).rows[0];
         const on = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, p.line.idx)).status;
         const ok = on === "ALLOWED" && cur.status === "ALLOWED" && d && (d.verdict === "ALLOW" || d.verdict === "FINANCE_ALLOW") && d.rev === cur.evidence_rev;
-        // already paid by an earlier batch whose PAID update was lost: record it (the reconciler fills paid_tx), never re-send
+        // nonce already used on-chain — an earlier batch whose PAID update was lost, or a cancel outside Brake.
+        // authorizationState cannot tell which, so never re-send and never write PAID here: the reconciler classifies it
+        // from tUSD8 AuthorizationUsed / AuthorizationCanceled logs (I8; a2a arch r01)
         const used = ok && ((await ctx.pub.readContract({ address: ctx.cfg.token, abi: eip3009Abi, functionName: "authorizationState", args: [run.payer, p.line.nonce] })) as boolean);
         if (used) {
-          await c.query(`update lines set status = 'PAID' where run_id = $1 and idx = $2`, [id, p.line.idx]);
-          res.skipped.push({ idx: p.line.idx, why: "already paid on-chain (authorizationState used) — marked PAID" });
+          res.skipped.push({ idx: p.line.idx, why: "nonce already used on-chain (paid or cancelled) — not re-sent; the reconciler classifies it from tUSD8 logs" });
         } else if (ok) still.push(p);
         else res.skipped.push({ idx: p.line.idx, why: "changed at broadcast (new evidence, hold or finance decision) — not paid, re-review queued" });
       }
@@ -164,6 +186,14 @@ async function proofOfStop(db: Db, ctx: ChainCtx, id: string, l: LineRow) {
   });
   const replayed = tx.status === "reverted" ? await replayRevert(ctx, tx.hash) : "(did not revert — investigate)";
   await db.query(`update lines set proof_tx = $3, proof_reason = $4 where run_id = $1 and idx = $2`, [id, l.idx, tx.hash, replayed]);
+  if (tx.status !== "reverted") {
+    // a stopped line's payment executed: this must never happen (I3) — page finance with a recovery ticket
+    await db.query(
+      `insert into tickets (id, kind, run_id, idx, body) select $1, 'recovery', $2, $3, $4
+        where not exists (select 1 from tickets where kind = 'recovery' and run_id = $2 and idx = $3)`,
+      [`tkt_${tx.hash.slice(2, 18)}_${l.idx}`, id, l.idx, `PROOF-OF-STOP DID NOT REVERT: line ${l.idx + 1} was paid in ${tx.hash} after its stop — recover from the payee and investigate`],
+    );
+  }
   return { idx: l.idx, tx: tx.hash, replayed };
 }
 
@@ -213,8 +243,17 @@ export async function sweep(db: Db, ctx: ChainCtx, id: string) {
     data: encodeFunctionData({ abi: multicall3Abi, functionName: "aggregate3", args: [calls] }),
     gas: 150_000n + 120_000n * BigInt(calls.length),
   });
+  // settle only on what the token actually moved: a reverted batch, or one whose inner transfers all failed, is not
+  // recorded, so the next sweep retries (a2a arch r01)
+  if (tx.status !== "mined") throw new Error(`sweep ${tx.hash} ${tx.status} — not settled, retry`);
+  const rc = await ctx.pub.getTransactionReceipt({ hash: tx.hash });
+  const moved = parseEventLogs({ abi: eip3009Abi, eventName: "AuthorizationUsed", logs: rc.logs }).length;
+  if (moved === 0) {
+    await db.query(`update tx_queue set status = 'dropped', error = 'no inner transfer succeeded' where id = $1`, [tx.id]);
+    throw new Error(`sweep ${tx.hash}: no inner transfer succeeded — not settled, retry`);
+  }
   await db.query(`update runs set sweep_tx = $2, settled_at = now(), reserved_units = 0 where id = $1`, [id, tx.hash]);
-  return { tx: tx.hash, reused: false, swept: calls.length };
+  return { tx: tx.hash, reused: false, swept: moved, attempted: calls.length };
 }
 
 /**
