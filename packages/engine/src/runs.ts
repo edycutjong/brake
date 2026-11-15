@@ -440,6 +440,7 @@ export async function runMessages(db: Db | Tx, id: string): Promise<(Message & {
  */
 export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: number, opts: { delaySec?: number } = {}) {
   const run = await getRun(db, id);
+  if (run.settled_at) throw new HttpError(409, "This run is settled — its unused funds were swept back. Start a new demo run to re-issue.");
   const fx = runFixtures()[run.scenario]!;
   // under the run lock: one fresh line per stopped line (a double click or a retry resumes it, never forks a second one)
   const prep = await withTx(db, async (c) => {
@@ -458,7 +459,7 @@ export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: num
     const v = (await c.query(`select genuine_payee from run_vendors where run_id = $1 and vendor_id = $2`, [id, old.vendor_id])).rows[0];
     const payee = v.genuine_payee as Address;
     const t = await chainNow(ctx);
-    const validAfter = t + BigInt(opts.delaySec ?? fx.paydayDelaySec);
+    const validAfter = t + BigInt(opts.delaySec ?? Math.min(fx.paydayDelaySec, 15));
     const validBefore = validAfter + BigInt(fx.windowHours * 3600);
     const pair = await signPair(wallet(ctx, "payer").account, await ctx.domain(), { to: payee, value: BigInt(old.amount_units), validAfter, validBefore });
     const newIdx = lines.length;

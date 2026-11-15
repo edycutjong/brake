@@ -251,11 +251,12 @@ export async function settleExpired(db: Db, ctx: ChainCtx): Promise<string[]> {
   return ids;
 }
 
-/** Cron backstop: every run with a line whose window opened and is not settled gets a payday; finished runs get swept. */
+/** Cron backstop: every run whose payment window opened 10+ minutes ago (grace so an interactive visitor is never paid out from under
+ * their walk) and is not settled gets a payday; finished runs get swept. */
 export async function dueRuns(db: Db): Promise<string[]> {
   const r = await db.query<{ id: string }>(
     `select distinct r.id from runs r join lines l on l.run_id = r.id
-      where r.settled_at is null and r.open_tx is not null and l.valid_after <= now() and l.valid_before > now()
+      where r.settled_at is null and r.open_tx is not null and l.valid_after <= now() - interval '10 minutes' and l.valid_before > now()
       order by r.id limit 20`,
   );
   return r.rows.map((x) => x.id);

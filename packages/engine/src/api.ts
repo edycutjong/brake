@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { formatEther, type Hex } from "viem";
+import { formatEther, parseAbi, type Hex } from "viem";
 import { eip3009Abi } from "brake-signer";
 import type { ChainCtx } from "./chain.js";
 import { lock, sha256, withTx, type Db, type Tx } from "./db.js";
@@ -185,12 +185,13 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
   const lines = await getLines(db, p.id!);
   const decisions = (
     await db.query(
-      `select d.idx, d.verdict, d.rev, d.reason_code, d.rules_fired, d.quotes, d.model, d.evidence_hash, d.tx, d.chain_status, d.created_at
+      `select d.idx, d.verdict, d.rev, d.reason_code, d.rules_fired, d.quotes, d.evidence->'findings' as findings, d.model, d.evidence_hash, d.tx, d.chain_status, d.created_at
          from decisions d where d.run_id = $1 order by d.created_at`,
       [p.id],
     )
-  ).rows.map((x) => (session ? x : { ...x, quotes: undefined }));
+  ).rows.map((x) => (session ? x : { ...x, quotes: undefined, findings: undefined }));
   const jobs = (await db.query(`select id, trigger, status, attempts, error, created_at from review_jobs where run_id = $1 order by created_at`, [p.id])).rows;
+  const tickets = (await db.query(`select id, kind, idx, body, status, created_at from tickets where run_id = $1 order by created_at`, [p.id])).rows;
   const vendors = (await db.query(`select vendor_id, name, domain, payee, payee_change_verified from run_vendors where run_id = $1`, [p.id])).rows;
   return json(200, {
     id: run.id,
@@ -207,6 +208,8 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
     settledAt: run.settled_at,
     reviewsLeft: REVIEW_BUDGET.total - run.reviews_used,
     explorer: ctx.cfg.explorer,
+    seedScale: ctx.cfg.seedScale,
+    contracts: { brake: ctx.cfg.brake, token: ctx.cfg.token, identity: ctx.cfg.identity, validation: ctx.cfg.validation },
     deployment: ctx.cfg.deployment,
     vendors,
     lines: lines.map((l) => ({
@@ -216,6 +219,7 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
     })),
     decisions,
     jobs,
+    tickets,
     session,
   });
 });
@@ -251,8 +255,14 @@ route("POST", "/api/runs/:id/review", async (req, p, { db, ctx, defer, model }) 
 
 route("POST", "/api/runs/:id/payday", async (req, p, { db, ctx, defer }) => {
   await requireSession(req, db, p.id!);
-  const sync = new URL(req.url).searchParams.get("wait") === "1";
-  const work = payday(db, ctx, p.id!);
+  const q = new URL(req.url).searchParams;
+  const sync = q.get("wait") === "1";
+  // ?sweep=1 = the visitor is done with the run (nothing left to re-issue): return unused funds to the payer. Without it the
+  // run stays open so a stopped line can still be re-issued and paid; the keeper tick sweeps whatever is left.
+  const work = payday(db, ctx, p.id!).then(async (r) => {
+    if (q.get("sweep") === "1") await sweep(db, ctx, p.id!).catch(() => {});
+    return r;
+  });
   if (sync) return json(200, await work);
   defer(work);
   return json(202, { queued: true });
@@ -321,6 +331,20 @@ route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
     link: ctx.cfg.deployment === "live" ? ctx.explorerTx(e.tx_hash as Hex) : null,
   }));
   return json(200, { head, finalized, confirmations: ctx.cfg.confirmations, events: rows });
+});
+
+const erc20Abi = parseAbi(["function allowance(address,address) view returns (uint256)", "function balanceOf(address) view returns (uint256)"]);
+
+/** Two live observations read from tUSD8 (observations, not proof): the payer->agent allowance and the agent's own balance. */
+route("GET", "/api/verify/observations", async (_req, _p, { ctx }) => {
+  const payer = ctx.wallets.payer?.account.address;
+  const agent = ctx.wallets.agent?.account.address;
+  if (!payer || !agent) throw new HttpError(503, "demo wallets not configured");
+  const [allowance, agentBalance] = await Promise.all([
+    ctx.pub.readContract({ address: ctx.cfg.token, abi: erc20Abi, functionName: "allowance", args: [payer, agent] }),
+    ctx.pub.readContract({ address: ctx.cfg.token, abi: erc20Abi, functionName: "balanceOf", args: [agent] }),
+  ]);
+  return json(200, { payer, agent, token: ctx.cfg.token, allowance, agentBalance, block: await ctx.pub.getBlockNumber() });
 });
 
 /** On-demand reconcile, at most once per 3 s across all viewers (Postgres-held timestamp + the reconciler's own lock). */

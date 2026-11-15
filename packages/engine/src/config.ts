@@ -3,7 +3,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Address, Hex } from "viem";
 
-export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
+/** BRAKE_ROOT overrides the source-relative root (bundled hosts such as Next.js/Vercel). */
+export const REPO_ROOT = process.env.BRAKE_ROOT ?? join(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 export interface Config {
   databaseUrl: string;
