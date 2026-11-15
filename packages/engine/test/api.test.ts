@@ -15,7 +15,7 @@ import { applyDecisions, planAction } from "../src/executor.js";
 import { reviewRun } from "../src/agent/review.js";
 import { deliver, getLines, lineContexts, openRunOnChain, runMessages, createRun } from "../src/runs.js";
 import { runReviewJobs } from "../src/jobs.js";
-import { payday } from "../src/keeper.js";
+import { expireRuns, payday } from "../src/keeper.js";
 import { reconcile } from "../src/reconciler.js";
 import { revokeAgent, reissueLine } from "../src/runs.js";
 import { modelFromEnv } from "../src/agent/model.js";
@@ -216,6 +216,16 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(priv.evidence.findings[0].quotes[0].text).toBe("new wallet");
     await db.query(`update review_jobs set status = 'done' where run_id = $1`, [id]);
     deferred.length = 0;
+  });
+
+  it("expiry: a run never opened on-chain releases its reservation after 30 min (admission never locks up)", async () => {
+    const { id } = await (await call("POST", "/api/runs", { body: { scenario: "late", open: false }, ip: "10.0.0.7" })).json();
+    await db.query(`update runs set created_at = now() - interval '31 minutes' where id = $1`, [id]);
+    expect(await expireRuns(db)).toContain(id);
+    const r = (await db.query(`select settled_at, reserved_units from runs where id = $1`, [id])).rows[0];
+    expect(r.settled_at).not.toBeNull();
+    expect(Number(r.reserved_units)).toBe(0);
+    expect((await getLines(db, id)).map((l) => l.status)).toEqual(["EXPIRED"]);
   });
 
   it("keeper tick needs CRON_SECRET", async () => {

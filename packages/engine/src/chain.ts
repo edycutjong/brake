@@ -1,4 +1,5 @@
 import {
+  keccak256,
   createPublicClient,
   createWalletClient,
   defineChain,
@@ -16,7 +17,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { readTokenDomain, type TokenDomain } from "brake-signer";
 import type { Config } from "./config.js";
 import pg from "pg";
-import { lock, newId, withTx, type Db } from "./db.js";
+import { newId, type Db } from "./db.js";
 
 export type Wallet = WalletClient<Transport, Chain, Account>;
 export type Role = "payer" | "agent" | "keeper";
@@ -84,7 +85,7 @@ export interface QueuedTx {
 }
 
 /**
- * Send one tx through the per-EOA Postgres queue. Under `pg_advisory_xact_lock(sender)`: an existing row with the same
+ * Send one tx through the per-EOA Postgres queue. Under a session advisory lock per sender: an existing row with the same
  * idempotency key is returned instead of sending again (retries never double-send), and the nonce is the max of the
  * chain's pending count and the queue's last used nonce + 1, so concurrent senders from stateless functions never
  * collide. `gas` is required for designed-to-revert txs (viem's estimateGas refuses them).
@@ -110,8 +111,9 @@ export async function sendQueued(
   const sender = w.account.address.toLowerCase();
   // the queue uses its own pool: callers often hold a connection in an outer transaction (run lock) while sending
   const qdb = queuePool(db);
-  const sent = await withTx(qdb, async (c) => {
-    await lock(c, `sender:${sender}`);
+  // one connection, session-level advisory lock, autocommit statements: the 'sent' row is durable before broadcast and
+  // no second connection is ever needed while the lock is held (no pool deadlock)
+  const sent = await withSessionLock(qdb, `sender:${sender}`, async (c) => {
     const prev = await c.query<{ id: string; tx_hash: Hex; status: string }>(
       `select id, tx_hash, status from tx_queue where idempotency_key = $1`,
       [p.idempotencyKey],
@@ -132,36 +134,73 @@ export async function sendQueued(
     const inflight = await c.query(`select 1 from tx_queue where sender = $1 and status = 'sent' limit 1`, [sender]);
     const nonce = inflight.rowCount ? Math.max(chainNonce, queueNext) : chainNonce;
     const id = row?.id ?? newId("tx");
-    let hash: Hex;
+    const rowArgs = [id, sender, p.runId ?? null, p.idx ?? null, p.action, p.idempotencyKey, p.evidenceRev ?? null, nonce];
+    const markDropped = (e: unknown) =>
+      c.query(
+        `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, status, attempts, error)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,'dropped',1,$9)
+         on conflict (idempotency_key) do update set status='dropped', attempts=tx_queue.attempts+1, error=excluded.error`,
+        [...rowArgs, String(e).slice(0, 500)],
+      );
+    let serialized: Hex;
     try {
       // Headroom over the estimate: Brake wraps the ERC-8004 receipt in try/catch, so the estimator's binary search can
       // settle on a limit where the receipt call runs out of gas and is caught (ReceiptFailed) — observed on the fork.
       const gas = p.gas ?? ((await ctx.pub.estimateGas({ account: w.account, to: p.to, data: p.data })) * 3n) / 2n + 50_000n;
-      hash = await w.sendTransaction({ to: p.to, data: p.data, nonce, gas, chain: ctx.chain });
+      const req = await w.prepareTransactionRequest({ to: p.to, data: p.data, nonce, gas, chain: ctx.chain });
+      serialized = await w.signTransaction(req as Parameters<Wallet["signTransaction"]>[0]);
     } catch (e) {
-      await c.query(
-        `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, status, attempts, error)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,'dropped',1,$9)
-         on conflict (idempotency_key) do update set status='dropped', attempts=tx_queue.attempts+1, error=excluded.error`,
-        [id, sender, p.runId ?? null, p.idx ?? null, p.action, p.idempotencyKey, p.evidenceRev ?? null, nonce, String(e).slice(0, 500)],
-      );
+      await markDropped(e);
       throw e;
     }
+    // record the hash BEFORE broadcasting (autocommit), so a crash or an ambiguous send error can never lose it
+    const hash = keccak256(serialized);
     await c.query(
       `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, tx_hash, status, attempts)
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'sent',1)
        on conflict (idempotency_key) do update set nonce=excluded.nonce, tx_hash=excluded.tx_hash, status='sent',
          attempts=tx_queue.attempts+1, error=null`,
-      [id, sender, p.runId ?? null, p.idx ?? null, p.action, p.idempotencyKey, p.evidenceRev ?? null, nonce, hash],
+      [...rowArgs, hash],
     );
+    try {
+      await ctx.pub.sendRawTransaction({ serializedTransaction: serialized });
+    } catch (e) {
+      const seen = await ctx.pub.getTransaction({ hash }).then(() => true, () => false);
+      if (!seen) {
+        await markDropped(e);
+        throw e;
+      }
+    }
     return { id, hash, status: "sent" as const, reused: false };
   });
   if (sent.status !== "sent") return sent;
   // (a reused row still 'sent' is another caller's in-flight tx: wait for the same receipt instead of failing)
-  const rc = await ctx.pub.waitForTransactionReceipt({ hash: sent.hash, timeout: 120_000 });
+  let rc;
+  try {
+    rc = await ctx.pub.waitForTransactionReceipt({ hash: sent.hash, timeout: 120_000 });
+  } catch (e) {
+    // gone from the mempool (dropped, or reorged out): free the key so the next call rebuilds it at a fresh nonce
+    const seen = await ctx.pub.getTransaction({ hash: sent.hash }).then(() => true, () => false);
+    if (!seen) await qdb.query(`update tx_queue set status = 'dropped', error = $2 where id = $1`, [sent.id, String(e).slice(0, 300)]);
+    throw e;
+  }
   const status = rc.status === "success" ? "mined" : "reverted";
   await qdb.query(`update tx_queue set status = $2 where id = $1`, [sent.id, status]);
   return { ...sent, status };
+}
+
+async function withSessionLock<T>(pool: Db, key: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
+  const c = await pool.connect();
+  try {
+    await c.query("select pg_advisory_lock(hashtextextended($1, 0))", [key]);
+    try {
+      return await fn(c);
+    } finally {
+      await c.query("select pg_advisory_unlock(hashtextextended($1, 0))", [key]);
+    }
+  } finally {
+    c.release();
+  }
 }
 
 const pools = new WeakMap<Db, Db>();

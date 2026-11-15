@@ -104,7 +104,7 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
         role: "keeper",
         runId: id,
         action: "payday",
-        idempotencyKey: `${id}:payday:${payable.map((p) => p.line.idx).join(",")}`,
+        idempotencyKey: await paydayKey(c, `${id}:payday:${payable.map((p) => p.line.idx).join(",")}`),
         to: ctx.cfg.multicall3,
         data: encodeFunctionData({ abi: multicall3Abi, functionName: "aggregate3", args: [calls] }),
         gas: 150_000n + 120_000n * BigInt(calls.length),
@@ -124,6 +124,21 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
     }
   }
   return res;
+}
+
+/**
+ * Payday key: reuse an in-flight batch for the same lines; otherwise a new attempt suffix. The lines passed the re-check
+ * (still ALLOWED, not PAID), so any earlier mined batch for this exact set paid none of them (all calls failed inside
+ * Multicall3) and must not block a retry.
+ */
+async function paydayKey(c: { query: Db["query"] }, base: string): Promise<string> {
+  const prev = await c.query<{ idempotency_key: string; status: string }>(
+    `select idempotency_key, status from tx_queue where idempotency_key = $1 or idempotency_key like $1 || ':a%'`,
+    [base],
+  );
+  const inflight = prev.rows.find((r) => r.status === "sent");
+  if (inflight) return inflight.idempotency_key;
+  return prev.rows.length ? `${base}:a${prev.rows.length}` : base;
 }
 
 async function proofOfStop(db: Db, ctx: ChainCtx, id: string, l: LineRow) {
@@ -192,6 +207,28 @@ export async function sweep(db: Db, ctx: ChainCtx, id: string) {
   });
   await db.query(`update runs set sweep_tx = $2, settled_at = now(), reserved_units = 0 where id = $1`, [id, tx.hash]);
   return { tx: tx.hash, reused: false, swept: calls.length };
+}
+
+/**
+ * Settle runs that can no longer change: past every line's validBefore (+10 min grace) → open lines EXPIRED; never opened
+ * on-chain 30 min after creation → EXPIRED. Either way the liquidity reservation is released so admission never locks up.
+ */
+export async function expireRuns(db: Db): Promise<string[]> {
+  const r = await db.query<{ id: string }>(
+    `update runs r set settled_at = now(), reserved_units = 0
+      where r.settled_at is null and (
+        (r.open_tx is null and r.created_at < now() - interval '30 minutes') or
+        not exists (select 1 from lines l where l.run_id = r.id and l.valid_before > now() - interval '10 minutes'))
+      returning r.id`,
+  );
+  const ids = r.rows.map((x) => x.id);
+  if (ids.length) {
+    await db.query(
+      `update lines set status = 'EXPIRED' where run_id = any($1) and status in ('SIGNED','OPEN','ALLOWED','HELD')`,
+      [ids],
+    );
+  }
+  return ids;
 }
 
 /** Cron backstop: every run with a line whose window opened and is not settled gets a payday; finished runs get swept. */

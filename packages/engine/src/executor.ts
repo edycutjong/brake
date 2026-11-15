@@ -3,7 +3,7 @@ import { brakeAbi, lineStatus, reasonToBytes32, type LineStatus } from "brake-si
 import { sendQueued, wallet, type ChainCtx } from "./chain.js";
 import { lock, newId, withTx, type Db } from "./db.js";
 import type { ReviewedLine } from "./agent/review.js";
-import { enqueueReview, evidenceUri, getRun, loadSig } from "./runs.js";
+import { enqueueReview, evidenceUri, getRun, loadSig, syncStatus } from "./runs.js";
 
 export type Action = "allow" | "hold" | "stop" | "noop";
 
@@ -115,7 +115,7 @@ export async function sendHold(db: Db, ctx: ChainCtx, id: string, runId: Hex, id
   const data = encodeFunctionData({ abi: brakeAbi, functionName: "hold", args: [runId, BigInt(idx), reasonToBytes32(reason), evidenceHash] });
   const tx = await sendQueued(db, ctx, { role: "agent", runId: id, idx, action: "hold", idempotencyKey: `tx:${key}:hold`, to: ctx.cfg.brake, data });
   const ok = tx.status === "mined";
-  if (ok) await db.query(`update lines set status = 'HELD' where run_id = $1 and idx = $2`, [id, idx]);
+  if (ok) await syncStatus(db, ctx, id, runId, idx);
   await db.query(`update decisions set tx = $2, chain_status = $3 where idempotency_key = $1`, [key, tx.hash, ok ? "HELD" : "reverted"]);
   await db.query(
     `insert into tickets (id, kind, run_id, idx, body) select $1,'held',$2,$3,$4

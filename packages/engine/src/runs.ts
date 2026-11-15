@@ -470,8 +470,8 @@ export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: num
     await storePair(c, ctx.cfg.sigEncKey!, id, newIdx, pair);
     return { old, newIdx, payee, nonce: pair.authorization.nonce, validAfter, validBefore, registered: false };
   });
-  if ("done" in prep) return { newIdx: prep.done, reused: true, reissueTx: null as Hex | null, allowTx: null as Hex | null };
-  const { old, newIdx, payee, validAfter, validBefore } = prep;
+  if (typeof prep.done === "number") return { newIdx: prep.done, reused: true, reissueTx: null as Hex | null, allowTx: null as Hex | null };
+  const { old, newIdx, payee, validAfter, validBefore } = prep as Required<Omit<typeof prep, "done">>;
   const data = encodeFunctionData({
     abi: brakeAbi,
     functionName: "reissue",
@@ -514,45 +514,60 @@ export async function payerAllow(db: Db, ctx: ChainCtx, id: string, idx: number,
   const data = encodeFunctionData({ abi: brakeAbi, functionName: "allow", args: [run.run_id, [BigInt(idx)], [hash], [evidenceUri(ctx, hash)]] });
   const tx = await sendQueued(db, ctx, { role: "payer", runId: id, idx, action: "financeAllow", idempotencyKey: `tx:${key}`, to: ctx.cfg.brake, data });
   if (tx.status !== "mined") throw new Error(`payer allow reverted: ${tx.hash}`);
-  await db.query(`update lines set status = 'ALLOWED' where run_id = $1 and idx = $2`, [id, idx]);
+  await syncStatus(db, ctx, id, run.run_id, idx);
   await db.query(`update decisions set tx = $2, chain_status = 'ALLOWED' where idempotency_key = $1`, [key, tx.hash]);
   return tx.hash;
 }
 
-/** Finance decides a HELD/flagged line: payer `allow` (FINANCE_ALLOW) or `financeStop` (no budget, same receipt). */
+/** Copy Brake's live status into the DB for the in-flight states (a reused old tx must not overwrite a newer state). */
+export async function syncStatus(db: Db | Tx, ctx: ChainCtx, id: string, runId: Hex, idx: number) {
+  const { lineStatus } = await import("brake-signer");
+  const on = (await lineStatus(ctx.pub, ctx.cfg.brake, runId, idx)).status;
+  if (on === "OPEN" || on === "ALLOWED" || on === "HELD") {
+    await db.query(`update lines set status = $3 where run_id = $1 and idx = $2 and status in ('SIGNED','OPEN','ALLOWED','HELD')`, [id, idx, on]);
+  }
+  return on;
+}
+
+/**
+ * Finance decides a HELD/flagged line: payer `allow` (FINANCE_ALLOW) or `financeStop` (no budget, same receipt). The
+ * decision and its tx both happen under the run lock, so a payday cannot broadcast between them.
+ */
 export async function financeDecide(db: Db, ctx: ChainCtx, id: string, idx: number, action: "allow" | "stop", findingId?: string) {
   const run = await getRun(db, id);
-  const { evidenceHash } = await import("brake-signer");
+  const { evidenceHash, reasonToBytes32 } = await import("brake-signer");
   const verdict = action === "allow" ? "FINANCE_ALLOW" : "FINANCE_STOP";
-  // the decision row is written under the run lock against the line's CURRENT revision (finance acknowledges what it saw)
-  const { hash, key } = await withTx(db, async (c) => {
+  return withTx(db, async (c) => {
     await lock(c, `run:${id}`);
     const line = (await getLines(c, id)).find((l) => l.idx === idx);
     if (!line) throw new HttpError(404, "line not found");
     if (TERMINAL.includes(line.status)) throw new HttpError(409, `line ${idx} is ${line.status}`);
+    // finance acknowledges the line's CURRENT evidence revision
     const evidence = { v: 1, kind: verdict, runId: run.run_id, idx, rev: line.evidence_rev, finding: findingId ?? null };
     const hash = evidenceHash(evidence);
     const key = `${id}:${idx}:r${line.evidence_rev}:${verdict}`;
-    await c.query(
+    // autocommit (not `c`): the tx helpers update this row from other connections
+    await db.query(
       `insert into decisions (id, run_id, idx, verdict, rev, reason_code, model, evidence, evidence_hash, idempotency_key)
        values ($1,$2,$3,$4,$5,$6,'finance',$7,$8,$9) on conflict (idempotency_key) do nothing`,
       [newId("dec"), id, idx, verdict, line.evidence_rev, action === "stop" ? "BANK_CHANGE_UNVERIFIED" : "FINANCE_REVIEWED", evidence, hash, key],
     );
-    return { hash, key };
+    if (action === "allow") return { tx: await payerAllow(db, ctx, id, idx, hash, key) };
+    const sig = await loadSig(db, ctx.cfg.sigEncKey!, id, idx, "cancel");
+    const data = encodeFunctionData({
+      abi: brakeAbi,
+      functionName: "financeStop",
+      args: [run.run_id, BigInt(idx), reasonToBytes32("BANK_CHANGE_UNVERIFIED"), hash, evidenceUri(ctx, hash), sig.sig.v, sig.sig.r, sig.sig.s],
+    });
+    const tx = await sendQueued(db, ctx, { role: "payer", runId: id, idx, action: "financeStop", idempotencyKey: `tx:${key}`, to: ctx.cfg.brake, data });
+    if (tx.status !== "mined") throw new Error(`financeStop reverted: ${tx.hash}`);
+    const { lineStatus } = await import("brake-signer");
+    const on = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, idx)).status;
+    const st = on === "STOPPED" ? "STOPPED" : on === "CONSUMED" ? "CONSUMED" : line.status;
+    await db.query(`update lines set status = $3, stop_tx = $4 where run_id = $1 and idx = $2`, [id, idx, st, tx.hash]);
+    await db.query(`update decisions set tx = $2, chain_status = $3 where idempotency_key = $1`, [key, tx.hash, on]);
+    return { tx: tx.hash, status: on };
   });
-  if (action === "allow") return { tx: await payerAllow(db, ctx, id, idx, hash, key) };
-  const c = await loadSig(db, ctx.cfg.sigEncKey!, id, idx, "cancel");
-  const { reasonToBytes32 } = await import("brake-signer");
-  const data = encodeFunctionData({
-    abi: brakeAbi,
-    functionName: "financeStop",
-    args: [run.run_id, BigInt(idx), reasonToBytes32("BANK_CHANGE_UNVERIFIED"), hash, evidenceUri(ctx, hash), c.sig.v, c.sig.r, c.sig.s],
-  });
-  const tx = await sendQueued(db, ctx, { role: "payer", runId: id, idx, action: "financeStop", idempotencyKey: `tx:${key}`, to: ctx.cfg.brake, data });
-  if (tx.status !== "mined") throw new Error(`financeStop reverted: ${tx.hash}`);
-  await db.query(`update lines set status = 'STOPPED', stop_tx = $3 where run_id = $1 and idx = $2`, [id, idx, tx.hash]);
-  await db.query(`update decisions set tx = $2, chain_status = 'STOPPED' where idempotency_key = $1`, [key, tx.hash]);
-  return { tx: tx.hash };
 }
 
 export async function revokeAgent(db: Db, ctx: ChainCtx, id: string) {

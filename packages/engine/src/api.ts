@@ -5,7 +5,7 @@ import type { ChainCtx } from "./chain.js";
 import { lock, sha256, withTx, type Db } from "./db.js";
 import type { ModelClient } from "./agent/model.js";
 import { runReviewJobs } from "./jobs.js";
-import { dueRuns, payday, sweep } from "./keeper.js";
+import { dueRuns, expireRuns, payday, sweep } from "./keeper.js";
 import { reconcile } from "./reconciler.js";
 import {
   createRun,
@@ -283,7 +283,7 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
   const row = r.rows[0];
   if (!row) throw new HttpError(404, "unknown evidence hash");
   const session = await hasSession(req, db, row.run_id);
-  const ev = row.evidence as { findings?: { quotes: { messageId: string; text: string }[] }[] };
+  const ev = row.evidence as { findings?: { quotes: { messageId: string; text: string }[]; note?: string }[] };
   const composerIds = new Set(
     (await db.query<{ id: string }>(`select id from inbox where run_id = $1 and source = 'composer'`, [row.run_id])).rows.map((x) => x.id),
   );
@@ -294,6 +294,7 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
       findings: (ev.findings ?? []).map((f) => ({
         ...f,
         quotes: f.quotes.map((q) => (composerIds.has(q.messageId) ? { messageId: q.messageId, text: "[session-private]" } : q)),
+        ...(f.quotes.some((q) => composerIds.has(q.messageId)) ? { note: "[session-private]" } : {}),
       })),
     };
     return json(200, { hash: p.hash, redacted: true, label: "contains session-private quotes — full recompute needs the session token", evidence: redacted });
@@ -351,8 +352,9 @@ route("POST", "/api/keeper/tick", async (req, _p, { db, ctx, model }) => {
     }
   }
   const rec = await reconcile(db, ctx);
+  const expired = await expireRuns(db);
   await db.query(`insert into cursors (name, last_block) values ('last_tick_ms', $1) on conflict (name) do update set last_block = excluded.last_block`, [Date.now()]);
-  return json(200, { jobs: jobs.length, paydays, reconciled: { to: rec.to, events: rec.events, updates: rec.updates.length, retried: rec.retried.length } });
+  return json(200, { jobs: jobs.length, paydays, expired: expired.length, reconciled: { to: rec.to, events: rec.events, updates: rec.updates.length, retried: rec.retried.length } });
 });
 
 route("GET", "/api/health", async (_req, _p, { db, ctx, limits }) => {
