@@ -1,5 +1,5 @@
 import { encodeFunctionData, parseEventLogs, type Hex, type Log } from "viem";
-import { brakeAbi, eip3009Abi } from "brake-signer";
+import { brakeAbi, eip3009Abi, lineStatus } from "brake-signer";
 import { sendQueued, type ChainCtx } from "./chain.js";
 import { lock, withTx, type Db } from "./db.js";
 
@@ -23,7 +23,9 @@ const cursorName = (ctx: ChainCtx) => `reconciler:${ctx.cfg.brake.toLowerCase()}
  * - AuthorizationUsed on a line's nonce → PAID; if Brake also recorded StopConsumed for it → TOO_LATE (I8).
  * - AuthorizationCanceled with a LineStopped in the same tx → STOPPED; without one → EXTERNALLY_CANCELLED (I8).
  * - ReceiptFailed with the line's receipt still pending → retryReceipt (I9).
- * Reorg-safe (basic): every pass deletes and re-scans the last CONFIRMATIONS blocks below the cursor.
+ * Reorg-safe: every pass deletes and re-scans the last CONFIRMATIONS blocks below the cursor; a line whose paid_tx /
+ * stop_tx pointed at a token event that vanished in that rescan is rolled back to its Brake status (a2a arch r01).
+ * Token events are matched to lines by (authorizer = run payer, nonce), never by nonce alone.
  */
 export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigint } = {}): Promise<ReconcileResult> {
   const conf = BigInt(ctx.cfg.confirmations);
@@ -34,6 +36,13 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
     const deployBlock = BigInt(process.env.DEPLOY_BLOCK ?? (await firstRunBlock(ctx, c)) ?? head - 1000n);
     let from = opts.fromBlock ?? (cur.rows[0] ? BigInt(cur.rows[0].last_block) - conf : deployBlock);
     if (from < 0n) from = 0n;
+    // token-event txs inside the rescan window before it is cleared: any that do not come back were reorged out
+    const before = (
+      await c.query<{ tx_hash: string }>(
+        `select distinct tx_hash from chain_events where block_number >= $1 and name in ('AuthorizationUsed','AuthorizationCanceled')`,
+        [from.toString()],
+      )
+    ).rows.map((r) => r.tx_hash.toLowerCase());
     await c.query(`delete from chain_events where block_number >= $1`, [from.toString()]);
     const payers = (await c.query<{ payer: Hex }>(`select distinct payer from runs`)).rows.map((r) => r.payer);
     let events = 0;
@@ -64,10 +73,17 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
       events++;
     }
     for (const l of tokenLogs) {
-      const nonce = (l.args as { nonce?: Hex }).nonce;
-      const line = nonce
-        ? (await c.query<{ run_id: string; idx: number }>(`select run_id, idx from lines where lower(nonce) = lower($1)`, [nonce])).rows[0]
-        : undefined;
+      const { nonce, authorizer } = l.args as { nonce?: Hex; authorizer?: Hex };
+      // a nonce is unique per payer only (EIP-3009 and Brake's nonceRegistered are both keyed by payer)
+      const line =
+        nonce && authorizer
+          ? (
+              await c.query<{ run_id: string; idx: number }>(
+                `select l.run_id, l.idx from lines l join runs r on r.id = l.run_id where lower(l.nonce) = lower($1) and lower(r.payer) = lower($2)`,
+                [nonce, authorizer],
+              )
+            ).rows[0]
+          : undefined;
       await c.query(
         `insert into chain_events (tx_hash, log_index, block_number, address, name, run_id, idx, args) values ($1,$2,$3,$4,$5,$6,$7,$8)
          on conflict do nothing`,
@@ -76,8 +92,29 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
       events++;
     }
 
-    // derive statuses from everything we hold (not just this window), so a restart converges
     const updates: ReconcileResult["updates"] = [];
+    // roll back projections built on token events that a reorg removed: back to what Brake says now, tx pointer cleared
+    const present = new Set(tokenLogs.map((l) => l.transactionHash!.toLowerCase()));
+    for (const h of before.filter((x) => !present.has(x))) {
+      const hit = await c.query<{ run_id: string; idx: number; chain_run: Hex }>(
+        `select l.run_id, l.idx, r.run_id as chain_run from lines l join runs r on r.id = l.run_id
+          where lower(l.paid_tx) = $1 or lower(l.stop_tx) = $1`,
+        [h],
+      );
+      for (const r of hit.rows) {
+        const st = (await lineStatus(ctx.pub, ctx.cfg.brake, r.chain_run, r.idx)).status;
+        await c.query(
+          `update lines set status = $3,
+             paid_tx = case when lower(paid_tx) = $4 then null else paid_tx end,
+             stop_tx = case when lower(stop_tx) = $4 then null else stop_tx end
+           where run_id = $1 and idx = $2`,
+          [r.run_id, r.idx, st, h],
+        );
+        updates.push({ runId: r.run_id, idx: r.idx, status: st, tx: h as Hex });
+      }
+    }
+
+    // derive statuses from everything we hold (not just this window), so a restart converges
     const rows = await c.query<{ run_id: string; idx: number; name: string; tx_hash: Hex; status: string }>(
       `select e.run_id, e.idx, e.name, e.tx_hash, l.status from chain_events e
          join lines l on l.run_id = e.run_id and l.idx = e.idx
@@ -125,7 +162,8 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
           runId: f.run_id,
           idx: f.idx,
           action: "retryReceipt",
-          idempotencyKey: `${f.run_id}:${f.idx}:retryReceipt:${head}`,
+          // one retry per line per 10 minutes: a registry that stays down must not cost a keeper tx on every pass
+          idempotencyKey: `${f.run_id}:${f.idx}:retryReceipt:${Math.floor(Date.now() / 600_000)}`,
           to: ctx.cfg.brake,
           data: encodeFunctionData({ abi: brakeAbi, functionName: "retryReceipt", args: [f.chain_run, BigInt(f.idx)] }),
           gas: 400_000n,
