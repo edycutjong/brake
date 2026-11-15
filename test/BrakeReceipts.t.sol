@@ -53,6 +53,22 @@ contract BrakeReceiptsTest is BrakeFixture {
         assertEq(toggle.responses(), 1);
     }
 
+    function test_hold_failingRegistry_holdStands_retryRecordsResponse50() public {
+        _open(2, 2, 2);
+        toggle.set(false, true);
+        vm.prank(agent);
+        brake.hold(RUN, 1, "REVIEW_STALE", bytes32(0));
+        assertEq(uint8(_status(1)), uint8(Brake.Status.HELD), "the hold never fails because of the receipt");
+        assertTrue(brake.lineDetail(RUN, 1).receiptPending);
+
+        toggle.set(false, false);
+        brake.retryReceipt(RUN, 1);
+        assertFalse(brake.lineDetail(RUN, 1).receiptPending);
+        (,, uint8 resp,, string memory tag,) = toggle.getValidationStatus(brake.requestHashOf(RUN, 1));
+        assertEq(resp, 50);
+        assertEq(tag, "REVIEW_STALE");
+    }
+
     function test_retryWhileStillFailing_staysPending() public {
         _open(1, 2, 2);
         toggle.set(false, true);

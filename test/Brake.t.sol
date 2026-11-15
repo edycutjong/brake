@@ -7,7 +7,7 @@ import {Brake} from "../src/Brake.sol";
 /// @notice Brake core against live tUSD8 bytecode (Aevum fork) and the vendored ERC-8004 registries.
 contract BrakeTest is BrakeFixture {
     event LineStopped(bytes32 indexed runId, uint256 indexed idx, bytes32 reason, bytes32 evidenceHash, address by);
-    event StopConsumed(bytes32 indexed runId, uint256 indexed idx);
+    event StopConsumed(bytes32 indexed runId, uint256 indexed idx, bytes32 reason, bytes32 evidenceHash, address by);
     event StopAlarm(bytes32 indexed runId, uint16 stops);
 
     function setUp() public {
@@ -92,6 +92,11 @@ contract BrakeTest is BrakeFixture {
         vm.prank(agent);
         brake.hold(RUN, 1, "INJECTION_FLAGGED", keccak256("inj"));
         assertEq(uint8(_status(1)), uint8(Brake.Status.HELD));
+        // the ERC-8004 record follows the hold (a2a arch r01): response 50, tag = reason, evidence hash bound
+        (,, uint8 held, bytes32 heldHash, string memory heldTag,) = validation.getValidationStatus(brake.requestHashOf(RUN, 1));
+        assertEq(held, brake.RESPONSE_HOLD());
+        assertEq(heldTag, "INJECTION_FLAGGED");
+        assertEq(heldHash, keccak256("inj"));
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = 1;
@@ -161,8 +166,9 @@ contract BrakeTest is BrakeFixture {
         // the payer cancels the nonce directly at the token, outside Brake
         Cancel memory c = signed[0].cancel;
         TUSD8.cancelAuthorization(payer, signed[0].pay.nonce, c.v, c.r, c.s);
-        vm.expectEmit(true, true, false, false, address(brake));
-        emit StopConsumed(RUN, 0);
+        // the attempted reason, evidence and caller stay on-chain even though nothing is stopped (a2a arch r01)
+        vm.expectEmit(true, true, false, true, address(brake));
+        emit StopConsumed(RUN, 0, "BANK_CHANGE_UNVERIFIED", keccak256(abi.encode("evidence", uint256(0))), agent);
         Brake.Status st = _agentStop(0, "BANK_CHANGE_UNVERIFIED");
         assertEq(uint8(st), uint8(Brake.Status.CONSUMED));
         assertEq(brake.runOf(RUN).stops, 0, "no budget for a consumed nonce");

@@ -70,6 +70,8 @@ contract Brake is ReentrancyGuard {
     uint256 public constant MAX_LINES = 64;
     uint8 public constant RESPONSE_ALLOW = 100;
     uint8 public constant RESPONSE_STOP = 0;
+    /// a hold is neither approval nor rejection: the registry shows it until finance allows (100) or stops (0)
+    uint8 public constant RESPONSE_HOLD = 50;
     bytes32 public constant TAG_ALLOW = "ALLOW";
     bytes32 public constant TAG_FINANCE_ALLOW = "FINANCE_ALLOW";
 
@@ -84,7 +86,9 @@ contract Brake is ReentrancyGuard {
     event LineAllowed(bytes32 indexed runId, uint256 indexed idx, bytes32 evidenceHash, address by);
     event LineStopped(bytes32 indexed runId, uint256 indexed idx, bytes32 reason, bytes32 evidenceHash, address by);
     event LineHeld(bytes32 indexed runId, uint256 indexed idx, bytes32 reason, bytes32 evidenceHash);
-    event StopConsumed(bytes32 indexed runId, uint256 indexed idx);
+    /// a stop that found the nonce already used or cancelled outside Brake: status CONSUMED, no budget, and the attempted
+    /// reason + evidence stay on-chain (the reconciler tells TOO_LATE from EXTERNALLY_CANCELLED from tUSD8 logs)
+    event StopConsumed(bytes32 indexed runId, uint256 indexed idx, bytes32 reason, bytes32 evidenceHash, address by);
     event ReceiptFailed(bytes32 indexed runId, uint256 indexed idx);
     event ReceiptRecorded(bytes32 indexed runId, uint256 indexed idx, bytes32 requestHash, uint8 response, bytes32 tag);
     event StopAlarm(bytes32 indexed runId, uint16 stops);
@@ -241,7 +245,8 @@ contract Brake is ReentrancyGuard {
     // ------------------------------------------------------------------------------------------------------ agent
 
     /// @notice Hold a line for finance: OPEN|ALLOWED -> HELD. No budget. Binds Brake's keeper only — a confirmed risk
-    ///         is a token-level `stop`, not a hold.
+    ///         is a token-level `stop`, not a hold. The ERC-8004 record follows (response 50, tag = reason), so the
+    ///         registry never still reads ALLOW for a held line.
     function hold(bytes32 runId, uint256 idx, bytes32 reason, bytes32 evidenceHash) external nonReentrant {
         Run storage run = _run(runId);
         if (msg.sender != run.agent) revert NotAgent();
@@ -251,6 +256,7 @@ contract Brake is ReentrancyGuard {
         if (l.status != Status.OPEN && l.status != Status.ALLOWED) revert BadTransition(l.status);
         l.status = Status.HELD;
         emit LineHeld(runId, idx, reason, evidenceHash);
+        _receipt(runId, idx, RESPONSE_HOLD, reason, evidenceHash, "");
     }
 
     /// @notice Stop a line by submitting the payer's pre-signed cancelAuthorization to the token.
@@ -337,7 +343,7 @@ contract Brake is ReentrancyGuard {
         if (token.authorizationState(run.payer, l.nonce)) {
             // used (paid) or cancelled outside Brake — authorizationState cannot tell which; the reconciler reads logs
             l.status = Status.CONSUMED;
-            emit StopConsumed(runId, idx);
+            emit StopConsumed(runId, idx, reason, evidenceHash, msg.sender);
             return Status.CONSUMED;
         }
 
