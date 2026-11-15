@@ -300,6 +300,8 @@ route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
   const since = BigInt(new URL(req.url).searchParams.get("since") ?? "0");
   await maybeReconcile(db, ctx);
   const head = await ctx.pub.getBlockNumber();
+  // Aevum (cdk-erigon): 'finalized' = the last verified batch, observed ~4.6k blocks behind 'latest' (evidence/finality-observation.json)
+  const finalized = await ctx.pub.getBlock({ blockTag: "finalized" }).then((b) => b.number ?? 0n, () => 0n);
   const rows = (
     await db.query(
       `select tx_hash, log_index, block_number, address, name, run_id, idx, args from chain_events where block_number > $1
@@ -309,9 +311,10 @@ route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
   ).rows.map((e) => ({
     ...e,
     final: head - BigInt(e.block_number) >= BigInt(ctx.cfg.confirmations),
+    finalized: BigInt(e.block_number) <= finalized,
     link: ctx.cfg.deployment === "live" ? ctx.explorerTx(e.tx_hash as Hex) : null,
   }));
-  return json(200, { head, confirmations: ctx.cfg.confirmations, events: rows });
+  return json(200, { head, finalized, confirmations: ctx.cfg.confirmations, events: rows });
 });
 
 /** On-demand reconcile, at most once per 3 s across all viewers (Postgres-held timestamp + the reconciler's own lock). */

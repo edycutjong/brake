@@ -7,7 +7,9 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx seed.ts",
     "demo:hero": "tsx demo_hero.ts",
-    "g4": "tsx g4.ts"
+    "g4": "tsx g4.ts",
+    "demo:late": "tsx demo_edge.ts late",
+    "demo:flood": "tsx demo_edge.ts flood"
   },
   "dependencies": {
     "brake-signer": "workspace:*",

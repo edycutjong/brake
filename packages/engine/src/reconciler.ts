@@ -89,6 +89,13 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
         const consumed = await c.query(`select 1 from chain_events where run_id = $1 and idx = $2 and name = 'StopConsumed'`, [r.run_id, r.idx]);
         next = consumed.rowCount ? "TOO_LATE" : "PAID";
         if (r.status !== next) await c.query(`update lines set status = $3, paid_tx = coalesce(paid_tx, $4) where run_id = $1 and idx = $2`, [r.run_id, r.idx, next, r.tx_hash]);
+        if (next === "TOO_LATE" && r.status !== next) {
+          await c.query(
+            `insert into tickets (id, kind, run_id, idx, body) select $1, 'recovery', $2, $3, $4
+              where not exists (select 1 from tickets where kind = 'recovery' and run_id = $2 and idx = $3)`,
+            [`tkt_${r.tx_hash.slice(2, 18)}_${r.idx}`, r.run_id, r.idx, `TOO LATE: line ${r.idx + 1} was already paid in ${r.tx_hash} before the stop — recover from the payee`],
+          );
+        }
       } else {
         const viaBrake = await c.query(`select 1 from chain_events where tx_hash = $1 and name = 'LineStopped'`, [r.tx_hash]);
         next = viaBrake.rowCount ? "STOPPED" : "EXTERNALLY_CANCELLED";

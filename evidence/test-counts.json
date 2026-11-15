@@ -1,0 +1,7 @@
+{
+  "recordedAt": "2026-11-15T18:09:57Z",
+  "forge": { "command": "forge test", "passed": 49, "failed": 0, "suites": { "G1KillTest": 7, "Receipts": 3, "BrakeLifecycle": 12, "G2a": 6, "Brake": 21 }, "note": "all fork tests against Aevum 44005 state (FORK_BLOCK 3252000)" },
+  "brakeSigner": { "command": "pnpm --filter brake-signer test", "passed": 12, "failed": 0 },
+  "engine": { "command": "pnpm --filter @brake/engine test", "passed": 47, "failed": 0, "note": "agent 15 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 13 (skipped when the fork or local keys are absent)" },
+  "total": 108
+}

@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-11-15T18:08:53.382923+00:00",
+  "rpc": "https://rpc-test.qday.info",
+  "latest": 3255590,
+  "safe": 3250947,
+  "finalized": 3250947,
+  "lagBlocks": 4643,
+  "lagSeconds": 4702,
+  "note": "cdk-erigon: 'safe' = 'finalized' (verified batch). Brake treats CONFIRMATIONS=3 blocks as a soft depth for UI/reconciler and reports the finalized tag separately; reorg depth on Aevum was not measured (the fork test exercises the rescan)."
+}

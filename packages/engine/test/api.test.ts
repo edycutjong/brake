@@ -17,6 +17,8 @@ import { deliver, getLines, lineContexts, openRunOnChain, runMessages, createRun
 import { runReviewJobs } from "../src/jobs.js";
 import { payday } from "../src/keeper.js";
 import { reconcile } from "../src/reconciler.js";
+import { revokeAgent } from "../src/runs.js";
+import { verifyEvidence } from "brake-signer";
 
 const FORK = "http://127.0.0.1:8545";
 const keysDir = join(homedir(), ".config", "brake");
@@ -259,5 +261,32 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(p.proofs.length).toBe(2);
     expect(p.proofs.every((x) => /used or canceled/.test(x.replayed))).toBe(true);
     expect(p.held.length).toBe(1);
+  });
+
+  it("verifyEvidence: a stored ALLOW bundle recomputes to the ERC-8004 response hash on-chain", async () => {
+    const d = await db.query(`select d.idx, d.evidence, d.evidence_hash, r.run_id from decisions d join runs r on r.id = d.run_id
+      where d.verdict = 'ALLOW' and d.chain_status = 'ALLOWED' order by d.created_at desc limit 1`);
+    const row = d.rows[0];
+    const ok = await verifyEvidence(row.evidence, { client: ctx.pub, brake: ctx.cfg.brake, validation: ctx.cfg.validation, runId: row.run_id, idx: row.idx });
+    expect(ok.ok).toBe(true);
+    expect(ok.tag).toBe("ALLOW");
+    const tampered = await verifyEvidence({ ...row.evidence, verdict: "STOP" }, { hash: row.evidence_hash });
+    expect(tampered.ok).toBe(false);
+  });
+
+  it("reorg rescan: an event that disappears in a reorg (anvil snapshot/revert) is dropped on the next reconcile", async () => {
+    const run = await createRun(db, ctx, { scenario: "late" });
+    await openRunOnChain(db, ctx, run.id);
+    await reconcile(db, ctx);
+    const snap = await ctx.pub.request({ method: "evm_snapshot" as never, params: [] as never });
+    await revokeAgent(db, ctx, run.id);
+    await reconcile(db, ctx);
+    const count = async () => Number((await db.query(`select count(*) from chain_events where run_id = $1 and name = 'AgentRevoked'`, [run.id])).rows[0].count);
+    expect(await count()).toBe(1);
+    await ctx.pub.request({ method: "evm_revert" as never, params: [snap] as never });
+    await ctx.pub.request({ method: "evm_mine" as never, params: [] as never });
+    await db.query(`update tx_queue set status = 'dropped' where run_id = $1 and action = 'revokeAgent'`, [run.id]);
+    await reconcile(db, ctx);
+    expect(await count()).toBe(0);
   });
 });

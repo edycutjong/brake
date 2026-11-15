@@ -353,8 +353,9 @@ export async function deliver(db: Db, ctx: ChainCtx, id: string, input: DeliverI
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [msgId, id, msg.seedId, msg.vendorId, msg.from, msg.from.split("@")[1] ?? "", msg.subject, msg.body, msg.source, now],
     );
-    // link against every non-terminal line (incl. SIGNED before openRun), so no message can slip past a revision bump
-    const ctxLines = (await lineContexts(c, id)).filter((l) => !TERMINAL.includes(l.status));
+    // link against every line a review would read (incl. SIGNED before openRun), so no message slips past a revision bump
+    const reviewable = new Set((await lineContexts(c, id, { reviewableOnly: true })).map((l) => l.idx));
+    const ctxLines = (await lineContexts(c, id)).filter((l) => l.status === "SIGNED" || reviewable.has(l.idx));
     const { linkMessages } = await import("./agent/pipeline.js");
     const linked = linkMessages(ctxLines, [
       { id: msgId, fromAddr: msg.from, fromDomain: msg.from.split("@")[1] ?? "", subject: msg.subject, body: msg.body, receivedAt: now, vendorId: msg.vendorId },
@@ -380,7 +381,14 @@ export async function lineContexts(db: Db | Tx, id: string, opts: { reviewableOn
     [id],
   );
   return r.rows
-    .filter((x) => !opts.reviewableOnly || ["OPEN", "ALLOWED", "HELD"].includes(x.status))
+    // reviewable: undecided/allowed/held lines, plus PAID lines still inside their window — Brake only learns of a
+    // payment when a stop is attempted, so a late risk signal must still produce a stop, which lands as CONSUMED → TOO_LATE
+    .filter(
+      (x) =>
+        !opts.reviewableOnly ||
+        ["OPEN", "ALLOWED", "HELD"].includes(x.status) ||
+        (x.status === "PAID" && x.reissued_from === null && new Date(x.valid_before).getTime() > Date.now()),
+    )
     .map((x) => ({
       idx: x.idx,
       vendor: {

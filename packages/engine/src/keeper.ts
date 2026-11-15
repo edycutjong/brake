@@ -143,7 +143,7 @@ export async function sweep(db: Db, ctx: ChainCtx, id: string) {
   const domain = await ctx.domain();
   const now = await chainNow(ctx);
   const totals = new Map<number, bigint>();
-  for (const l of lines.filter((x) => x.status === "PAID" && x.payee_idx !== null)) {
+  for (const l of lines.filter((x) => (x.status === "PAID" || x.status === "TOO_LATE") && x.payee_idx !== null)) {
     totals.set(l.payee_idx!, (totals.get(l.payee_idx!) ?? 0n) + BigInt(l.amount_units));
   }
   const calls: { target: Address; allowFailure: boolean; callData: Hex }[] = [];

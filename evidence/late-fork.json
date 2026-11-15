@@ -1,0 +1,169 @@
+{
+  "deployment": "fork",
+  "note": "Anvil fork of Aevum 44005 — these hashes exist only on the local fork, never on the explorer.",
+  "scenario": "late",
+  "run": "run_465391ebdc1a41e1",
+  "runId": "0xb1d6ecd3f8b06e1e5385ef184e4f7c304a4506c85a5ecdccdec73b88d50294e9",
+  "brake": "0xE92AF9439c95505335C578F7584ADC0B6A35956B",
+  "model": "claude-sonnet-5-5 (claude-cli)",
+  "lines": [
+    {
+      "line": 1,
+      "invoice": "INV-0099",
+      "amount": "0.045",
+      "status": "TOO_LATE",
+      "paidTx": "0x40c1eafcb1ddfdc270eba28b8f6f73e314b4ca4017e4e355f2f21a4a8b19eb70",
+      "stopTx": "0xbdf477a0a7f14e59d121bceb44d66da923c74498e939f588d4f52e571c85c70f",
+      "proofTx": null,
+      "proofReason": null
+    }
+  ],
+  "decisions": [
+    {
+      "idx": 0,
+      "verdict": "ALLOW",
+      "rev": 0,
+      "reason_code": null,
+      "rules_fired": [],
+      "model": "claude-sonnet-5-5 (claude-cli)",
+      "evidence_hash": "0x5cc79681c6ce3024208e28808a08ad8672707aef32987224175f6cccc8300c22",
+      "tx": "0x086d831a9ff8c5b6032851b93018cb7e827bcb435df5a2a5f5abf5cfae401a34",
+      "chain_status": "ALLOWED"
+    },
+    {
+      "idx": 0,
+      "verdict": "STOP",
+      "rev": 0,
+      "reason_code": "DUPLICATE_INVOICE",
+      "rules_fired": [],
+      "model": "claude-sonnet-5-5 (claude-cli)",
+      "evidence_hash": "0x7f675f4ba7c26cb863bfc22400edb135e4a096c289d6d749472a36b464235d43",
+      "tx": "0xbdf477a0a7f14e59d121bceb44d66da923c74498e939f588d4f52e571c85c70f",
+      "chain_status": "CONSUMED"
+    }
+  ],
+  "alarms": [
+    {
+      "name": "StopConsumed",
+      "tx_hash": "0xbdf477a0a7f14e59d121bceb44d66da923c74498e939f588d4f52e571c85c70f",
+      "args": {
+        "idx": "0",
+        "runId": "0xb1d6ecd3f8b06e1e5385ef184e4f7c304a4506c85a5ecdccdec73b88d50294e9"
+      }
+    }
+  ],
+  "tickets": [
+    {
+      "kind": "recovery",
+      "idx": 0,
+      "body": "TOO LATE: line 1 was already paid in 0x40c1eafcb1ddfdc270eba28b8f6f73e314b4ca4017e4e355f2f21a4a8b19eb70 before the stop — recover from the payee"
+    }
+  ],
+  "steps": [
+    {
+      "step": "run created + signed",
+      "at": "2026-11-15T18:04:21.643Z",
+      "sinceStartMs": 281,
+      "run": "run_465391ebdc1a41e1",
+      "runId": "0xb1d6ecd3f8b06e1e5385ef184e4f7c304a4506c85a5ecdccdec73b88d50294e9",
+      "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+      "step": "openRun (payer)",
+      "at": "2026-11-15T18:04:22.328Z",
+      "sinceStartMs": 965,
+      "tx": "0xdd01b28ee3a17f37f2e604a144615359d6e67446b19a5297ac9997586c4ff6da"
+    },
+    {
+      "step": "review (open: open)",
+      "at": "2026-11-15T18:04:22.916Z",
+      "sinceStartMs": 1553,
+      "model": "claude-sonnet-5-5 (claude-cli)",
+      "ms": 580,
+      "executed": [
+        {
+          "idx": 0,
+          "verdict": "ALLOW",
+          "action": "allow",
+          "tx": "0x086d831a9ff8c5b6032851b93018cb7e827bcb435df5a2a5f5abf5cfae401a34",
+          "chainStatus": "ALLOWED"
+        }
+      ]
+    },
+    {
+      "step": "payday (keeper pays first)",
+      "at": "2026-11-15T18:04:23.995Z",
+      "sinceStartMs": 2632,
+      "batchTx": "0x40c1eafcb1ddfdc270eba28b8f6f73e314b4ca4017e4e355f2f21a4a8b19eb70",
+      "paid": [
+        1
+      ]
+    },
+    {
+      "step": "deliver E13 (double billed) — after the payment",
+      "at": "2026-11-15T18:04:24.043Z",
+      "sinceStartMs": 2680,
+      "linkedLines": []
+    },
+    {
+      "step": "review (E13: seed:E13)",
+      "at": "2026-11-15T18:04:28.090Z",
+      "sinceStartMs": 6727,
+      "model": "claude-sonnet-5-5 (claude-cli)",
+      "ms": 4046,
+      "executed": [
+        {
+          "idx": 0,
+          "verdict": "STOP",
+          "action": "stop",
+          "tx": "0xbdf477a0a7f14e59d121bceb44d66da923c74498e939f588d4f52e571c85c70f",
+          "chainStatus": "CONSUMED",
+          "note": "DUPLICATE_INVOICE"
+        }
+      ]
+    },
+    {
+      "step": "reconcile",
+      "at": "2026-11-15T18:04:28.155Z",
+      "sinceStartMs": 6792,
+      "events": 174,
+      "updates": [
+        {
+          "runId": "run_465391ebdc1a41e1",
+          "idx": 0,
+          "status": "TOO_LATE",
+          "tx": "0x40c1eafcb1ddfdc270eba28b8f6f73e314b4ca4017e4e355f2f21a4a8b19eb70"
+        }
+      ]
+    },
+    {
+      "step": "events + tickets",
+      "at": "2026-11-15T18:04:28.155Z",
+      "sinceStartMs": 6792,
+      "alarms": [
+        {
+          "name": "StopConsumed",
+          "tx_hash": "0xbdf477a0a7f14e59d121bceb44d66da923c74498e939f588d4f52e571c85c70f",
+          "args": {
+            "idx": "0",
+            "runId": "0xb1d6ecd3f8b06e1e5385ef184e4f7c304a4506c85a5ecdccdec73b88d50294e9"
+          }
+        }
+      ],
+      "tickets": [
+        {
+          "kind": "recovery",
+          "idx": 0,
+          "body": "TOO LATE: line 1 was already paid in 0x40c1eafcb1ddfdc270eba28b8f6f73e314b4ca4017e4e355f2f21a4a8b19eb70 before the stop — recover from the payee"
+        }
+      ]
+    },
+    {
+      "step": "sweep-back",
+      "at": "2026-11-15T18:04:28.157Z",
+      "sinceStartMs": 6794,
+      "tx": null
+    }
+  ],
+  "totalMs": 6795
+}
