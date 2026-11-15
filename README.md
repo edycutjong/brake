@@ -26,7 +26,7 @@
 
 ## 📸 See it in Action
 
-Screens of the product running against a local anvil fork of Aevum 44005 (labelled: not the live chain). The hero walk through the real UI takes about 61 s (`apps/web/e2e/hero_walk.py`).
+Screens of the product running against a local anvil fork of Aevum 44005 (labelled: not the live chain). The hero walk through the real UI takes about a minute (engine hero run: 64.4 s, `evidence/hero-fork.json`; script: `apps/web/e2e/hero_walk.py`).
 
 | Run sheet (Monday: every line ALLOWED) | Run sheet (Tuesday: line 3 STOPPED) |
 |---|---|
@@ -106,7 +106,7 @@ Brake builds on what is live on Aevum 44005 (checked with `eth_getCode` / `eth_c
 
 - **tUSD8 EIP-3009** `transferWithAuthorization`, `cancelAuthorization`, `authorizationState`, plus `isBlacklisted`: the whole stop mechanism. G1 proves any caller, an EOA or a contract, can submit a payer's pre-signed cancel (`test/G1CancelAuthority.t.sol`, 7 tests; `evidence/g1-fork.json`).
 - **Multicall3** `aggregate3`: one payday transaction pays N lines.
-- **ERC-8004**: no registry is deployed on 44005, so Brake self-deploys the reference registries (`src/ERC8004Bootstrap.sol`, reference commit `b9e466c`, answers in `evidence/g2a.json`). `openRun` binds the agent's identity (`agentId`); each decision writes a Validation Registry response (ALLOW 100, HOLD 50, STOP 0).
+- **ERC-8004**: the canonical ERC-8004 Identity and Reputation addresses have no code on 44005 (`evidence/live-chain-probe.json`), so Brake self-deploys the reference registries (`src/ERC8004Bootstrap.sol`, reference commit `b9e466c`, answers in `evidence/g2a.json`). `openRun` binds the agent's identity (`agentId`); each decision writes a Validation Registry response (ALLOW 100, HOLD 50, STOP 0).
 - **Arachnid CREATE2** deployer for deterministic addresses.
 
 ### Rubric map

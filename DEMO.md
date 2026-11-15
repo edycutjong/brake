@@ -56,7 +56,7 @@ pnpm demo:hero                # hero (BRAKE_MODEL=claude-cli, or an Anthropic ke
 pnpm demo:late && pnpm demo:flood
 pnpm g4                       # 25-email injection suite
 python3 scripts/bench.py      # bench/results.json
-cd apps/web && python3 e2e/hero_walk.py   # hero through the real UI (~61 s)
+cd apps/web && python3 e2e/hero_walk.py   # hero through the real UI (about a minute)
 ```
 
 Tests: `forge test` (50), `pnpm --filter brake-signer test` (12), `pnpm --filter @brake/engine test` (59), 121 in total (`evidence/test-counts.json`).
