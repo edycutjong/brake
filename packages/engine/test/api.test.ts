@@ -8,7 +8,8 @@ import pg from "pg";
 import { loadConfig, loadEnvFiles } from "../src/config.js";
 import { connect, type Db } from "../src/db.js";
 import { seed } from "../src/seed.js";
-import { makeChain, type ChainCtx } from "../src/chain.js";
+import { makeChain, sendQueued, wallet, type ChainCtx } from "../src/chain.js";
+import { keccak256 } from "viem";
 import { NullModel } from "../src/agent/model.js";
 import { createApi } from "../src/api.js";
 import { applyDecisions, planAction } from "../src/executor.js";
@@ -331,6 +332,67 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(open.status).not.toBe(200);
     const bogus = await call("POST", `/api/runs/${made.id}/opened`, { token: made.token, body: { tx: `0x${"33".repeat(32)}` } });
     expect(bogus.status).toBe(409);
+  });
+
+  it("reorg rollback: lines PAID by a batch that a reorg removed go back to their Brake status, paid_tx cleared (a2a arch r01)", async () => {
+    const run = await createRun(db, ctx, { scenario: "hero" });
+    await openRunOnChain(db, ctx, run.id);
+    await runReviewJobs(db, ctx, model, { runId: run.id }); // Monday, rules only: ALLOW ×4
+    await warp(61);
+    const snapBlock = await ctx.pub.getBlockNumber();
+    const snap = await ctx.pub.request({ method: "evm_snapshot" as never, params: [] as never });
+    const p = await payday(db, ctx, run.id);
+    expect(p.paid.length).toBe(4);
+    await reconcile(db, ctx);
+    expect((await getLines(db, run.id)).every((l) => l.status === "PAID")).toBe(true);
+    await ctx.pub.request({ method: "evm_revert" as never, params: [snap] as never });
+    await ctx.pub.request({ method: "evm_mine" as never, params: [] as never });
+    await db.query(`update tx_queue set status = 'dropped' where run_id = $1 and action = 'payday'`, [run.id]);
+    const rec = await reconcile(db, ctx, { fromBlock: snapBlock });
+    const after = await getLines(db, run.id);
+    expect(after.map((l) => l.status)).toEqual(["ALLOWED", "ALLOWED", "ALLOWED", "ALLOWED"]);
+    expect(after.every((l) => l.paid_tx === null)).toBe(true);
+    expect(rec.updates.filter((u) => u.runId === run.id).length).toBe(4);
+  });
+
+  it("stuck tx: a retry after TX_STUCK_AFTER_S re-sends the same nonce at +25% fees and the replacement mines (a2a arch r01)", async () => {
+    const w = wallet(ctx, "keeper");
+    const key = `test:stuck:${Date.now()}`;
+    await ctx.pub.request({ method: "evm_setIntervalMining" as never, params: [0] as never }); // hold blocks: the tx sits in the pool
+    try {
+      const nonce = await ctx.pub.getTransactionCount({ address: w.account.address, blockTag: "pending" });
+      const req = await w.prepareTransactionRequest({ to: w.account.address, value: 0n, nonce, gas: 21_000n, chain: ctx.chain });
+      const raw = await w.signTransaction(req as Parameters<typeof w.signTransaction>[0]);
+      const oldHash = keccak256(raw);
+      await ctx.pub.sendRawTransaction({ serializedTransaction: raw });
+      await db.query(
+        `insert into tx_queue (id, sender, action, idempotency_key, nonce, tx_hash, status, attempts, sent_at)
+         values ($1, $2, 'test', $3, $4, $5, 'sent', 1, now() - interval '10 minutes')`,
+        [`tx_${key}`, w.account.address.toLowerCase(), key, nonce, oldHash],
+      );
+      const pending = sendQueued(db, ctx, { role: "keeper", action: "test", idempotencyKey: key, to: w.account.address, data: "0x" });
+      await new Promise((r) => setTimeout(r, 1500));
+      await ctx.pub.request({ method: "evm_setIntervalMining" as never, params: [1] as never });
+      const res = await pending;
+      expect(res.status).toBe("mined");
+      expect(res.hash).not.toBe(oldHash);
+      const row = (await db.query(`select tx_hash, error from tx_queue where idempotency_key = $1`, [key])).rows[0];
+      expect(row.tx_hash).toBe(res.hash);
+      expect(row.error).toMatch(/^replaced 0x/);
+      expect(await ctx.pub.getTransactionReceipt({ hash: oldHash }).then(() => true, () => false)).toBe(false);
+    } finally {
+      await ctx.pub.request({ method: "evm_setIntervalMining" as never, params: [1] as never });
+    }
+  });
+
+  it("review jobs: a job whose final attempt lost its worker is marked failed, not left running (a2a arch r01)", async () => {
+    const run = await createRun(db, ctx, { scenario: "late" });
+    const jid = `job_test_${Date.now()}`;
+    await db.query(`insert into review_jobs (id, run_id, trigger, status, attempts, lease_until) values ($1, $2, 'test', 'running', 3, now() - interval '1 minute')`, [jid, run.id]);
+    await runReviewJobs(db, ctx, model, { runId: run.id, max: 0 });
+    const j = (await db.query(`select status, error from review_jobs where id = $1`, [jid])).rows[0];
+    expect(j.status).toBe("failed");
+    expect(j.error).toMatch(/final attempt/);
   });
 
   it("reorg rescan: an event that disappears in a reorg (anvil snapshot/revert) is dropped on the next reconcile", async () => {
