@@ -280,11 +280,11 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 - [ ] Live deploy on 44005, explorer verification, live hero / TOO LATE / flood runs (needs funded wallets)
 - [ ] Re-measure the model step through the Anthropic SDK path
 - [ ] Re-generate bench and fork evidence from the live run
-- [ ] `brake-signer` npm publish (human step), landing page and deck
+- [ ] `brake-signer` npm publish (human step)
 
 ## 📽️ Demo Materials
 
-Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). No live URL or demo video yet.
+Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: [docs/index.html](docs/index.html) (served at https://edycutjong.github.io/brake/ once the repo is public). Pitch deck: [docs/pitch/index.html](docs/pitch/index.html). No live app URL or demo video yet.
 
 ## 📄 License
 

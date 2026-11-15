@@ -1,0 +1,433 @@
+<!doctype html>
+<!--
+  Brake: pitch deck (v1.0 · 2026-11-16)
+  Keys: → / Space next · ← previous · Home / End · Esc slide overview · P presenter mode (speaker notes)
+  Print: Cmd/Ctrl+P → Save as PDF → one slide per page (16in × 9in), backgrounds on.
+  Images: ../assets/demo-stamp.png, a crop of the real run sheet (line 3 stopped) captured on the anvil fork, labelled FORK.
+  Fonts: ../assets/fonts/ (self-hosted, SIL OFL 1.1, see LICENSE-fonts.txt).
+  QR: inline SVG, encodes https://github.com/edycutjong/brake (decoded and checked at build time).
+  Tokens: specs/design.md §4, the same :root as ../index.html.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brake: pitch deck</title>
+<meta name="description" content="Brake pitch deck: pre-signed stop-payments for stablecoin payment runs on QDay Aevum.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='3' y='3' width='58' height='58' fill='%23F3F1E7' stroke='%231C2230' stroke-width='4'/%3E%3Crect x='10' y='10' width='44' height='44' fill='none' stroke='%231C2230' stroke-width='2'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='34' fill='%231C2230'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="../assets/fonts/ibarra-real-nova.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/libre-franklin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/courier-prime-700.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Ibarra Real Nova"; src: url("../assets/fonts/ibarra-real-nova.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Libre Franklin"; src: url("../assets/fonts/libre-franklin.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Courier Prime"; src: url("../assets/fonts/courier-prime-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Courier Prime"; src: url("../assets/fonts/courier-prime-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+/* metric-matched fallbacks (size/ascent/descent measured from the woff2 files vs the local face) so the swap does not shift layout */
+@font-face { font-family: "Ibarra Fallback"; src: local("Georgia"); size-adjust: 94.4%; ascent-override: 100.6%; descent-override: 31.8%; line-gap-override: 0%; }
+@font-face { font-family: "Franklin Fallback"; src: local("Arial"), local("Helvetica"); size-adjust: 102.4%; ascent-override: 94.3%; descent-override: 24%; line-gap-override: 0%; }
+@font-face { font-family: "Courier Fallback"; src: local("Courier New"); size-adjust: 99.9%; ascent-override: 78.2%; descent-override: 34.2%; line-gap-override: 0%; }
+/* specs/design.md §4 — pasted verbatim */
+:root {
+  --bg:      #F3F1E7;  /* security-paper cream of a cheque register page */
+  --ink:     #1C2230;  /* fountain-pen blue-black used to fill in a register */
+  --muted:   #6B6F78;  /* pre-printed form labels ("Date", "Pay to", "Amount") */
+  --before:  #2F4FA2;  /* state: scheduled — carbon-copy blue of the duplicate slip */
+  --after:   #C2272D;  /* state: stopped — rubber-stamp red; fires only when a line is cancelled on-chain */
+  --cleared: #2E6B4F;  /* state: cleared — bank "paid" perforation green, used only on paid lines */
+  --rule:    #C9CDBF;  /* ruled ledger lines and column dividers */
+  --font-display: "Ibarra Real Nova", "Libre Caslon Text", Georgia, serif;
+  --font-body:    "Libre Franklin", "Franklin Gothic", Arial, sans-serif;
+  --font-data:    "Courier Prime", "Courier New", monospace;
+}
+:root {
+  --font-display: "Ibarra Real Nova", "Ibarra Fallback", "Libre Caslon Text", Georgia, serif;
+  --font-body:    "Libre Franklin", "Franklin Fallback", "Franklin Gothic", Arial, sans-serif;
+  --font-data:    "Courier Prime", "Courier Fallback", "Courier New", monospace;
+  --label: color-mix(in srgb, var(--muted) 80%, var(--ink));  /* --muted text darkened to clear 4.5:1 on --bg and --paper-2 */
+  --paper-2: color-mix(in srgb, var(--rule) 30%, var(--bg));
+  --carbon:  color-mix(in srgb, var(--before) 13%, var(--bg));
+  --ink-soft: color-mix(in srgb, var(--ink) 78%, var(--bg));
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #14181F; overflow: hidden; }
+body { font-family: var(--font-body); color: var(--ink); }
+::selection { background: color-mix(in srgb, var(--before) 24%, var(--bg)); }
+code, .data { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; }
+.slide {
+  position: absolute; inset: 0; width: 1920px; height: 1080px; padding: 96px 128px; overflow: hidden;
+  background: var(--bg); display: none; isolation: isolate;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 47px, color-mix(in srgb, var(--rule) 50%, transparent) 47px 48px);
+}
+.slide.on { display: flex; flex-direction: column; justify-content: center; }
+.slide::before { content: ""; position: absolute; left: 96px; top: 0; bottom: 0; width: 2px; background: color-mix(in srgb, var(--after) 35%, transparent); z-index: -1; }
+.lbl { position: absolute; top: 96px; left: 128px; font: 600 22px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); display: flex; gap: 16px; align-items: center; }
+.lbl .no { font-family: var(--font-data); letter-spacing: 0; border: 1.5px solid var(--muted); padding: 3px 10px; color: var(--ink); }
+h1, h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; margin: 0; }
+h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
+.body { font-size: 40px; line-height: 1.45; color: var(--ink-soft); max-width: 30em; margin: 0; }
+.body b { color: var(--ink); }
+.foot { position: absolute; left: 128px; right: 128px; bottom: 52px; display: flex; justify-content: space-between; font: 20px/1 var(--font-data); color: var(--label); }
+.fork { display: inline-block; font: 700 .62em/1 var(--font-data); letter-spacing: .06em; border: 1.5px solid currentColor; padding: 3px 6px; vertical-align: .15em; }
+.stamp {
+  --tilt: -4deg; display: inline-block; color: var(--after); border: 7px double var(--after); padding: .02em .22em .08em; line-height: 1;
+  transform: rotate(var(--tilt)); font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 2.05'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+          mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 2.05'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.frame { border: 3px solid var(--ink); background: var(--bg); box-shadow: 14px 14px 0 var(--paper-2), 14px 14px 0 3px var(--ink); position: relative; }
+.frame .bar { display: flex; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 3px solid var(--ink); font: 20px var(--font-data); color: var(--label); }
+.frame .bar i { width: 14px; height: 14px; border: 2.5px solid var(--ink); border-radius: 50%; }
+.frame img { display: block; width: 100%; }
+.tape { background: var(--paper-2); border: 3px solid var(--ink); padding: 34px 38px; font: 32px/1.6 var(--font-data); position: relative; }
+.tape .t { color: var(--label); } .tape .ok { color: var(--cleared); font-weight: 700; } .tape .no { color: var(--after); font-weight: 700; } .tape .bl { color: var(--before); }
+.tape .cap { position: absolute; top: -16px; left: 26px; background: var(--bg); border: 2px solid var(--ink); padding: 4px 12px; font: 600 16px/1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--label); }
+
+/* s1 cover */
+.cover h1 { font-size: 150px; line-height: 1.02; max-width: 11.5em; margin: -120px 0 0; }
+.cover h1 .stamp { font-size: .84em; }
+.cover h1 .nw { white-space: nowrap; }
+.brandmark { position: absolute; right: 128px; top: 92px; display: flex; align-items: center; gap: 18px; font: 700 52px/1 var(--font-display); }
+.brandmark svg { width: 64px; height: 64px; }
+.line3 { position: absolute; left: 128px; right: 128px; bottom: 150px; display: grid; grid-template-columns: 70px 1fr 220px 520px; align-items: center; border-block: 3px solid var(--ink); padding: 20px 0; background: color-mix(in srgb, var(--bg) 92%, transparent); }
+.line3 > span:first-child { font: 28px var(--font-data); color: var(--label); text-align: center; border-right: 3px solid var(--ink); align-self: stretch; display: grid; place-items: center; }
+.line3 .v { padding-left: 28px; font: 500 46px/1.2 var(--font-body); }
+.line3 .v small { display: block; font: 24px var(--font-data); color: var(--label); }
+.line3 .amt { font: 700 48px var(--font-data); color: var(--after); text-decoration: line-through 4px var(--after); text-align: right; }
+.line3 .stamp { justify-self: center; font-size: 42px; text-align: center; padding: 10px 22px 8px; --tilt: -5deg; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.line3 .stamp small { display: block; font: 700 22px/1.35 var(--font-data); letter-spacing: 0; text-transform: none; }
+
+/* s2 hook */
+.hook .big { font: 700 200px/1 var(--font-data); letter-spacing: -.04em; margin: 0 0 40px; font-variant-numeric: tabular-nums; }
+.hook .big .cur { color: var(--label); }
+.hook .src { font: 22px/1.5 var(--font-data); color: var(--label); margin-top: 48px; }
+
+/* s3 problem: two-day register */
+.two { display: grid; grid-template-columns: 1fr 720px; gap: 90px; align-items: center; }
+.days3 { border-top: 3px solid var(--ink); }
+.days3 div { display: grid; grid-template-columns: 190px 1fr; padding: 28px 0; border-bottom: 2px solid var(--rule); font: 32px/1.35 var(--font-body); }
+.days3 b { font: 600 40px/1.1 var(--font-display); }
+.days3 .red { color: var(--after); }
+
+/* s4 solution: the pair of slips */
+.slips { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 30px; }
+.slip { border: 3px solid var(--ink); background: var(--bg); padding: 46px 50px; font: 40px/1.6 var(--font-data); position: relative; box-shadow: 10px 10px 0 var(--paper-2), 10px 10px 0 3px var(--ink); }
+.slip b { display: block; font: 600 24px/1.3 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin-bottom: 14px; }
+.slip.pay { border-left: 14px solid var(--before); } .slip.cx { border-left: 14px solid var(--after); }
+.slip .stamp { position: absolute; right: 36px; bottom: 34px; font-size: 44px; }
+
+/* s5 how it works svg */
+.flow { margin-top: 30px; width: 100%; height: auto; }
+.flow text { font-family: var(--font-body); }
+
+/* s6 demo */
+.demo-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 56px; margin-top: 12px; align-items: start; }
+.callout { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 28px/56px var(--font-data); text-align: center; box-shadow: 0 0 0 5px var(--bg); }
+.callout.red { background: var(--after); }
+.keys { list-style: none; padding: 0; margin: 40px 0 0; display: grid; gap: 22px; font: 32px/1.35 var(--font-body); }
+.keys li { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; }
+.keys li span { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 22px/44px var(--font-data); text-align: center; }
+.keys li span.red { background: var(--after); }
+
+/* s7 powers */
+.ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 10px; border: 3px solid var(--ink); }
+.ledger > div { padding: 44px 56px; }
+.ledger > div + div { border-left: 3px solid var(--ink); background: var(--paper-2); }
+.ledger h3 { font: 600 26px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin: 0 0 22px; }
+.ledger ul { list-style: none; margin: 0; padding: 0; font: 54px/1.7 var(--font-data); }
+.ledger .can li::before { content: "✓  "; color: var(--cleared); }
+.ledger .cannot li { color: var(--after); text-decoration: line-through 3px; }
+.ledger .cannot li span { color: var(--ink-soft); }
+
+/* s8 receipts */
+.rcpts { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 10px; border-block: 3px solid var(--ink); }
+.rcpts > div { padding: 44px 34px 38px; border-right: 2px solid var(--rule); }
+.rcpts > div:first-child { padding-left: 0; } .rcpts > div:last-child { border-right: 0; }
+.rcpts .n { white-space: nowrap; font: 700 128px/1 var(--font-data); letter-spacing: -.04em; }
+.rcpts p { font: 32px/1.35 var(--font-body); margin: 22px 0 16px; }
+.rcpts code { font-size: 22px; color: var(--label); }
+.small { font: 26px/1.5 var(--font-body); color: var(--label); margin-top: 36px; max-width: 70em; }
+
+/* s9 aevum */
+.cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 10px; border-top: 3px solid var(--ink); }
+.cols3 > div { padding: 30px 34px 0 0; }
+.cols3 > div + div { padding-left: 34px; border-left: 2px solid var(--rule); }
+.cols3 h3 { font: 600 26px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin: 0 0 20px; }
+.cols3 ul { margin: 0; padding: 0; list-style: none; font: 42px/1.7 var(--font-data); }
+.cols3 .not li { color: var(--label); text-decoration: line-through 2px; }
+
+/* s10 honest */
+.s-honest { background-color: var(--carbon); }
+.rm { display: grid; grid-template-columns: 90px 1fr; gap: 20px; padding: 32px 0; border-bottom: 2px solid color-mix(in srgb, var(--before) 30%, var(--bg)); align-items: baseline; }
+.rm .k { font: 30px var(--font-data); color: var(--before); }
+.rm q { font: 400 70px/1.2 var(--font-display); quotes: "“" "”"; }
+.remarks { margin-top: 0; border-top: 3px solid var(--before); }
+
+/* s11 ask */
+.ask { display: grid; grid-template-columns: 1fr 460px; gap: 100px; align-items: center; }
+.qr { border: 3px solid var(--ink); background: var(--bg); padding: 30px; box-shadow: 14px 14px 0 var(--paper-2), 14px 14px 0 3px var(--ink); }
+.qr svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
+.qr p { font: 22px/1.4 var(--font-data); text-align: center; margin: 18px 0 0; }
+.cmdline { display: inline-block; font: 30px var(--font-data); background: var(--paper-2); border: 2px dashed var(--muted); padding: 14px 22px; margin-top: 34px; }
+.closer { font: 600 64px/1.1 var(--font-display); margin-top: 52px; }
+.closer .stamp { font-size: .9em; }
+
+/* entrance: from a visible default; only when JS runs and motion is allowed */
+@media (prefers-reduced-motion: no-preference) {
+  .js .slide.on .rise { animation: rise .7s var(--ease-out) backwards; }
+  .js .slide.on .rise.d2 { animation-delay: .12s; } .js .slide.on .rise.d3 { animation-delay: .24s; }
+  .js .slide.on .land { animation: thump .5s cubic-bezier(.2, 1.4, .4, 1) .55s backwards; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes thump { from { opacity: 0; transform: rotate(var(--tilt)) scale(1.9); filter: blur(4px); } to { opacity: 1; transform: rotate(var(--tilt)) scale(1); filter: none; } }
+
+/* chrome */
+.ui { position: fixed; right: 22px; bottom: 18px; display: flex; gap: 10px; align-items: center; z-index: 10; font: 15px var(--font-data); color: #C9CDBF; background: rgba(20, 24, 31, .88); padding: 6px 8px; }
+.ui button { font: 600 14px/1 var(--font-body); background: transparent; color: #F3F1E7; border: 1.5px solid #6B6F78; padding: 8px 12px; cursor: pointer; transition: background .2s, border-color .2s; }
+.ui button:hover { background: #2a3040; border-color: #F3F1E7; }
+.ui button:active { transform: translateY(1px); }
+.ui button:focus-visible { outline: 2px solid #F3F1E7; outline-offset: 2px; }
+.speaker-notes { display: none; }
+body.presenter .notes-panel { display: block; }
+.notes-panel { display: none; position: fixed; left: 0; right: 0; bottom: 0; height: 20vh; background: #0E1117; color: #F3F1E7; font: 20px/1.5 var(--font-body); padding: 18px 28px; z-index: 9; overflow: auto; border-top: 2px solid var(--after); }
+body.presenter .ui { opacity: .45; }
+body.presenter.idle { cursor: none; }
+body.overview #stage { display: none; }
+#grid { display: none; position: fixed; inset: 0; overflow: auto; padding: 30px; gap: 22px; grid-template-columns: repeat(4, 1fr); background: #14181F; z-index: 8; }
+body.overview #grid { display: grid; }
+#grid button { border: 2px solid #6B6F78; padding: 0; cursor: pointer; background: var(--bg); aspect-ratio: 16 / 9; position: relative; overflow: hidden; transition: border-color .2s, transform .2s; }
+#grid button:hover, #grid button:focus-visible { border-color: var(--after); transform: translateY(-2px); outline: none; }
+#grid button span { position: absolute; left: 10px; bottom: 8px; font: 600 16px/1.2 var(--font-display); color: var(--ink); text-align: left; right: 10px; }
+#grid button i { position: absolute; left: 10px; top: 8px; font: 13px var(--font-data); color: var(--label); font-style: normal; }
+
+@page { size: 16in 9in; margin: 0; }
+@media print {
+  html, body { overflow: visible; height: auto; background: var(--bg); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #stage { position: static; transform: none !important; width: 16in; height: auto; }
+  .slide { display: flex !important; position: relative; width: 16in; height: 9in; zoom: .5; page-break-after: always; break-after: page; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ui, .notes-panel, #grid, .speaker-notes { display: none !important; }
+  * { animation: none !important; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js')</script>
+<div id="stage">
+
+<!-- 1 · COVER -->
+<section class="slide cover" data-title="Cover">
+  <div class="lbl rise"><span class="no">SP-1</span> QDay Aevum Builder Challenge #1 · DoraHacks</div>
+  <div class="brandmark"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="3" y="3" width="58" height="58" fill="none" stroke="currentColor" stroke-width="4"/><rect x="10" y="10" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2"/><text x="32" y="45" text-anchor="middle" font-family="Ibarra Real Nova, Georgia, serif" font-weight="700" font-size="34" fill="currentColor">B</text></svg>Brake</div>
+  <h1 class="rise d2">The agent reads the inbox. It can <span class="nw"><span class="stamp">stop</span>,</span> never pay.</h1>
+  <div class="line3 rise d3"><span>3</span><span class="v">Acme Logistics<small>INV-8812 · Tuesday’s email</small></span><span class="amt">0.500</span><span class="stamp land">Stop payment<small>No. 0x5bf4…7db8 <span class="fork">FORK</span></small></span></div>
+  <div class="foot"><span>Pre-signed stop-payments for stablecoin payment runs · v1.0 · 2026-11-16</span></div>
+  <aside class="speaker-notes">Brake lets finance sign each vendor payment together with its own cancellation. A monitor agent reads the inbox and can stop a line before payday, but it holds no funds and cannot pay. Everything you will see ran on a fork of Aevum testnet; the live run waits on faucet funding.</aside>
+</section>
+
+<!-- 2 · HOOK -->
+<section class="slide hook" data-title="Hook">
+  <div class="lbl"><span class="no">L-01</span> Business email compromise, 2024</div>
+  <div class="big rise"><span class="cur">$</span>2,770,151,146</div>
+  <p class="body rise d2">in reported losses across <b>21,442 complaints</b> to the FBI’s IC3. On a stablecoin chain, a paid line is final.</p>
+  <p class="src">Source: FBI IC3 2024 Internet Crime Report, complaint and loss tables</p>
+  <aside class="speaker-notes">The attack is mundane: a vendor's mailbox says the bank details changed. Card and wire rails have recall windows; a stablecoin transfer does not. That is the gap Brake closes.</aside>
+</section>
+
+<!-- 3 · PROBLEM -->
+<section class="slide" data-title="Problem">
+  <div class="lbl"><span class="no">L-02</span> The problem</div>
+  <div class="two"><div>
+  <h2 class="rise">Signed Monday. Wrong by Tuesday.</h2>
+  <p class="body rise d2">Today, stopping it needs the key holder online.</p></div>
+  <div class="days3 rise d3">
+    <div><b>Monday</b><span>Rina, the AP clerk, signs four vendor lines.</span></div>
+    <div><b class="red">Tuesday</b><span>“Acme” emails new bank details.</span></div>
+    <div><b>Payday</b><span>The line pays wherever it points.</span></div>
+  </div></div>
+  <aside class="speaker-notes">Rina is our persona: the sole AP clerk. She approves on Monday, the fraud arrives Tuesday, and she is in meetings. Today her choices are to stay online with the key, or to hand a bot a key that can pay.</aside>
+</section>
+
+<!-- 4 · SOLUTION -->
+<section class="slide" data-title="Solution">
+  <div class="lbl"><span class="no">L-03</span> The idea</div>
+  <h2 class="rise">Sign the cancel with the payment.</h2>
+  <div class="slips rise d2">
+    <div class="slip pay"><b>Payment · EIP-3009</b>transferWithAuthorization<br>valid from payday<br>to 0xFe83…a5De · 0.500</div>
+    <div class="slip cx"><b>Cancellation · same nonce</b>cancelAuthorization<br>held for the agent<br>any caller may submit<span class="stamp land">Stop</span></div>
+  </div>
+  <aside class="speaker-notes">Finance signs two EIP-712 messages per line in one sitting. tUSD8 accepts the signed cancel from any caller, which we proved on a fork with seven tests. So the agent that carries it needs no funds and no spending key.</aside>
+</section>
+
+<!-- 5 · HOW IT WORKS -->
+<section class="slide" data-title="How it works">
+  <div class="lbl"><span class="no">L-04</span> How it works</div>
+  <h2 class="rise" style="margin-bottom:10px">Three days, one run.</h2>
+  <svg class="flow rise d2" viewBox="0 0 1664 600" role="img" aria-label="Monday finance signs payment and cancel; Tuesday the agent stops line 3 through Brake and tUSD8; Payday Multicall3 pays lines 1, 2 and 4 and the replay of line 3 reverts.">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1C2230"/></marker></defs>
+    <g font-size="28" fill="#1C2230">
+      <rect x="0" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
+      <text x="30" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Monday</text>
+      <text x="30" y="175" fill="#555962" font-size="22" letter-spacing="2">FINANCE SIGNS</text>
+      <rect x="30" y="205" width="380" height="88" fill="none" stroke="#2F4FA2" stroke-width="3"/><text x="50" y="258" font-family="Courier Prime, monospace" fill="#2F4FA2">payment · from payday</text>
+      <rect x="30" y="315" width="380" height="88" fill="none" stroke="#C2272D" stroke-width="3"/><text x="50" y="368" font-family="Courier Prime, monospace" fill="#C2272D">cancel · same nonce</text>
+
+      <rect x="612" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
+      <text x="642" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Tuesday</text>
+      <text x="642" y="175" fill="#555962" font-size="22" letter-spacing="2">AGENT READS, STOPS</text>
+      <text x="642" y="240" font-family="Courier Prime, monospace">email · vendor file</text>
+      <text x="642" y="280" font-family="Courier Prime, monospace">invoices · isBlacklisted</text>
+      <line x1="662" y1="300" x2="662" y2="345" stroke="#1C2230" stroke-width="3" marker-end="url(#ar)"/>
+      <text x="642" y="390" font-family="Courier Prime, monospace" font-weight="700" fill="#C2272D">Brake.stop → tUSD8</text>
+
+      <rect x="1224" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
+      <text x="1254" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Payday</text>
+      <text x="1254" y="175" fill="#555962" font-size="22" letter-spacing="2">ONE BATCH</text>
+      <text x="1254" y="240" font-family="Courier Prime, monospace" fill="#2E6B4F" font-weight="700">paid [1, 2, 4]</text>
+      <text x="1254" y="330" font-family="Courier Prime, monospace" fill="#C2272D" font-weight="700">line 3 replay</text>
+      <text x="1254" y="370" font-family="Courier Prime, monospace" fill="#C2272D">→ reverts</text>
+
+      <line x1="450" y1="270" x2="600" y2="270" stroke="#1C2230" stroke-width="3" marker-end="url(#ar)"/>
+      <line x1="1062" y1="270" x2="1212" y2="270" stroke="#1C2230" stroke-width="3" marker-end="url(#ar)"/>
+    </g>
+  </svg>
+  <aside class="speaker-notes">Monday binds the agent's identity, a stop budget and an expiry. Tuesday the model reads every input as untrusted data and the contract submits the cancel with a reason and evidence hash. On payday the stopped line's replay reverts with the token's own error.</aside>
+</section>
+
+<!-- 6 · DEMO -->
+<section class="slide" data-title="Demo">
+  <div class="lbl"><span class="no">L-05</span> The hero run · fork</div>
+  <h2 class="rise" style="margin:20px 0 34px">Line 3 never cleared.</h2>
+  <div class="demo-grid">
+    <div class="frame rise d2"><div class="bar"><i></i><i></i><i></i>&nbsp; local fork</div><img src="../assets/demo-stamp.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
+      <span class="callout red" style="left:81%;top:54%">1</span><span class="callout" style="left:51%;top:57%">2</span></div>
+    <div class="rise d3">
+      <div class="tape"><span class="cap">pnpm demo:hero</span><span class="t">+13.4s</span> line 3 <span class="no">STOP</span><br><span class="t">      </span> rules fired 0<br><span class="t">+44.5s</span> <span class="ok">paid [1, 2, 4]</span><br><span class="t">      </span> line 3 <span class="no">reverted</span></div>
+      <ul class="keys"><li><span class="red">1</span>Serial = the cancel tx.</li><li><span>2</span>Amount struck; re-issued later.</li></ul>
+    </div>
+  </div>
+  <aside class="speaker-notes">This is the recorded run from evidence/hero-fork.json. The model alone stopped line 3; no rule fired. Payday paid the other three lines in one batch and the stopped line's replay reverted. The whole run took 64 seconds.</aside>
+</section>
+
+<!-- 7 · POWERS -->
+<section class="slide" data-title="The agent's powers">
+  <div class="lbl"><span class="no">L-06</span> Least privilege</div>
+  <h2 class="rise">An agent with no wallet.</h2>
+  <div class="ledger rise d2">
+    <div class="can"><h3>It may</h3><ul><li>allow a line</li><li>hold a line</li><li>stop ≤ maxStops</li></ul></div>
+    <div class="cannot"><h3>It cannot</h3><ul><li><span>pay anyone</span></li><li><span>change a payee</span></li><li><span>hold funds</span></li></ul></div>
+  </div>
+  <p class="small">0 tUSD8 and no allowance, checked on /verify · revocable at once.</p>
+  <aside class="speaker-notes">A hijacked agent can delay a run: cancel up to maxStops lines and hold others. Each stop is re-issuable and a hold is released by one payer allow. It can never create a payment or redirect one.</aside>
+</section>
+
+<!-- 8 · RECEIPTS -->
+<section class="slide" data-title="Receipts">
+  <div class="lbl"><span class="no">L-07</span> Receipts</div>
+  <h2 class="rise">Every number has a file.</h2>
+  <div class="rcpts rise d2">
+    <div><div class="n">121</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
+    <div><div class="n" style="color:var(--after)">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
+    <div><div class="n" style="color:var(--before)">4.1 s</div><p>median email → cancel (fork)</p><code>bench/results.json</code></div>
+    <div><div class="n">25/25</div><p>injection emails; rules alone 6</p><code>evidence/g4/</code></div>
+  </div>
+  <p class="small">n = 25: a regression suite, not a detection rate.</p>
+  <aside class="speaker-notes">121 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel. The model numbers predate the architecture review's agent changes, and we say so in the README.</aside>
+</section>
+
+<!-- 9 · AEVUM -->
+<section class="slide" data-title="Built on Aevum">
+  <div class="lbl"><span class="no">L-08</span> Aevum testnet 44005</div>
+  <h2 class="rise">Built on what is live.</h2>
+  <div class="cols3 rise d2">
+    <div><h3>Live, used</h3><ul><li>tUSD8 EIP-3009</li><li>isBlacklisted</li><li>Multicall3</li><li>CREATE2 deployer</li></ul></div>
+    <div><h3>Self-deployed</h3><ul><li>ERC-8004 Identity</li><li>ERC-8004 Validation</li><li>Brake.sol</li></ul></div>
+    <div class="not"><h3>Not live, not used</h3><ul><li>@qday-io/sdk</li><li>PQ precompiles</li><li>public bundler</li></ul></div>
+  </div>
+  <aside class="speaker-notes">We probed the chain with eth_getCode and eth_call before building. Everything Brake depends on is live on 44005, except ERC-8004, which we deploy ourselves from the reference contracts.</aside>
+</section>
+
+<!-- 10 · HONEST -->
+<section class="slide s-honest" data-title="Honest limits">
+  <div class="lbl"><span class="no">L-09</span> Honest by design · README</div>
+  <h2 class="rise">What it cannot do.</h2>
+  <div class="remarks rise d2">
+    <div class="rm"><span class="k">R-1</span><q>Brake prevents only what it detects.</q></div>
+    <div class="rm"><span class="k">R-2</span><q>Brake acts only on what arrives before payday.</q></div>
+    <div class="rm"><span class="k">R-3</span><q>It cannot claw funds back.</q></div>
+  </div>
+  <aside class="speaker-notes">These are quoted from the README. A wrong stop costs a late payment. Had the attacker stayed silent, line 3 would have paid. If the payment lands first, Brake reports TOO LATE and opens a recovery ticket.</aside>
+</section>
+
+<!-- 11 · ASK -->
+<section class="slide" data-title="The ask">
+  <div class="lbl"><span class="no">L-10</span> Try to break it</div>
+  <div class="ask">
+    <div>
+      <h2 class="rise">Make the agent pay.</h2>
+      <p class="body rise d2">Fork the chain, run the hero, then try. The live testnet run follows faucet funding.</p>
+      <div class="cmdline rise d3">pnpm fork:up &amp;&amp; pnpm demo:hero</div>
+      <div class="closer">It can <span class="stamp">stop</span>, never pay.</div>
+    </div>
+    <div class="qr"><svg viewBox="-2 -2 33 33" role="img" aria-label="QR code: github.com/edycutjong/brake"><rect x="-2" y="-2" width="33" height="33" fill="#F3F1E7"/><path stroke="#1C2230" d="M0 0.5h7m2 0h2m1 0h1m1 0h5m3 0h7m-29 1h1m5 0h1m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m3 0h2m1 0h1m6 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h4m4 0h2m1 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m4 0h1m4 0h1m5 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m5 0h1m1 0h2m5 0h1m1 0h1m3 0h2m2 0h3m-24 1h1m4 0h2m1 0h2m1 0h1m3 0h1m1 0h1m1 0h2m1 0h2m-28 1h2m2 0h1m1 0h3m2 0h1m1 0h4m3 0h1m3 0h1m-25 1h1m2 0h1m5 0h3m1 0h1m1 0h1m2 0h1m1 0h2m3 0h1m-23 1h2m1 0h2m4 0h2m2 0h1m2 0h2m1 0h2m4 0h1m-29 1h2m2 0h2m2 0h4m3 0h6m1 0h3m2 0h2m-28 1h1m2 0h1m1 0h4m5 0h4m1 0h2m2 0h3m-27 1h1m2 0h1m1 0h1m1 0h1m1 0h2m5 0h1m1 0h2m3 0h2m1 0h1m1 0h1m-27 1h2m1 0h2m2 0h2m4 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m-27 1h4m3 0h4m1 0h8m2 0h3m1 0h3m-29 1h3m2 0h4m1 0h1m4 0h2m2 0h1m4 0h2m2 0h1m-29 1h1m2 0h1m1 0h1m7 0h1m1 0h1m4 0h1m1 0h1m-23 1h1m1 0h1m1 0h1m1 0h3m1 0h2m2 0h4m1 0h6m1 0h3m-21 1h3m3 0h2m1 0h2m1 0h1m3 0h2m-26 1h7m3 0h2m3 0h1m1 0h1m1 0h2m1 0h1m1 0h3m-27 1h1m5 0h1m2 0h1m1 0h2m1 0h2m2 0h3m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h4m2 0h7m1 0h2m-29 1h1m1 0h3m1 0h1m2 0h3m2 0h3m1 0h4m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m4 0h3m1 0h9m-28 1h1m5 0h1m6 0h1m1 0h1m6 0h2m1 0h2m1 0h1m-29 1h7m1 0h1m1 0h1m2 0h2m2 0h3m2 0h3m1 0h1"/></svg><p>github.com/edycutjong/brake</p></div>
+  </div>
+  <aside class="speaker-notes">Our ask: try to make the agent move money. The repo has the fork setup and the hero script. Score us on the stop, the receipts and the limits we disclose.</aside>
+</section>
+
+</div>
+
+<div id="grid" aria-label="Slide overview"></div>
+<div class="notes-panel" id="notes" aria-live="polite"></div>
+<div class="ui"><button type="button" id="prev" aria-label="Previous slide">←</button><span id="count">01 / 11</span><button type="button" id="next" aria-label="Next slide">→</button><button type="button" id="pres" aria-label="Toggle presenter notes">P</button></div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const stage = document.getElementById('stage');
+  const count = document.getElementById('count');
+  const notes = document.getElementById('notes');
+  const grid = document.getElementById('grid');
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  const pad = (n) => String(n).padStart(2, '0');
+  const fit = () => {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = `scale(${s}) translate(-50%, -50%)`;
+  };
+  const show = (n) => {
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    count.textContent = `${pad(i + 1)} / ${pad(slides.length)}`;
+    const a = slides[i].querySelector('.speaker-notes');
+    notes.textContent = a ? a.textContent : '';
+    history.replaceState(null, '', '#' + (i + 1));
+  };
+  slides.forEach((s, k) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `<i>${pad(k + 1)}</i><span>${s.dataset.title}</span>`;
+    b.addEventListener('click', () => { document.body.classList.remove('overview'); show(k); });
+    grid.appendChild(b);
+  });
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.getElementById('pres').onclick = () => document.body.classList.toggle('presenter');
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'Escape') document.body.classList.toggle('overview');
+    else if (e.key === 'p' || e.key === 'P') document.body.classList.toggle('presenter');
+  });
+  let idle;
+  addEventListener('mousemove', () => {
+    document.body.classList.remove('idle'); clearTimeout(idle);
+    idle = setTimeout(() => document.body.classList.contains('presenter') && document.body.classList.add('idle'), 2000);
+  });
+  addEventListener('resize', fit);
+  fit(); show(i);
+})();
+</script>
+</body>
+</html>

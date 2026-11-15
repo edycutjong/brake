@@ -1,0 +1,7 @@
+Fonts bundled for the Brake landing page and pitch deck (self-hosted copies of the Google Fonts latin subsets):
+
+- Ibarra Real Nova: Copyright the Ibarra Real Nova Project Authors (https://github.com/googlefonts/ibarrareal)
+- Libre Franklin: Copyright the Libre Franklin Project Authors (https://github.com/impallari/Libre-Franklin)
+- Courier Prime: Copyright Quote-Unquote Apps (https://github.com/quoteunquoteapps/CourierPrime)
+
+All three are licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
