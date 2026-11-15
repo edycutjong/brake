@@ -284,22 +284,26 @@ export async function openRunOnChain(db: Db, ctx: ChainCtx, id: string) {
 
 // --------------------------------------------------------------------------------------------------- inbox
 
-const SCRIPTED = new Set(["open", "seed:E4", "seed:E5"]);
-export const REVIEW_BUDGET = { total: 10, scripted: 3 };
+export const REVIEW_BUDGET = { total: 10 };
+const isScripted = (trigger: string) => trigger === "open" || trigger.startsWith("seed:");
 
-/** Queue a review. Scripted triggers (open, E4, E5) use the 3 reserved reviews; everything else shares the other 7. */
+/**
+ * Queue a review. Each run has 10. Scripted triggers — the open review and each of the scenario's scripted deliveries
+ * (hero: E4, E5) — have reserved reviews (once each); composer emails, manual re-runs and stale re-reviews share the rest,
+ * so a judge can never spend the hero's reviews. A spent budget leaves the bumped line stale → HELD at payday.
+ */
 export async function enqueueReview(db: Db | Tx, id: string, trigger: string): Promise<{ jobId: string | null; budgetSpent: boolean }> {
-  const counts = await db.query<{ scripted: string; other: string }>(
-    `select count(*) filter (where trigger = any($2))::text as scripted, count(*) filter (where not (trigger = any($2)))::text as other
-       from review_jobs where run_id = $1`,
-    [id, [...SCRIPTED]],
-  );
-  const used = counts.rows[0]!;
-  if (SCRIPTED.has(trigger)) {
+  const run = await getRun(db, id);
+  const reserved = 1 + (runFixtures()[run.scenario]?.deliver.length ?? 0);
+  if (isScripted(trigger)) {
     const dup = await db.query(`select 1 from review_jobs where run_id = $1 and trigger = $2`, [id, trigger]);
     if (dup.rowCount) return { jobId: null, budgetSpent: false };
-  } else if (Number(used.other) >= REVIEW_BUDGET.total - REVIEW_BUDGET.scripted) {
-    return { jobId: null, budgetSpent: true };
+  } else {
+    const other = await db.query<{ n: string }>(
+      `select count(*)::text as n from review_jobs where run_id = $1 and trigger <> 'open' and trigger not like 'seed:%'`,
+      [id],
+    );
+    if (Number(other.rows[0]!.n) >= REVIEW_BUDGET.total - reserved) return { jobId: null, budgetSpent: true };
   }
   const jobId = newId("job");
   await db.query(`insert into review_jobs (id, run_id, trigger, status) values ($1,$2,$3,'queued')`, [jobId, id, trigger]);
@@ -349,7 +353,8 @@ export async function deliver(db: Db, ctx: ChainCtx, id: string, input: DeliverI
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [msgId, id, msg.seedId, msg.vendorId, msg.from, msg.from.split("@")[1] ?? "", msg.subject, msg.body, msg.source, now],
     );
-    const ctxLines = await lineContexts(c, id, { reviewableOnly: true });
+    // link against every non-terminal line (incl. SIGNED before openRun), so no message can slip past a revision bump
+    const ctxLines = (await lineContexts(c, id)).filter((l) => !TERMINAL.includes(l.status));
     const { linkMessages } = await import("./agent/pipeline.js");
     const linked = linkMessages(ctxLines, [
       { id: msgId, fromAddr: msg.from, fromDomain: msg.from.split("@")[1] ?? "", subject: msg.subject, body: msg.body, receivedAt: now, vendorId: msg.vendorId },

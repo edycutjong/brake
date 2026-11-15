@@ -125,7 +125,10 @@ export async function sendQueued(
     const id = row?.id ?? newId("tx");
     let hash: Hex;
     try {
-      hash = await w.sendTransaction({ to: p.to, data: p.data, nonce, gas: p.gas, chain: ctx.chain });
+      // Headroom over the estimate: Brake wraps the ERC-8004 receipt in try/catch, so the estimator's binary search can
+      // settle on a limit where the receipt call runs out of gas and is caught (ReceiptFailed) — observed on the fork.
+      const gas = p.gas ?? ((await ctx.pub.estimateGas({ account: w.account, to: p.to, data: p.data })) * 3n) / 2n + 50_000n;
+      hash = await w.sendTransaction({ to: p.to, data: p.data, nonce, gas, chain: ctx.chain });
     } catch (e) {
       await c.query(
         `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, status, attempts, error)
