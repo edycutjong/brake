@@ -1,0 +1,757 @@
+{
+ "label": "FORK \u2014 anvil fork of Aevum 44005, not the live chain; these tx hashes exist only on the local fork (no explorer links)",
+ "purpose": "the runs recorded for the demo video (2026-11-16): every hash shown on screen in the film comes from this file",
+ "model": "claude-sonnet-5-5 (claude-cli adapter)",
+ "takes": {
+  "hero": {
+   "run": "run_ea820014d3f86867",
+   "chain_run_id": "0x9d709960b2182863ff8fd19fa949e3aeadfc69332baf3ff95053609ad03c7c3b",
+   "scenario": "hero",
+   "open_tx": "0x468221f02ffe9fedb386647498c12a093499a952a56ba35a3535bf002834f765",
+   "sweep_tx": "0x2be671aac43d81c21680df55050d55ae8b0342cd1172bc3950c054796add50e1",
+   "created": "2026-11-15T22:43:38Z",
+   "lines": [
+    {
+     "line": 1,
+     "status": "PAID",
+     "stop_tx": null,
+     "paid_tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 125000
+    },
+    {
+     "line": 2,
+     "status": "PAID",
+     "stop_tx": null,
+     "paid_tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 240000
+    },
+    {
+     "line": 3,
+     "status": "REISSUED",
+     "stop_tx": "0x775852e15e89463152c896f3dc342ef11432b0280a68d66dbd7ebf2ab77c96e7",
+     "paid_tx": null,
+     "proof_tx": "0xc8b48440eb7dc06d7a50a19a00638da86c92903a26f12c1b324a72235566b0f8",
+     "proof_reason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled.",
+     "amount_units": 500000
+    },
+    {
+     "line": 4,
+     "status": "PAID",
+     "stop_tx": null,
+     "paid_tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 38000
+    },
+    {
+     "line": 5,
+     "status": "PAID",
+     "stop_tx": null,
+     "paid_tx": "0xffcc7d9d5f05276c75b350f6c7e7b3e7c8fb45272557cdce504db3d93d0f6ebf",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 500000
+    }
+   ],
+   "decisions": [
+    {
+     "line": 1,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615",
+     "evidence_hash": "0x598b053ef17a290c6704960b64d9624294799edd9ad94f6564ef206e086b99b4",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 2,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615",
+     "evidence_hash": "0x47174b93c3f5f93c39ac689faa04c42b4c6496889b1f78d70f183484dbb3d642",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 3,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615",
+     "evidence_hash": "0x90de58cef36818d28318bd75c476fb8920cd622b37cf1e55b971529652294c68",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 4,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615",
+     "evidence_hash": "0x73ca93c8130fc015659c409368159f4226a1788c12bdb6a984131d0c6e32c2c4",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 3,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "PAYMENT_DETAIL_CHANGE",
+     "rules_fired": [],
+     "chain_status": "STOPPED",
+     "tx": "0x775852e15e89463152c896f3dc342ef11432b0280a68d66dbd7ebf2ab77c96e7",
+     "evidence_hash": "0x73a51c2a1ed6a7a5f2a2c37d48513766cda5c6ab0fec8741266c50387233b3fa",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 5,
+     "rev": 0,
+     "verdict": "FINANCE_ALLOW",
+     "reason": "REISSUE_PHONE_VERIFIED",
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xee43b7749a0644f625c26012550093976cd81713217be3c724b76a2d62c24dab",
+     "evidence_hash": "0xd8fc30e1300f859f444875a954466102d060fe997a5984fc5c6a103b4a3b0f74",
+     "model": "finance"
+    }
+   ],
+   "chain_events": [
+    {
+     "name": "RunOpened",
+     "line": null,
+     "block": 3272008,
+     "tx": "0x468221f02ffe9fedb386647498c12a093499a952a56ba35a3535bf002834f765"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 1,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 1,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 2,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 2,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 3,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 4,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 4,
+     "block": 3272013,
+     "tx": "0xdd270523c8647461cd9e22e28c4be770fdb458719e0cdfd59cebe9727832c615"
+    },
+    {
+     "name": "AuthorizationCanceled",
+     "line": 3,
+     "block": 3272045,
+     "tx": "0x775852e15e89463152c896f3dc342ef11432b0280a68d66dbd7ebf2ab77c96e7"
+    },
+    {
+     "name": "LineStopped",
+     "line": 3,
+     "block": 3272045,
+     "tx": "0x775852e15e89463152c896f3dc342ef11432b0280a68d66dbd7ebf2ab77c96e7"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3272045,
+     "tx": "0x775852e15e89463152c896f3dc342ef11432b0280a68d66dbd7ebf2ab77c96e7"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 1,
+     "block": 3272071,
+     "tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 2,
+     "block": 3272071,
+     "tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 4,
+     "block": 3272071,
+     "tx": "0x7e3ea7b7b05ca9eaa34da2de7ebe61cbe1a61c781bb10736e4056f22b6dbd4af"
+    },
+    {
+     "name": "LineReissued",
+     "line": null,
+     "block": 3272093,
+     "tx": "0xe81f381fccc3faaddc18b2df82ceef833f89675d2e88164eec891c300b87f32e"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 5,
+     "block": 3272094,
+     "tx": "0xee43b7749a0644f625c26012550093976cd81713217be3c724b76a2d62c24dab"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 5,
+     "block": 3272094,
+     "tx": "0xee43b7749a0644f625c26012550093976cd81713217be3c724b76a2d62c24dab"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 5,
+     "block": 3272109,
+     "tx": "0xffcc7d9d5f05276c75b350f6c7e7b3e7c8fb45272557cdce504db3d93d0f6ebf"
+    }
+   ]
+  },
+  "flood": {
+   "run": "run_cfc5310b0627ed6b",
+   "chain_run_id": "0x3754895460eb145cd202c16456170a3a620139de982e9b87430318dc7a89a322",
+   "scenario": "flood",
+   "open_tx": "0x199106820cd7fd9d4685813e775d22b099e10fe0d5ce289e5ddf4d8e1242a920",
+   "sweep_tx": null,
+   "created": "2026-11-15T22:37:42Z",
+   "lines": [
+    {
+     "line": 1,
+     "status": "STOPPED",
+     "stop_tx": "0x3f79fb2e156ae3ca168a3b5c9ce3bf7ee547eb88821a8cfb5cc40582e3e75afd",
+     "paid_tx": null,
+     "proof_tx": "0xc0b6e65c39df76cdc6d2e51c4c6dde58b29f9028e29c13d1351408945935b9eb",
+     "proof_reason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled.",
+     "amount_units": 125000
+    },
+    {
+     "line": 2,
+     "status": "STOPPED",
+     "stop_tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5",
+     "paid_tx": null,
+     "proof_tx": "0xffc542eaaf576193ef0e3acc3beebe4f274d7b5af5e64911ce1acc234836cb82",
+     "proof_reason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled.",
+     "amount_units": 240000
+    },
+    {
+     "line": 3,
+     "status": "HELD",
+     "stop_tx": null,
+     "paid_tx": null,
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 38000
+    },
+    {
+     "line": 4,
+     "status": "PAID",
+     "stop_tx": null,
+     "paid_tx": "0x05eacc618851da265160187056dc75b2b2e173b8d3ac0c85c3424e5f927287e5",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 90000
+    }
+   ],
+   "decisions": [
+    {
+     "line": 1,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96",
+     "evidence_hash": "0x302bb52376ce09daaee2c1a9ea178001a2faa5a594f22f2d1635d69052c53be7",
+     "model": "none (no linked messages)"
+    },
+    {
+     "line": 2,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96",
+     "evidence_hash": "0x1da117269227ae7d58c94ad826d8605ca70eb3dc6f079a37e543c8ab30365182",
+     "model": "none (no linked messages)"
+    },
+    {
+     "line": 3,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96",
+     "evidence_hash": "0xb2318f6a94b39956b7e44306ced86fb08d73add40a39ebccc7d8592021285144",
+     "model": "none (no linked messages)"
+    },
+    {
+     "line": 4,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96",
+     "evidence_hash": "0x58ad3e94142bae377a7bf6788daaa9b03086044060e0c12802c9bab57bb23be4",
+     "model": "none (no linked messages)"
+    },
+    {
+     "line": 1,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "SENDER_LOOKALIKE",
+     "rules_fired": [
+      {
+       "id": "R-DOM",
+       "detail": "msg_d6839aa0737388ed from kopi-nusantara.example imitates kopinusantara.example",
+       "reason": "SENDER_LOOKALIKE"
+      }
+     ],
+     "chain_status": "STOPPED",
+     "tx": "0x3f79fb2e156ae3ca168a3b5c9ce3bf7ee547eb88821a8cfb5cc40582e3e75afd",
+     "evidence_hash": "0x8ffc7a42b0cc192f2304516c6a8bbcf0668b5e358aad75a4b5c26c8d452f1a81",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 2,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "SENDER_LOOKALIKE",
+     "rules_fired": [
+      {
+       "id": "R-DOM",
+       "detail": "msg_d06621317f24a179 from studio-garis.example imitates studiogaris.example",
+       "reason": "SENDER_LOOKALIKE"
+      }
+     ],
+     "chain_status": "STOPPED",
+     "tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5",
+     "evidence_hash": "0xfe625a110ca9aa2131ef6ecd0f041bf428246232029aa20f0d59c60b9bd1fe7d",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 3,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "SENDER_LOOKALIKE",
+     "rules_fired": [
+      {
+       "id": "R-DOM",
+       "detail": "msg_082c665483d8033f from cloudnlne.example imitates cloudnine.example",
+       "reason": "SENDER_LOOKALIKE"
+      }
+     ],
+     "chain_status": "HELD",
+     "tx": "0x2897642c4c4d120cb39dc43720019c31176a4e4e458457461613b8a2b53a2a04",
+     "evidence_hash": "0x51deefd50cbb055da4bf4a70f4a232aa595a3e4702b22e9fd24f8483c117e373",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    }
+   ],
+   "chain_events": [
+    {
+     "name": "RunOpened",
+     "line": null,
+     "block": 3271652,
+     "tx": "0x199106820cd7fd9d4685813e775d22b099e10fe0d5ce289e5ddf4d8e1242a920"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 1,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 1,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 2,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 2,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 3,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 4,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 4,
+     "block": 3271653,
+     "tx": "0x130b8145d8515bd6688e2d8aa47e2f57f03647d14d1792a4d187607914beae96"
+    },
+    {
+     "name": "AuthorizationCanceled",
+     "line": 1,
+     "block": 3271658,
+     "tx": "0x3f79fb2e156ae3ca168a3b5c9ce3bf7ee547eb88821a8cfb5cc40582e3e75afd"
+    },
+    {
+     "name": "LineStopped",
+     "line": 1,
+     "block": 3271658,
+     "tx": "0x3f79fb2e156ae3ca168a3b5c9ce3bf7ee547eb88821a8cfb5cc40582e3e75afd"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 1,
+     "block": 3271658,
+     "tx": "0x3f79fb2e156ae3ca168a3b5c9ce3bf7ee547eb88821a8cfb5cc40582e3e75afd"
+    },
+    {
+     "name": "AuthorizationCanceled",
+     "line": 2,
+     "block": 3271663,
+     "tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5"
+    },
+    {
+     "name": "LineStopped",
+     "line": 2,
+     "block": 3271663,
+     "tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5"
+    },
+    {
+     "name": "StopAlarm",
+     "line": null,
+     "block": 3271663,
+     "tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 2,
+     "block": 3271663,
+     "tx": "0xff1edb52eda62e3f9aa4c769f45956e131ee53c7062c1216768a7e7e0679bcf5"
+    },
+    {
+     "name": "LineHeld",
+     "line": 3,
+     "block": 3271668,
+     "tx": "0x2897642c4c4d120cb39dc43720019c31176a4e4e458457461613b8a2b53a2a04"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3271668,
+     "tx": "0x2897642c4c4d120cb39dc43720019c31176a4e4e458457461613b8a2b53a2a04"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 4,
+     "block": 3271717,
+     "tx": "0x05eacc618851da265160187056dc75b2b2e173b8d3ac0c85c3424e5f927287e5"
+    }
+   ]
+  },
+  "late": {
+   "run": "run_c2e8fea2b1b5d51d",
+   "chain_run_id": "0x944f0638daafb3782bb837e16108f595895441dd675d2f6641ff234c93ea7485",
+   "scenario": "late",
+   "open_tx": "0x37bfb180db7627e4fcd709b766451506cf0dd2dc5cbf47eb897c48a5a9de1495",
+   "sweep_tx": null,
+   "created": "2026-11-15T22:38:48Z",
+   "lines": [
+    {
+     "line": 1,
+     "status": "TOO_LATE",
+     "stop_tx": "0x04df23d47d0b4114c8a3eaec03362b6c7b8f611d56d90032584097be0c78e243",
+     "paid_tx": "0x21f3d5c79e7dabcc24f6bf4d12a241d55c1f01b5150c3ee8d72f03e7bc759706",
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 45000
+    }
+   ],
+   "decisions": [
+    {
+     "line": 1,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0xa34dacc7d16a94ecde26c5500562cd44f47f00bf6c901aa41a67af38fad118c4",
+     "evidence_hash": "0xe1db37ac34633eb008aaf0ab22df5005f3c4096169bd8abadb1230e7079dcd5e",
+     "model": "none (no linked messages)"
+    },
+    {
+     "line": 1,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "DUPLICATE_INVOICE",
+     "rules_fired": [],
+     "chain_status": "CONSUMED",
+     "tx": "0x04df23d47d0b4114c8a3eaec03362b6c7b8f611d56d90032584097be0c78e243",
+     "evidence_hash": "0x29c9ffa923f34c325f5ca621fefd2d0a5e825dfbfdc95bd4cfe38718fa466c4b",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    }
+   ],
+   "chain_events": [
+    {
+     "name": "RunOpened",
+     "line": null,
+     "block": 3271718,
+     "tx": "0x37bfb180db7627e4fcd709b766451506cf0dd2dc5cbf47eb897c48a5a9de1495"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 1,
+     "block": 3271719,
+     "tx": "0xa34dacc7d16a94ecde26c5500562cd44f47f00bf6c901aa41a67af38fad118c4"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 1,
+     "block": 3271719,
+     "tx": "0xa34dacc7d16a94ecde26c5500562cd44f47f00bf6c901aa41a67af38fad118c4"
+    },
+    {
+     "name": "AuthorizationUsed",
+     "line": 1,
+     "block": 3271722,
+     "tx": "0x21f3d5c79e7dabcc24f6bf4d12a241d55c1f01b5150c3ee8d72f03e7bc759706"
+    },
+    {
+     "name": "StopConsumed",
+     "line": 1,
+     "block": 3271726,
+     "tx": "0x04df23d47d0b4114c8a3eaec03362b6c7b8f611d56d90032584097be0c78e243"
+    }
+   ]
+  },
+  "composer-hero": {
+   "run": "run_34a02a446767ae94",
+   "chain_run_id": "0xf52c7b7f1ed147ca6667c4f784bd73f829bfe9fcc20b8ab5b8d53c5171ca62d3",
+   "scenario": "hero",
+   "open_tx": "0xe9fecbb81348f25d03c38f0f1af6923b98988acf9feab97de3d5751d8724602c",
+   "sweep_tx": null,
+   "created": "2026-11-15T22:46:15Z",
+   "lines": [
+    {
+     "line": 1,
+     "status": "ALLOWED",
+     "stop_tx": null,
+     "paid_tx": null,
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 125000
+    },
+    {
+     "line": 2,
+     "status": "ALLOWED",
+     "stop_tx": null,
+     "paid_tx": null,
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 240000
+    },
+    {
+     "line": 3,
+     "status": "STOPPED",
+     "stop_tx": "0x030d79c0583e87066a0719f8fd2e3308db55c1d3ffb614935837be60297fbf1a",
+     "paid_tx": null,
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 500000
+    },
+    {
+     "line": 4,
+     "status": "ALLOWED",
+     "stop_tx": null,
+     "paid_tx": null,
+     "proof_tx": null,
+     "proof_reason": null,
+     "amount_units": 38000
+    }
+   ],
+   "decisions": [
+    {
+     "line": 1,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8",
+     "evidence_hash": "0xad621af3dc274216da633c6c22ad9f972d765db7e05701767a5d6b5be0e22123",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 2,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8",
+     "evidence_hash": "0x4d7285a1c62ba8a4861e116828caa4170320a0f0687ea88d70630a5a3aa74077",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 3,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8",
+     "evidence_hash": "0xaca85810a660b5bec502a4f0e8b3d600bfa3557727267731957f4306c6b82fd4",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 4,
+     "rev": 0,
+     "verdict": "ALLOW",
+     "reason": null,
+     "rules_fired": [],
+     "chain_status": "ALLOWED",
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8",
+     "evidence_hash": "0x557cc0ca06d488846dc520504a7a2057f515261ec873d32d52adc2c56cce07b8",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    },
+    {
+     "line": 3,
+     "rev": 1,
+     "verdict": "STOP",
+     "reason": "PAYMENT_DETAIL_CHANGE",
+     "rules_fired": [],
+     "chain_status": "STOPPED",
+     "tx": "0x030d79c0583e87066a0719f8fd2e3308db55c1d3ffb614935837be60297fbf1a",
+     "evidence_hash": "0x657b0cc7b58e12fb3f071e58a1ba5aa011d7620e780871faf59b0aaa78ec375f",
+     "model": "claude-sonnet-5-5 (claude-cli)"
+    }
+   ],
+   "chain_events": [
+    {
+     "name": "RunOpened",
+     "line": null,
+     "block": 3272165,
+     "tx": "0xe9fecbb81348f25d03c38f0f1af6923b98988acf9feab97de3d5751d8724602c"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 1,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 1,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 2,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 2,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 3,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "LineAllowed",
+     "line": 4,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 4,
+     "block": 3272170,
+     "tx": "0x16a12e1e42e138b10ff37a15e9ad0861575f7989e5abc03b7992bc66335b1cf8"
+    },
+    {
+     "name": "AuthorizationCanceled",
+     "line": 3,
+     "block": 3272195,
+     "tx": "0x030d79c0583e87066a0719f8fd2e3308db55c1d3ffb614935837be60297fbf1a"
+    },
+    {
+     "name": "LineStopped",
+     "line": 3,
+     "block": 3272195,
+     "tx": "0x030d79c0583e87066a0719f8fd2e3308db55c1d3ffb614935837be60297fbf1a"
+    },
+    {
+     "name": "ReceiptRecorded",
+     "line": 3,
+     "block": 3272195,
+     "tx": "0x030d79c0583e87066a0719f8fd2e3308db55c1d3ffb614935837be60297fbf1a"
+    }
+   ]
+  }
+ }
+}
