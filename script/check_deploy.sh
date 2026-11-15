@@ -4,6 +4,7 @@
 # usage: RPC=https://rpc-test.qday.info script/check_deploy.sh evidence/deploy-44005-live.json
 set -euo pipefail
 DEPLOY=${1:-evidence/deploy-44005-live.json}; RPC=${RPC:-https://rpc-test.qday.info}
+[[ -f "$DEPLOY" ]] || { echo "no deploy file: $DEPLOY (deploy first)"; exit 2; }
 j() { python3 -c "import json;print(json.load(open('$DEPLOY'))['$1'])"; }
 fail=0
 lc() { tr "[:upper:]" "[:lower:]" <<<"$1"; }
