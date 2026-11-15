@@ -4,11 +4,13 @@
   "type": "module",
   "scripts": {
     "kill-test": "tsx kill_test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx seed.ts"
   },
   "dependencies": {
     "brake-signer": "workspace:*",
-    "viem": "^2.57.20"
+    "viem": "^2.57.20",
+    "@brake/engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

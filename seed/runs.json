@@ -1,0 +1,7 @@
+{
+  "hero":  {"lines":["INV-1204","INV-2047","INV-8812","INV-0311"],"maxStops":2,"alarmAt":2,"paydayDelaySec":60,"windowHours":48,
+            "copy":["E1","E2","E3","E6","E7","E8","E9","E10","E11","E12"],"deliver":["E4","E5"]},
+  "late":  {"lines":["INV-0099"],"maxStops":1,"alarmAt":1,"paydayDelaySec":0,"windowHours":48,"copy":[],"deliver":["E13"]},
+  "flood": {"lines":["INV-1204","INV-2047","INV-0311","INV-5520"],"maxStops":2,"alarmAt":2,"paydayDelaySec":60,"windowHours":48,
+            "copy":[],"deliver":["E14","E15","E16"]}
+}

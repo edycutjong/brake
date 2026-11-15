@@ -1,0 +1,8 @@
+[
+  {"id":"V1","name":"Kopi Nusantara Supplies","domain":"kopinusantara.example","payeeIdx":1,"genuineIdx":1,"payeeChangedDaysAgo":null,"changeSource":null,"verified":null,"contractContact":"+62 21 5550 1101 (contract file)"},
+  {"id":"V2","name":"Studio Garis","domain":"studiogaris.example","payeeIdx":2,"genuineIdx":2,"payeeChangedDaysAgo":null,"changeSource":null,"verified":null,"contractContact":"+62 21 5550 2202 (contract file)"},
+  {"id":"V3","name":"Acme Logistics","domain":"acme-logistics.example","payeeIdx":66,"genuineIdx":3,"payeeChangedDaysAgo":20,"changeSource":"billing@acme-logistics.example","verified":"phone","verifiedBy":"clerk attestation (imported vendor file)","contractContact":"+62 21 5550 3303 (contract file)"},
+  {"id":"V4","name":"Cloudnine Hosting","domain":"cloudnine.example","payeeIdx":4,"genuineIdx":4,"payeeChangedDaysAgo":null,"changeSource":null,"verified":null,"contractContact":"+62 21 5550 4404 (contract file)"},
+  {"id":"V5","name":"Peta Data","domain":"petadata.example","payeeIdx":5,"genuineIdx":5,"payeeChangedDaysAgo":40,"changeSource":"phone","verified":"phone","verifiedBy":"clerk attestation (imported vendor file)","contractContact":"+62 21 5550 5505 (contract file)"},
+  {"id":"V6","name":"Lantai Dua Coworking","domain":"lantaidua.example","payeeIdx":6,"genuineIdx":6,"payeeChangedDaysAgo":null,"changeSource":null,"verified":null,"contractContact":"+62 21 5550 6606 (contract file)"}
+]

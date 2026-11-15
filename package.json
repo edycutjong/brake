@@ -3,10 +3,13 @@
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@10.34.5",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
-    "kill-test": "pnpm --filter @brake/scripts kill-test"
+    "kill-test": "pnpm --filter @brake/scripts kill-test",
+    "seed": "pnpm --filter @brake/scripts seed"
   }
 }

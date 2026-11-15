@@ -1,0 +1,6 @@
+From: ops@acme-logistics.example
+Subject: INV-8812 status?
+X-Brake-At: deliver
+
+Hello, has INV-8812 been scheduled? Our wallet has not changed — it is still {genuine_wallet}. We did not send any message about a new payout address.
+Operations, Acme Logistics

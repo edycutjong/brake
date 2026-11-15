@@ -1,0 +1,8 @@
+[
+  {"id":"INV-1204","vendorId":"V1","amount":1250,"status":"open"},
+  {"id":"INV-2047","vendorId":"V2","amount":2400,"status":"open"},
+  {"id":"INV-8812","vendorId":"V3","amount":5000,"status":"open"},
+  {"id":"INV-0311","vendorId":"V4","amount":380,"status":"open"},
+  {"id":"INV-5520","vendorId":"V5","amount":900,"status":"open"},
+  {"id":"INV-0099","vendorId":"V6","amount":450,"status":"open"}
+]
