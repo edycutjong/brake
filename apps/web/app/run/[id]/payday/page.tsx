@@ -1,8 +1,16 @@
 "use client";
 import { useState } from "react";
 import { ApiError, useRunCtx } from "@/lib/client";
+import type { RunView } from "@/lib/types";
 import { fmtTime, short, tusd } from "@/lib/format";
 import { ExplorerLink, PaidMark, RecoveryTicket, StopStamp, TxStatus } from "@/components/ui";
+
+function heldWhy(run: RunView, idx: number) {
+  const h = [...run.decisions].reverse().find((d) => d.idx === idx && d.verdict === "HOLD");
+  if (h?.reason_code === "BUDGET_EXHAUSTED") return `Held — the agent wanted to stop this line, but its ${run.maxStops}-stop budget for this run was used up. Finance decides.`;
+  if (h?.reason_code) return `Held (${h.reason_code}) — finance decides.`;
+  return "Held — the agent has no current decision for this line (a newer email arrived after its review). Finance decides.";
+}
 
 export default function Payday() {
   const { run, act, payday } = useRunCtx();
@@ -25,7 +33,7 @@ export default function Payday() {
         <button className="btn" disabled={!run.session || payday.busy || !!run.settledAt} onClick={() => { if (run.scenario === "hero" && !run.decisions.some((d) => d.verdict === "STOP") && !window.confirm("No vendor email has been delivered yet, so every allowed line — including line 3 — pays the address on file. To see the agent stop line 3, cancel and use Play the hero on the Run sheet. Run payday anyway?")) return; void payday.run(!run.lines.some((l) => l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx))); }}>
           {payday.busy ? "Running payday…" : "Run payday now"}
         </button>
-        <span className="note" role="status">{payday.busy ? payday.note : `Scheduled for ${fmtTime(new Date(due).toISOString())}; the keeper also runs it by itself.`}</span>
+        <span className="note" role="status">{payday.busy ? payday.note : run.settledAt ? `Settled ${fmtTime(run.settledAt)} — unused funds swept back.` : `Scheduled for ${fmtTime(new Date(due).toISOString())}; the keeper also runs it by itself.`}</span>
       </div>
       {payday.error ? <p className="err" role="alert">{payday.error}</p> : null}
       {err ? <p className="err" role="alert">{err}</p> : null}
@@ -76,7 +84,7 @@ export default function Payday() {
             ) : null}
             {l.status === "HELD" ? (
               <div>
-                <p className="err">Held — finance decides. The agent can&apos;t stop this line any more, or has no current decision for it.</p>
+                <p className="err">{heldWhy(run, l.idx)}</p>
                 <div className="actions">
                   <button className="btn small" disabled={!run.session || !!busy} onClick={() => wrap(`a${l.idx}`, () => act(`/lines/${l.idx}/decide`, { action: "allow" }))}>Allow</button>
                   <button className="btn danger small" disabled={!run.session || !!busy} onClick={() => wrap(`s${l.idx}`, () => act(`/lines/${l.idx}/decide`, { action: "stop" }))}>Stop</button>

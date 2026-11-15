@@ -13,6 +13,7 @@ import {
   financeDecide,
   getLines,
   getRun,
+  chainNow,
   HttpError,
   openRunOnChain,
   planRun,
@@ -216,6 +217,7 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
   const jobs = (await db.query(`select id, trigger, status, attempts, error, created_at from review_jobs where run_id = $1 order by created_at`, [p.id])).rows;
   const tickets = (await db.query(`select id, kind, idx, body, status, created_at from tickets where run_id = $1 order by created_at`, [p.id])).rows;
   const revoke = (await db.query(`select tx_hash, settled_at from tx_queue where run_id = $1 and action = 'revokeAgent' and status = 'mined' limit 1`, [p.id])).rows[0];
+  const chainTime = Number(await chainNow(ctx));
   const vendors = (await db.query(`select vendor_id, name, domain, payee, payee_change_verified from run_vendors where run_id = $1`, [p.id])).rows;
   return json(200, {
     id: run.id,
@@ -244,6 +246,7 @@ route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {
     decisions,
     jobs,
     tickets,
+    chainTime,
     revokedTx: revoke?.tx_hash ?? null,
     revokedAt: revoke?.settled_at ?? null,
     session,
@@ -339,16 +342,18 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
 });
 
 route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
-  const since = BigInt(new URL(req.url).searchParams.get("since") ?? "0");
+  const q = new URL(req.url).searchParams;
+  const since = BigInt(q.get("since") ?? "0");
+  const runFilter = /^0x[0-9a-fA-F]{64}$/.test(q.get("run") ?? "") ? q.get("run")!.toLowerCase() : null;
   await maybeReconcile(db, ctx);
   const head = await ctx.pub.getBlockNumber();
   // Aevum (cdk-erigon): 'finalized' = the last verified batch, observed ~4.6k blocks behind 'latest' (evidence/finality-observation.json)
   const finalized = await ctx.pub.getBlock({ blockTag: "finalized" }).then((b) => b.number ?? 0n, () => 0n);
   const rows = (
     await db.query(
-      `select tx_hash, log_index, block_number, address, name, run_id, idx, args from chain_events where block_number > $1
+      `select tx_hash, log_index, block_number, address, name, run_id, idx, args from chain_events where block_number > $1 and ($2::text is null or lower(run_id) = $2)
         order by block_number desc, log_index desc limit 200`,
-      [since.toString()],
+      [since.toString(), runFilter],
     )
   ).rows.map((e) => ({
     ...e,

@@ -68,12 +68,21 @@ export function RecoveryTicket({ ticket }: { ticket: TicketView }) {
 export function AlarmBanner({ run }: { run: RunView }) {
   const stops = agentStops(run);
   const alarm = run.tickets.find((t) => t.kind === "alarm" || t.kind === "escalation");
-  if (!alarm && stops < run.maxStops) return null;
+  const late = run.tickets.find((t) => t.kind === "recovery");
+  if (!alarm && !late && stops < run.maxStops) return null;
+  if (late && stops < run.maxStops) {
+    return (
+      <div className="panel alarm" role="alert">
+        <h3>A payment cleared before it could be stopped.</h3>
+        <p>Brake reached line {(late.idx ?? 0) + 1} too late and opened a recovery ticket — see the Payday screen. Brake does not claim a recovery.</p>
+      </div>
+    );
+  }
   return (
     <div className="panel alarm" role="alert">
       {stops >= run.maxStops ? (
         <>
-          <h3>Agent has used its {run.maxStops} stops for this run.</h3>
+          <h3>Agent has used {run.maxStops === 1 ? "its 1 stop" : `its ${run.maxStops} stops`} for this run.</h3>
           <p>Further stops need you: a line the agent can no longer stop is held — <b>Stop it or Allow it yourself</b> on the Payday screen.</p>
         </>
       ) : (

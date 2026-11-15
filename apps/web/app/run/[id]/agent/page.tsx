@@ -146,7 +146,7 @@ export default function AgentDesk() {
             const latest = ds[ds.length - 1]!;
             const v = vendorOf(idx);
             const explain = (latest.verdict === "ALLOW" || ds.some((x) => x.verdict === "ALLOW")) && v?.payee_change_verified
-              ? `${v.name}'s payee changed earlier — verified by ${v.payee_change_verified} (clerk attestation in the vendor file), so the agent let it through.` : undefined;
+              ? `Vendor file: ${v.name}'s payee change was verified by ${v.payee_change_verified} (clerk attestation in the file — not independently checked by Brake).` : undefined;
             return <DecisionCard key={idx} d={latest} older={ds.slice(0, -1)} explain={explain} />;
           })}
           <p className="note">Amounts on the lines: {run.lines.map((l) => `#${l.idx + 1} ${tusd(l.amountUnits)}`).join(" · ")} tUSD8</p>

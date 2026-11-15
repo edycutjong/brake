@@ -19,7 +19,8 @@ def shot(page, name):
 with sync_playwright() as p:
     exe = os.environ.get("CHROMIUM") or next(iter(sorted(glob.glob(os.path.expanduser("~/Library/Caches/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell")))[::-1]), None)
     b = p.chromium.launch(executable_path=exe) if exe else p.chromium.launch()
-    page = b.new_context(viewport={"width": 1280, "height": 900}).new_page()
+    ctx1 = b.new_context(viewport={"width": 1280, "height": 900})
+    page = ctx1.new_page()
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
@@ -55,7 +56,7 @@ with sync_playwright() as p:
     page.goto(run_url + "/payday"); page.get_by_text("Proof of stop").first.wait_for(timeout=30000); shot(page, "payday")
     page.goto(base + "/verify"); page.get_by_text("LineStopped").first.wait_for(timeout=30000); shot(page, "verify")
     # 390 px: no horizontal scroll on every screen
-    m = b.new_context(viewport={"width": 390, "height": 844}).new_page()
+    m = b.new_context(viewport={"width": 390, "height": 844}, storage_state=ctx1.storage_state()).new_page()  # same session: owner view at 390 px
     for path in ["/", run_url.replace(base, ""), run_url.replace(base, "") + "/agent", run_url.replace(base, "") + "/payday", "/verify"]:
         m.goto(base + path); m.wait_for_timeout(2500)
         w = m.evaluate("[document.documentElement.scrollWidth, window.innerWidth]")

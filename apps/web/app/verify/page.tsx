@@ -45,22 +45,30 @@ export default function Verify() {
   const [health, setHealth] = useState<Health | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [shown, setShown] = useState(25);
+  const [last, setLast] = useState<string | null>(null);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [mine, setMine] = useState(true);
+  useEffect(() => {
+    const id = localStorage.getItem("brake:last");
+    setLast(id);
+    if (id) call<{ runId: string }>(`/api/runs/${id}`).then((r) => setRunId(r.runId), () => {});
+  }, []);
   useEffect(() => {
     let live = true;
     const tick = async () => {
-      try { const e = await call<Events>("/api/verify/events"); if (live) { setEv(e); setErr(null); } } catch (e) { if (live) setErr(plain(e)); }
+      try { const e = await call<Events>(`/api/verify/events${mine && runId ? `?run=${runId}` : ""}`); if (live) { setEv(e); setErr(null); } } catch (e) { if (live) setErr(plain(e)); }
     };
     void tick();
     const h = setInterval(() => { if (!document.hidden) void tick(); }, 3000);
     call<Obs>("/api/verify/observations").then((o) => live && setObs(o), () => {});
     call<Health>("/api/health").then((x) => live && setHealth(x), () => {});
     return () => { live = false; clearInterval(h); };
-  }, []);
+  }, [mine, runId]);
   const live = health?.deployment === "live";
   const fakeRun = { explorer: EXPLORER, deployment: health?.deployment ?? "fork" };
   return (
     <>
-      <nav className="nav" aria-label="Screens" style={{ marginTop: 6 }}><Link href="/">Home</Link><Link href="/verify" aria-current="page">Verify</Link></nav>
+      <nav className="nav" aria-label="Screens" style={{ marginTop: 6 }}><Link href="/">Home</Link>{last ? <Link href={`/run/${last}`}>Back to your run</Link> : null}<Link href="/verify" aria-current="page">Verify</Link></nav>
       <h1>Verify</h1>
       <p className="lede">Everything here is read from the chain or recomputed in your browser — nothing is taken on trust from this page.</p>
 
@@ -83,6 +91,7 @@ export default function Verify() {
       ) : <p className="muted">{err ? "Observations unavailable." : "Reading tUSD8…"}</p>}
 
       <h2>On-chain events <span className="note" role="status">· polled every 3 s{ev ? ` · head ${ev.head} · finalized ${ev.finalized}` : ""}</span></h2>
+      {runId ? <label style={{ display: "flex", gap: 8, alignItems: "center", minHeight: 44 }}><input type="checkbox" style={{ width: 24, minHeight: 24 }} checked={mine} onChange={(e) => setMine(e.target.checked)} /><span>Only events of my run</span></label> : null}
       {err ? <p className="err" role="alert">{err}</p> : null}
       {ev && ev.events.length === 0 ? <div className="empty">No events yet — start a demo run and play the hero.</div> : null}
       {ev && ev.events.length ? (

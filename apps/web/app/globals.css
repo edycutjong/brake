@@ -78,11 +78,11 @@ h3 { font: 700 20px/1.3 var(--font-body); margin: 0 0 6px; }
 /* stamp */
 .stamp { display: inline-block; transform: rotate(-4deg); border: 3px double var(--after); color: var(--after); padding: 6px 12px 5px; font-family: var(--font-display); text-align: center; line-height: 1.15; background: transparent; mix-blend-mode: multiply; animation: stamp-in 180ms ease-out; }
 .stamp b { display: block; font-size: 22px; letter-spacing: .12em; }
-.stamp small { display: block; font: 400 15px/1.3 var(--font-data); letter-spacing: 0; }
+.stamp small { display: block; font: 400 16px/1.3 var(--font-data); letter-spacing: 0; }
 .stamp a { color: var(--after); }
-.stamp.sm { padding: 2px 6px; border-width: 2px; } .stamp.sm b { font-size: 13px; }
+.stamp.sm { padding: 2px 6px; border-width: 2px; } .stamp.sm b { font-size: 16px; }
 @keyframes stamp-in { from { transform: rotate(-4deg) scale(1.15); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } }
-.paid { display: inline-block; color: var(--cleared); border: 2px dashed var(--cleared); padding: 1px 8px; font: 700 14px/1.4 var(--font-data); letter-spacing: .1em; }
+.paid { display: inline-block; color: var(--cleared); border: 2px dashed var(--cleared); padding: 1px 8px; font: 700 16px/1.4 var(--font-data); letter-spacing: .1em; }
 
 .chip { display: inline-block; font: 400 16px/1.4 var(--font-data); border: 1px solid var(--ink); padding: 0 8px; margin: 0 6px 4px 0; }
 .chip.stop { color: var(--after); border-color: var(--after); } .chip.allow { color: var(--before); border-color: var(--before); } .chip.fin { color: var(--ink); border-color: var(--ink); }
@@ -95,7 +95,7 @@ h3 { font: 700 20px/1.3 var(--font-body); margin: 0 0 6px; }
 .steps li.cur::before { border-color: var(--before); color: var(--before); }
 .steps li.todo { opacity: .6; }
 .steps .t { font-weight: 700; } .steps .d { font-size: 17px; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); }
-.timer { font: 400 15px/1 var(--font-data); color: var(--muted); }
+.timer { font: 400 16px/1 var(--font-data); color: var(--muted); }
 
 /* agent desk */
 .desk { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
@@ -105,7 +105,7 @@ h3 { font: 700 20px/1.3 var(--font-body); margin: 0 0 6px; }
 .mail mark { background: transparent; box-shadow: inset 0 -.55em 0 rgba(194, 39, 45, .22); color: inherit; }
 .mail.mine { border-color: var(--before); }
 .field { display: grid; gap: 4px; margin: 10px 0; }
-.field label { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.field label { font-size: 16px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 input, select, textarea { font: 400 18px/1.4 var(--font-body); padding: 10px 12px; min-height: 48px; border: 2px solid var(--ink); background: #fff9; color: var(--ink); width: 100%; border-radius: 0; }
 textarea { min-height: 110px; resize: vertical; }
 input.data { font-family: var(--font-data); font-size: 16px; }
@@ -125,7 +125,7 @@ input.data { font-family: var(--font-data); font-size: 16px; }
 .verify-table td { padding: 8px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; word-break: break-all; }
 .empty { border: 2px dashed var(--rule); padding: 20px; color: var(--muted); text-align: center; }
 .foot { margin-top: 60px; padding-top: 14px; border-top: 1px solid var(--ink); font-size: 17px; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); }
-.tag { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; border: 1px solid var(--muted); padding: 0 6px; color: var(--muted); margin-left: 6px; }
+.tag { font-size: 16px; text-transform: uppercase; letter-spacing: .08em; border: 1px solid var(--muted); padding: 0 6px; color: var(--muted); margin-left: 6px; }
 .hero-cta { display: grid; gap: 14px; margin-top: 24px; max-width: 620px; }
 
 @media (max-width: 1023px) { .desk { grid-template-columns: 1fr; } .desk .col-decisions { order: -1; } }
@@ -137,7 +137,7 @@ input.data { font-family: var(--font-data); font-size: 16px; }
   .ledger, .ledger tbody, .ledger tr { display: block; width: 100%; }
   .ledger tr { border: 1px solid var(--rule); background: #fbfaf4; margin: 10px 0; padding: 10px 12px; position: relative; }
   .ledger td { display: block; border: 0; padding: 2px 0; font-size: 18px; }
-  .ledger .n { width: auto; border: 0; font-size: 14px; }
+  .ledger .n { width: auto; border: 0; font-size: 16px; }
   .ledger .amt { text-align: left; }
   .ledger .stampcell { margin-top: 8px; }
   .btn { width: 100%; }

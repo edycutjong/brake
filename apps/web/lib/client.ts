@@ -7,7 +7,7 @@ export class ApiError extends Error {
 }
 const tokenKey = (id: string) => `brake:token:${id}`;
 export const getToken = (id: string) => (typeof localStorage === "undefined" ? null : localStorage.getItem(tokenKey(id)));
-export const setToken = (id: string, t: string) => localStorage.setItem(tokenKey(id), t);
+export const setToken = (id: string, t: string) => { localStorage.setItem(tokenKey(id), t); localStorage.setItem("brake:last", id); };
 
 export async function call<T>(path: string, opts: { method?: string; body?: unknown; token?: string | null } = {}): Promise<T> {
   const res = await fetch(path, {

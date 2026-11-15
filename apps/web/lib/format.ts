@@ -29,4 +29,6 @@ export function plain(e: unknown): string {
 }
 
 /** Lines the agent has stopped (an on-chain stop tx exists), including ones later superseded by a re-issue. */
-export const agentStops = (run: RunView) => run.lines.filter((l) => l.stopTx && ["STOPPED", "REISSUED", "CONSUMED", "TOO_LATE"].includes(l.status)).length;
+export const agentStops = (run: RunView) => run.lines.filter((l) => l.stopTx && ["STOPPED", "REISSUED"].includes(l.status)).length;
+/** A line whose payment cleared (including ones Brake reached too late). */
+export const isPaid = (l: { status: string; paidTx: string | null }) => !!l.paidTx && ["PAID", "TOO_LATE", "CONSUMED"].includes(l.status);

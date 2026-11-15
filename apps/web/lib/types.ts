@@ -16,7 +16,7 @@ export interface RunView {
   maxStops: number; openTx: string | null; sweepTx: string | null; settledAt: string | null; reviewsLeft: number; explorer: string;
   seedScale: number; contracts: Record<string, string>; deployment: string; vendors: VendorView[]; lines: LineView[];
   decisions: DecisionView[]; jobs: { id: string; trigger: string; status: string; attempts: number; error: string | null; created_at: string }[];
-  tickets: TicketView[]; revokedTx: string | null; revokedAt: string | null; session: boolean;
+  tickets: TicketView[]; chainTime: number; revokedTx: string | null; revokedAt: string | null; session: boolean;
 }
 export interface Message { id: string; fromAddr: string; fromDomain: string; subject: string; body: string; receivedAt: string; vendorId: string | null; source: string }
 export interface PaydayResult {

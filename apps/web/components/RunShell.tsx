@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { RunContext, useRunState, useRunCtx } from "@/lib/client";
-import { agentStops, fmtTime, tusd } from "@/lib/format";
+import { agentStops, fmtTime, isPaid, tusd } from "@/lib/format";
 import { AlarmBanner } from "./ui";
 
 function Money() {
@@ -12,7 +12,7 @@ function Money() {
   const live = run.lines.filter((l) => l.status !== "REISSUED");
   const total = live.reduce((s, l) => s + BigInt(l.amountUnits), 0n);
   const stopped = run.lines.filter((l) => l.stopTx && ["STOPPED", "REISSUED"].includes(l.status)).reduce((s, l) => s + BigInt(l.amountUnits), 0n);
-  const paid = live.filter((l) => l.status === "PAID" || (l.status === "TOO_LATE" && l.paidTx)).reduce((s, l) => s + BigInt(l.amountUnits), 0n);
+  const paid = live.filter((l) => isPaid(l)).reduce((s, l) => s + BigInt(l.amountUnits), 0n);
   return (
     <div className="stat" aria-live="polite">
       <div><div className="label">Run total</div><div className="big">{tusd(total)} <span className="label">tUSD8</span></div></div>
@@ -26,12 +26,14 @@ function Money() {
 function Countdown() {
   const { run } = useRunCtx();
   const [now, setNow] = useState(() => Date.now());
+  const skew = useMemo(() => (run ? run.chainTime * 1000 - Date.now() : 0), [run?.chainTime]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const h = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(h); }, []);
   if (!run || run.settledAt) return null;
   const open = run.lines.filter((l) => !["PAID", "REISSUED", "STOPPED", "CONSUMED", "TOO_LATE"].includes(l.status));
   if (!open.length) return null;
   const due = Math.min(...open.map((l) => new Date(l.validAfter).getTime()));
-  const s = Math.max(0, Math.round((due - now) / 1000));
+  // chain time, not the browser clock (a fork's clock can run ahead of wall time): offset measured when the run was fetched
+  const s = Math.max(0, Math.round((due - (now + skew)) / 1000));
   return <div><div className="label">Payday</div><div className="big" style={{ fontSize: 28 }}>{s > 0 ? `in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : "window open"}</div></div>;
 }
 
