@@ -248,6 +248,10 @@ export async function createRun(
 export async function openRunOnChain(db: Db, ctx: ChainCtx, id: string) {
   const run = await getRun(db, id);
   if (run.open_tx) return { tx: run.open_tx as Hex, reused: true };
+  // only the demo payer's runs are opened by the server; a wallet-mode run is opened by its payer's own wallet (/opened).
+  // Without this the server would open it as the demo payer — the wrong payer on-chain (found in a2a arch r01: the test
+  // only passed on a reused fork, where the fixed run id already existed and openRun reverted RunExists)
+  if (!run.demo) throw new HttpError(409, "wallet-mode runs are opened by the payer's wallet: POST /opened with the openRun tx");
   const lines = await getLines(db, id);
   const data = encodeFunctionData({
     abi: brakeAbi,
