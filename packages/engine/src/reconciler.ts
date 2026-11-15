@@ -2,6 +2,7 @@ import { encodeFunctionData, parseEventLogs, type Hex, type Log } from "viem";
 import { brakeAbi, eip3009Abi, lineStatus } from "brake-signer";
 import { sendQueued, type ChainCtx } from "./chain.js";
 import { lock, withTx, type Db } from "./db.js";
+import { enqueueReview } from "./runs.js";
 
 const CHUNK = 5_000n;
 const usedEvent = eip3009Abi.find((x) => x.type === "event" && x.name === "AuthorizationUsed")!;
@@ -42,6 +43,9 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
         `select distinct tx_hash from chain_events where block_number >= $1 and name in ('AuthorizationUsed','AuthorizationCanceled')`,
         [from.toString()],
       )
+    ).rows.map((r) => r.tx_hash.toLowerCase());
+    const beforeAny = (
+      await c.query<{ tx_hash: string }>(`select distinct tx_hash from chain_events where block_number >= $1`, [from.toString()])
     ).rows.map((r) => r.tx_hash.toLowerCase());
     await c.query(`delete from chain_events where block_number >= $1`, [from.toString()]);
     const payers = (await c.query<{ payer: Hex }>(`select distinct payer from runs`)).rows.map((r) => r.payer);
@@ -93,6 +97,19 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
     }
 
     const updates: ReconcileResult["updates"] = [];
+    // a settled tx_queue row whose tx a reorg removed must not keep answering "mined" to a retry under the same key
+    // (it would never rebroadcast): mark it dropped so the next attempt rebuilds it (a2a arch r02)
+    const presentAny = new Set(logs.map((l) => l.transactionHash!.toLowerCase()));
+    const goneAny = beforeAny.filter((x) => !presentAny.has(x));
+    const rereview = new Set<string>();
+    if (goneAny.length) {
+      const q = await c.query<{ run_id: string | null }>(
+        `update tx_queue set status = 'dropped', error = 'reorged out (reconciler rescan)'
+          where lower(tx_hash) = any($1::text[]) and status in ('mined','reverted') returning run_id`,
+        [goneAny],
+      );
+      for (const r of q.rows) if (r.run_id) rereview.add(r.run_id);
+    }
     // roll back projections built on token events that a reorg removed: back to what Brake says now, tx pointer cleared
     const present = new Set(tokenLogs.map((l) => l.transactionHash!.toLowerCase()));
     for (const h of before.filter((x) => !present.has(x))) {
@@ -111,8 +128,11 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
           [r.run_id, r.idx, st, h],
         );
         updates.push({ runId: r.run_id, idx: r.idx, status: st, tx: h as Hex });
+        rereview.add(r.run_id);
       }
     }
+    // the rolled-back decisions get re-applied by a fresh review (payday HOLDS anything still stale meanwhile)
+    for (const runId of rereview) await enqueueReview(c, runId, "reorg").catch(() => undefined);
 
     // derive statuses from everything we hold (not just this window), so a restart converges
     const rows = await c.query<{ run_id: string; idx: number; name: string; tx_hash: Hex; status: string }>(

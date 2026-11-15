@@ -248,9 +248,18 @@ export async function sweep(db: Db, ctx: ChainCtx, id: string) {
   if (tx.status !== "mined") throw new Error(`sweep ${tx.hash} ${tx.status} — not settled, retry`);
   const rc = await ctx.pub.getTransactionReceipt({ hash: tx.hash });
   const moved = parseEventLogs({ abi: eip3009Abi, eventName: "AuthorizationUsed", logs: rc.logs }).length;
-  if (moved === 0) {
-    await db.query(`update tx_queue set status = 'dropped', error = 'no inner transfer succeeded' where id = $1`, [tx.id]);
-    throw new Error(`sweep ${tx.hash}: no inner transfer succeeded — not settled, retry`);
+  if (moved < calls.length) {
+    // some legs failed: free the key so the next sweep rebuilds from current balances (paid-back payees read 0 and drop
+    // out). After 3 sends the run settles anyway with a ticket naming the stranded amount (a2a arch r02).
+    const sends = (await db.query<{ attempts: number }>(`select attempts from tx_queue where id = $1`, [tx.id])).rows[0]?.attempts ?? 1;
+    if (sends < 3) {
+      await db.query(`update tx_queue set status = 'dropped', error = $2 where id = $1`, [tx.id, `sweep moved ${moved}/${calls.length} legs`]);
+      throw new Error(`sweep ${tx.hash}: moved ${moved}/${calls.length} legs — not settled, retry`);
+    }
+    await db.query(
+      `insert into tickets (id, kind, run_id, body) values ($1, 'recovery', $2, $3) on conflict (id) do nothing`,
+      [`tkt:sweep:${id}`, id, `sweep left ${calls.length - moved} payee leg(s) unrecovered after ${sends} sends (last ${tx.hash}) — recover by hand`],
+    );
   }
   await db.query(`update runs set sweep_tx = $2, settled_at = now(), reserved_units = 0 where id = $1`, [id, tx.hash]);
   return { tx: tx.hash, reused: false, swept: moved, attempted: calls.length };

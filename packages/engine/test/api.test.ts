@@ -12,7 +12,7 @@ import { makeChain, sendQueued, wallet, type ChainCtx } from "../src/chain.js";
 import { keccak256 } from "viem";
 import { NullModel } from "../src/agent/model.js";
 import { createApi } from "../src/api.js";
-import { applyDecisions, planAction } from "../src/executor.js";
+import { applyDecisions, planAction, sendStop } from "../src/executor.js";
 import { reviewRun } from "../src/agent/review.js";
 import { deliver, getLines, lineContexts, openRunOnChain, runMessages, createRun } from "../src/runs.js";
 import { runReviewJobs } from "../src/jobs.js";
@@ -267,6 +267,13 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(st.filter((s) => s === "HELD").length).toBe(1);
     const t = await db.query(`select kind from tickets where run_id = $1`, [run.id]);
     expect(t.rows.map((r) => r.kind)).toContain("escalation");
+    // a further STOP on the already-HELD line with the budget spent: no HELD → HELD tx (Brake would revert), the line
+    // stays HELD, one escalation per decision key (a2a arch r02)
+    const heldIdx = (await getLines(db, run.id)).find((l) => l.status === "HELD")!.idx;
+    const again = await sendStop(db, ctx, run.id, run.runId, heldIdx, { decision: { reason: "SENDER_LOOKALIKE" }, evidenceHash: `0x${"ab".repeat(32)}` } as never, `${run.id}:${heldIdx}:r9:STOP`);
+    expect(again).toMatchObject({ action: "budget-hold", chainStatus: "HELD" });
+    await sendStop(db, ctx, run.id, run.runId, heldIdx, { decision: { reason: "SENDER_LOOKALIKE" }, evidenceHash: `0x${"ab".repeat(32)}` } as never, `${run.id}:${heldIdx}:r9:STOP`);
+    expect(Number((await db.query(`select count(*) from tickets where id = $1`, [`tkt:budget:${run.id}:${heldIdx}:r9:STOP`])).rows[0].count)).toBe(1);
     // a held line is never paid; stopped lines get proof-of-stop txs
     await ctx.pub.request({ method: "evm_increaseTime" as never, params: [61] as never });
     await ctx.pub.request({ method: "evm_mine" as never, params: [] as never });
@@ -347,8 +354,10 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect((await getLines(db, run.id)).every((l) => l.status === "PAID")).toBe(true);
     await ctx.pub.request({ method: "evm_revert" as never, params: [snap] as never });
     await ctx.pub.request({ method: "evm_mine" as never, params: [] as never });
-    await db.query(`update tx_queue set status = 'dropped' where run_id = $1 and action = 'payday'`, [run.id]);
     const rec = await reconcile(db, ctx, { fromBlock: snapBlock });
+    // the reorged batch's queue row no longer answers "mined": a retry under its key rebuilds (a2a arch r02)
+    expect((await db.query(`select status from tx_queue where run_id = $1 and action = 'payday'`, [run.id])).rows.map((r) => r.status)).toEqual(["dropped"]);
+    expect(Number((await db.query(`select count(*) from review_jobs where run_id = $1 and trigger = 'reorg'`, [run.id])).rows[0].count)).toBe(1);
     const after = await getLines(db, run.id);
     expect(after.map((l) => l.status)).toEqual(["ALLOWED", "ALLOWED", "ALLOWED", "ALLOWED"]);
     expect(after.every((l) => l.paid_tx === null)).toBe(true);

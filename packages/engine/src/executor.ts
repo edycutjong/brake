@@ -152,9 +152,16 @@ export async function sendStop(db: Db, ctx: ChainCtx, id: string, runId: Hex, id
   } catch (e) {
     const name = revertName(e);
     if (name === "StopBudgetExhausted") {
-      const held = await sendHold(db, ctx, id, runId, idx, "BUDGET_EXHAUSTED", r.evidenceHash, key, "STOP");
-      await db.query(`insert into tickets (id, kind, run_id, idx, body) values ($1,'escalation',$2,$3,$4)`, [
-        newId("tkt"), id, idx, `stop budget exhausted: agent wants to stop line ${idx + 1} (${reason}) — confirm? Held for finance`,
+      // a line already HELD on-chain stays held (Brake rejects HELD → HELD; a2a arch r02): no tx, the ticket still goes out
+      const now = (await lineStatus(ctx.pub, ctx.cfg.brake, runId, idx)).status;
+      const held: Executed =
+        now === "HELD"
+          ? { idx, verdict: "STOP", action: "budget-hold", chainStatus: "HELD", note: "already HELD on-chain" }
+          : await sendHold(db, ctx, id, runId, idx, "BUDGET_EXHAUSTED", r.evidenceHash, key, "STOP");
+      if (now === "HELD") await db.query(`update decisions set chain_status = 'HELD' where idempotency_key = $1`, [key]);
+      // one escalation per decision: a retried review does not page finance twice
+      await db.query(`insert into tickets (id, kind, run_id, idx, body) values ($1,'escalation',$2,$3,$4) on conflict (id) do nothing`, [
+        `tkt:budget:${key}`, id, idx, `stop budget exhausted: agent wants to stop line ${idx + 1} (${reason}) — confirm? Held for finance`,
       ]);
       return { ...held, action: "budget-hold", note: `StopBudgetExhausted → held (${reason})` };
     }
