@@ -344,14 +344,14 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
 route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
   const q = new URL(req.url).searchParams;
   const since = BigInt(q.get("since") ?? "0");
-  const runFilter = /^0x[0-9a-fA-F]{64}$/.test(q.get("run") ?? "") ? q.get("run")!.toLowerCase() : null;
+  const runFilter = /^run_[0-9a-f]{8,32}$/.test(q.get("run") ?? "") ? q.get("run")! : null;
   await maybeReconcile(db, ctx);
   const head = await ctx.pub.getBlockNumber();
   // Aevum (cdk-erigon): 'finalized' = the last verified batch, observed ~4.6k blocks behind 'latest' (evidence/finality-observation.json)
   const finalized = await ctx.pub.getBlock({ blockTag: "finalized" }).then((b) => b.number ?? 0n, () => 0n);
   const rows = (
     await db.query(
-      `select tx_hash, log_index, block_number, address, name, run_id, idx, args from chain_events where block_number > $1 and ($2::text is null or lower(run_id) = $2)
+      `select tx_hash, log_index, block_number, address, name, run_id, idx, args from chain_events where block_number > $1 and ($2::text is null or run_id = $2)
         order by block_number desc, log_index desc limit 200`,
       [since.toString(), runFilter],
     )

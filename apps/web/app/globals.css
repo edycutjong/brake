@@ -147,3 +147,6 @@ input.data { font-family: var(--font-data); font-size: 16px; }
 }
 .stamp.still { animation: none; }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } * { transition: none !important; } }
+
+/* long unbroken strings (wallet addresses in vendor mail, hashes in tickets) must wrap, never widen the page */
+.mail, .mail .b, .mail .h, .card, .panel, .kv dd, .ledger td, .steps li { overflow-wrap: anywhere; min-width: 0; }

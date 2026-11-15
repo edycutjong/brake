@@ -51,7 +51,7 @@ export default function Verify() {
   useEffect(() => {
     const id = localStorage.getItem("brake:last");
     setLast(id);
-    if (id) call<{ runId: string }>(`/api/runs/${id}`).then((r) => setRunId(r.runId), () => {});
+    setRunId(id);
   }, []);
   useEffect(() => {
     let live = true;
