@@ -65,3 +65,15 @@ create table if not exists cursors (name text primary key, last_block bigint not
 create table if not exists chain_events (
   tx_hash text not null, log_index int not null, block_number bigint not null, address text not null, name text not null,
   run_id text, idx int, args jsonb not null, primary key (tx_hash, log_index));
+
+-- Day 3: admission control, liquidity reservation, sweep-back
+alter table runs add column if not exists reserved_units numeric not null default 0;
+alter table runs add column if not exists settled_at timestamptz;
+alter table runs add column if not exists sweep_tx text;
+alter table runs add column if not exists creator_ip text;
+alter table lines add column if not exists payee_idx int;
+alter table lines add column if not exists proof_reason text;
+create table if not exists rate_limits (key text primary key, window_start timestamptz not null, count int not null);
+create index if not exists inbox_run on inbox (run_id, received_at);
+create index if not exists decisions_line on decisions (run_id, idx, created_at);
+create index if not exists jobs_queue on review_jobs (status, created_at);

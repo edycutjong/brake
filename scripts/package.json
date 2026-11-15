@@ -5,7 +5,8 @@
   "scripts": {
     "kill-test": "tsx kill_test.ts",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx seed.ts"
+    "seed": "tsx seed.ts",
+    "demo:hero": "tsx demo_hero.ts"
   },
   "dependencies": {
     "brake-signer": "workspace:*",

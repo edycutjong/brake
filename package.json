@@ -10,6 +10,8 @@
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
     "kill-test": "pnpm --filter @brake/scripts kill-test",
-    "seed": "pnpm --filter @brake/scripts seed"
+    "seed": "pnpm --filter @brake/scripts seed",
+    "demo:hero": "pnpm --filter @brake/scripts demo:hero",
+    "fork:up": "scripts/fork_up.sh"
   }
 }
