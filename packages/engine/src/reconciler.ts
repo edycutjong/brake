@@ -149,13 +149,16 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
     // receipts that failed and are still pending → retryReceipt (anyone may call; the validator stays Brake)
     const retried: ReconcileResult["retried"] = [];
     const failed = await c.query<{ run_id: string; idx: number; chain_run: Hex }>(
-      `select distinct e.run_id, e.idx, r.run_id as chain_run from chain_events e join runs r on r.id = e.run_id where e.name = 'ReceiptFailed'`,
+      `select distinct e.run_id, e.idx, r.run_id as chain_run from chain_events e join runs r on r.id = e.run_id
+        where e.name = 'ReceiptFailed' and lower(e.address) = lower($1)`,
+      [ctx.cfg.brake],
     );
     for (const f of failed.rows) {
-      const st = (await ctx.pub.readContract({ address: ctx.cfg.brake, abi: brakeAbi, functionName: "lineDetail", args: [f.chain_run, BigInt(f.idx)] })) as {
-        receiptPending: boolean;
-      };
-      if (!st.receiptPending || !ctx.wallets.keeper) continue;
+      // only this deployment's lines, and one unreadable line never aborts the pass (found while verifying a2a arch r01)
+      const st = (await ctx.pub
+        .readContract({ address: ctx.cfg.brake, abi: brakeAbi, functionName: "lineDetail", args: [f.chain_run, BigInt(f.idx)] })
+        .catch(() => null)) as { receiptPending: boolean } | null;
+      if (!st?.receiptPending || !ctx.wallets.keeper) continue;
       try {
         const tx = await sendQueued(db, ctx, {
           role: "keeper",
@@ -180,8 +183,10 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
 async function firstRunBlock(ctx: ChainCtx, c: { query: Db["query"] }): Promise<bigint | null> {
   const r = await c.query<{ open_tx: Hex }>(`select open_tx from runs where open_tx is not null order by created_at limit 1`);
   if (!r.rows[0]) return null;
-  const rc = await ctx.pub.getTransactionReceipt({ hash: r.rows[0].open_tx });
-  return rc.blockNumber;
+  // an open tx this chain does not know (DB rows from another deployment, a reset fork, a reorged openRun) must not
+  // crash the reconciler: fall back to the caller's default window (found while verifying a2a arch r01)
+  const rc = await ctx.pub.getTransactionReceipt({ hash: r.rows[0].open_tx }).catch(() => null);
+  return rc ? rc.blockNumber : null;
 }
 
 /** Block depth at which an event counts as final (CONFIRMATIONS, default 3 — Aevum finality depth is undocumented). */
