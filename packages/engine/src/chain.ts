@@ -115,12 +115,16 @@ export async function sendQueued(
   // one connection, session-level advisory lock, autocommit statements: the 'sent' row is durable before broadcast and
   // no second connection is ever needed while the lock is held (no pool deadlock)
   const sent = await withSessionLock(qdb, `sender:${sender}`, async (c) => {
-    const prev = await c.query<{ id: string; tx_hash: Hex; status: string }>(
-      `select id, tx_hash, status from tx_queue where idempotency_key = $1`,
+    const prev = await c.query<{ id: string; tx_hash: Hex; status: string; sent_at: Date | null }>(
+      `select id, tx_hash, status, coalesce(sent_at, created_at) as sent_at from tx_queue where idempotency_key = $1`,
       [p.idempotencyKey],
     );
     const row = prev.rows[0];
     const retry = row?.status === "reverted" && p.retryReverted !== false;
+    if (row && row.tx_hash && row.status === "sent" && !retry) {
+      const replaced = await replaceIfStuck(c, ctx, w, row);
+      if (replaced) return replaced;
+    }
     if (row && row.tx_hash && row.status !== "dropped" && !retry) {
       return { id: row.id, hash: row.tx_hash, status: row.status as QueuedTx["status"], reused: true };
     }
@@ -157,10 +161,10 @@ export async function sendQueued(
     // record the hash BEFORE broadcasting (autocommit), so a crash or an ambiguous send error can never lose it
     const hash = keccak256(serialized);
     await c.query(
-      `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, tx_hash, status, attempts)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'sent',1)
+      `insert into tx_queue (id, sender, run_id, idx, action, idempotency_key, evidence_rev, nonce, tx_hash, status, attempts, sent_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'sent',1,now())
        on conflict (idempotency_key) do update set nonce=excluded.nonce, tx_hash=excluded.tx_hash, status='sent',
-         attempts=tx_queue.attempts+1, error=null`,
+         attempts=tx_queue.attempts+1, error=null, sent_at=now()`,
       [...rowArgs, hash],
     );
     try {
@@ -185,8 +189,54 @@ export async function sendQueued(
     throw e;
   }
   const status = rc.status === "success" ? "mined" : "reverted";
-  await qdb.query(`update tx_queue set status = $2, settled_at = now() where id = $1`, [sent.id, status]);
-  return { ...sent, status };
+  // the receipt names the tx that actually mined (viem follows a same-nonce replacement either way)
+  await qdb.query(`update tx_queue set status = $2, settled_at = now(), tx_hash = $3 where id = $1`, [sent.id, status, rc.transactionHash]);
+  return { ...sent, hash: rc.transactionHash, status };
+}
+
+/** Seconds a broadcast may sit unmined before a retry re-sends it at the same nonce with higher fees. */
+const STUCK_AFTER_S = Number(process.env.TX_STUCK_AFTER_S ?? 60);
+const bump = (x: bigint | null | undefined, floor: bigint | null | undefined) => {
+  const b = ((x ?? 0n) * 125n) / 100n + 1n; // +25%: above the usual 10% replacement threshold
+  return floor != null && floor > b ? floor : b;
+};
+
+/**
+ * Same-nonce replacement for a stuck tx (a2a arch r01): when a retry finds its row still 'sent' after STUCK_AFTER_S and
+ * the node still holds the tx unmined, re-sign it with the same nonce, to, data and gas at +25% fees (or the current fee
+ * estimate if higher), point the row at the new hash, and broadcast. If that broadcast fails (old tx mined meanwhile,
+ * replacement refused), the row goes back to the old hash and the caller waits on it as before.
+ */
+async function replaceIfStuck(
+  c: pg.PoolClient,
+  ctx: ChainCtx,
+  w: Wallet,
+  row: { id: string; tx_hash: Hex; sent_at: Date | null },
+): Promise<QueuedTx | null> {
+  if (!row.sent_at || Date.now() - row.sent_at.getTime() < STUCK_AFTER_S * 1000) return null;
+  if (await ctx.pub.getTransactionReceipt({ hash: row.tx_hash }).then(() => true, () => false)) return null;
+  const old = await ctx.pub.getTransaction({ hash: row.tx_hash }).catch(() => null);
+  if (!old || old.blockNumber != null || !old.to) return null; // unknown → the wait path drops it; mined → receipt soon
+  const fees = await ctx.pub.estimateFeesPerGas().catch(() => null);
+  const base = { account: w.account, chain: ctx.chain, to: old.to, data: old.input, nonce: old.nonce, gas: old.gas };
+  const req =
+    old.maxFeePerGas != null
+      ? { ...base, type: "eip1559" as const, maxFeePerGas: bump(old.maxFeePerGas, fees?.maxFeePerGas), maxPriorityFeePerGas: bump(old.maxPriorityFeePerGas, fees?.maxPriorityFeePerGas) }
+      : { ...base, type: "legacy" as const, gasPrice: bump(old.gasPrice, fees?.gasPrice) };
+  const serialized = await w.signTransaction(req as Parameters<Wallet["signTransaction"]>[0]);
+  const hash = keccak256(serialized);
+  await c.query(`update tx_queue set tx_hash = $2, attempts = attempts + 1, sent_at = now(), error = $3 where id = $1`, [
+    row.id,
+    hash,
+    `replaced ${row.tx_hash} (unmined ${STUCK_AFTER_S}s+, fees +25%)`,
+  ]);
+  try {
+    await ctx.pub.sendRawTransaction({ serializedTransaction: serialized });
+  } catch (e) {
+    await c.query(`update tx_queue set tx_hash = $2, error = $3 where id = $1`, [row.id, row.tx_hash, `replacement refused: ${String(e).slice(0, 200)}`]);
+    return null;
+  }
+  return { id: row.id, hash, status: "sent", reused: false };
 }
 
 async function withSessionLock<T>(pool: Db, key: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {

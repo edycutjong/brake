@@ -78,3 +78,4 @@ create index if not exists inbox_run on inbox (run_id, received_at);
 create index if not exists decisions_line on decisions (run_id, idx, created_at);
 create index if not exists jobs_queue on review_jobs (status, created_at);
 alter table tx_queue add column if not exists settled_at timestamptz; -- wall-clock when the receipt came back (bench: email → cancel confirmed)
+alter table tx_queue add column if not exists sent_at timestamptz; -- last broadcast (stuck-tx replacement clock)
