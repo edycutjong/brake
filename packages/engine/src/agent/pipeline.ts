@@ -5,6 +5,7 @@
 import type { Address, Hex } from "viem";
 import { evidenceHash } from "brake-signer";
 import { domainOf, isLookalike, isNearDomain } from "./domain.js";
+import { promptSafe } from "./model.js";
 import type { Decision, Finding, LineCtx, Message, RuleHit, Verdict } from "./types.js";
 
 export const POLICY_VERSION = "brake-policy-1";
@@ -45,7 +46,8 @@ export interface Verified {
   unsupported: { finding: Finding; why: string }[];
 }
 
-/** Keep a finding only if it targets a real line and every quote is a verbatim substring of a message linked to it. */
+/** Keep a finding only if it targets a real line and every quote is a verbatim substring of a message linked to it
+ *  (raw, or the prompt-safe form the model was shown). */
 export function verifyFindings(findings: Finding[], linked: Map<number, Message[]>): Verified {
   const verified: Finding[] = [];
   const unsupported: Verified["unsupported"] = [];
@@ -61,7 +63,9 @@ export function verifyFindings(findings: Finding[], linked: Map<number, Message[
     }
     const bad = f.quotes.find((q) => {
       const m = msgs.find((x) => x.id === q.messageId);
-      return !m || q.text.trim().length === 0 || !`${m.subject}\n${m.body}`.includes(q.text);
+      if (!m || q.text.trim().length === 0) return true;
+      // the model saw the prompt-safe form (message tags neutralised), so a quote of that form verifies too (a2a arch r01)
+      return !`${m.subject}\n${m.body}`.includes(q.text) && !`${promptSafe(m.subject)}\n${promptSafe(m.body)}`.includes(q.text);
     });
     if (bad) unsupported.push({ finding: f, why: `quote not verbatim in a linked message: ${bad.messageId}` });
     else verified.push(f);

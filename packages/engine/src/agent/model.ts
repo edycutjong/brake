@@ -80,7 +80,9 @@ export const RECORD_FINDINGS_TOOL = {
   },
 };
 
-const esc = (s: string) => s.replace(/<\/?message[^>]*>/gi, "[tag removed]");
+/** What the model sees of untrusted text: message-tag markup neutralised. Quote verification accepts this form too. */
+export const promptSafe = (s: string) => s.replace(/<\/?message[^>]*>/gi, "[tag removed]");
+const esc = promptSafe;
 
 export function userPrompt({ lines, linked }: ModelInput): string {
   const parts: string[] = ["Payment lines in this run (on file):"];

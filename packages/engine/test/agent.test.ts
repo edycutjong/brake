@@ -170,6 +170,13 @@ describe("quote verifier", () => {
       "no quote",
     ]);
   });
+
+  it("a quote of the prompt-safe form (message tags neutralised) verifies, so tag markup in an email cannot void a finding", () => {
+    const tagged = { ...msgs.find((m) => m.id === "E4")!, body: "new account: <message>wire today</message> — please don't call" };
+    const lk = new Map([[2, [tagged]]]);
+    const r = verifyFindings([f("[tag removed]wire today[tag removed] — please don't call"), f("<message>wire today</message>")], lk);
+    expect(r.verified).toHaveLength(2);
+  });
 });
 
 describe("policy", () => {
