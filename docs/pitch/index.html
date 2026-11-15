@@ -3,10 +3,10 @@
   Brake: pitch deck (v1.0 · 2026-11-16)
   Keys: → / Space next · ← previous · Home / End · Esc slide overview · P presenter mode (speaker notes)
   Print: Cmd/Ctrl+P → Save as PDF → one slide per page (16in × 9in), backgrounds on.
-  Images: ../assets/demo-stamp.png, a crop of the real run sheet (line 3 stopped) captured on the anvil fork, labelled FORK.
+  Images: ../assets/demo-line3.png, a crop of the real run sheet (line 3 stopped) from a fork run, labelled FORK.
   Fonts: ../assets/fonts/ (self-hosted, SIL OFL 1.1, see LICENSE-fonts.txt).
   QR: inline SVG, encodes https://github.com/edycutjong/brake (decoded and checked at build time).
-  Tokens: specs/design.md §4, the same :root as ../index.html.
+  Tokens: the same :root as ../index.html.
 -->
 <html lang="en">
 <head>
@@ -27,7 +27,7 @@
 @font-face { font-family: "Ibarra Fallback"; src: local("Georgia"); size-adjust: 94.4%; ascent-override: 100.6%; descent-override: 31.8%; line-gap-override: 0%; }
 @font-face { font-family: "Franklin Fallback"; src: local("Arial"), local("Helvetica"); size-adjust: 102.4%; ascent-override: 94.3%; descent-override: 24%; line-gap-override: 0%; }
 @font-face { font-family: "Courier Fallback"; src: local("Courier New"); size-adjust: 99.9%; ascent-override: 78.2%; descent-override: 34.2%; line-gap-override: 0%; }
-/* specs/design.md §4 — pasted verbatim */
+/* design tokens: the cheque-register palette and faces */
 :root {
   --bg:      #F3F1E7;  /* security-paper cream of a cheque register page */
   --ink:     #1C2230;  /* fountain-pen blue-black used to fill in a register */
@@ -63,13 +63,13 @@ code, .data { font-family: var(--font-data); font-variant-numeric: tabular-nums;
 }
 .slide.on { display: flex; flex-direction: column; justify-content: center; }
 .slide::before { content: ""; position: absolute; left: 96px; top: 0; bottom: 0; width: 2px; background: color-mix(in srgb, var(--after) 35%, transparent); z-index: -1; }
-.lbl { position: absolute; top: 96px; left: 128px; font: 600 22px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); display: flex; gap: 16px; align-items: center; }
+.lbl { position: absolute; top: 96px; left: 128px; font: 600 24px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); display: flex; gap: 16px; align-items: center; }
 .lbl .no { font-family: var(--font-data); letter-spacing: 0; border: 1.5px solid var(--muted); padding: 3px 10px; color: var(--ink); }
 h1, h2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; margin: 0; }
-h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
-.body { font-size: 40px; line-height: 1.45; color: var(--ink-soft); max-width: 30em; margin: 0; }
+h2 { font-size: 120px; line-height: 1.03; margin: 0 0 44px; }
+.body { font-size: 44px; line-height: 1.45; color: var(--ink-soft); max-width: 30em; margin: 0; }
 .body b { color: var(--ink); }
-.foot { position: absolute; left: 128px; right: 128px; bottom: 52px; display: flex; justify-content: space-between; font: 20px/1 var(--font-data); color: var(--label); }
+.foot { position: absolute; left: 128px; right: 128px; bottom: 52px; display: flex; justify-content: space-between; font: 24px/1 var(--font-data); color: var(--label); }
 .fork { display: inline-block; font: 700 .62em/1 var(--font-data); letter-spacing: .06em; border: 1.5px solid currentColor; padding: 3px 6px; vertical-align: .15em; }
 .stamp {
   --tilt: -4deg; display: inline-block; color: var(--after); border: 7px double var(--after); padding: .02em .22em .08em; line-height: 1;
@@ -102,7 +102,7 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 /* s2 hook */
 .hook .big { font: 700 200px/1 var(--font-data); letter-spacing: -.04em; margin: 0 0 40px; font-variant-numeric: tabular-nums; }
 .hook .big .cur { color: var(--label); }
-.hook .src { font: 22px/1.5 var(--font-data); color: var(--label); margin-top: 48px; }
+.hook .src { font: 26px/1.5 var(--font-data); color: var(--label); margin-top: 48px; }
 
 /* s3 problem: two-day register */
 .two { display: grid; grid-template-columns: 1fr 720px; gap: 90px; align-items: center; }
@@ -113,7 +113,7 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 
 /* s4 solution: the pair of slips */
 .slips { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 30px; }
-.slip { border: 3px solid var(--ink); background: var(--bg); padding: 46px 50px; font: 40px/1.6 var(--font-data); position: relative; box-shadow: 10px 10px 0 var(--paper-2), 10px 10px 0 3px var(--ink); }
+.slip { border: 3px solid var(--ink); background: var(--bg); padding: 50px 54px; font: 44px/1.6 var(--font-data); position: relative; box-shadow: 10px 10px 0 var(--paper-2), 10px 10px 0 3px var(--ink); }
 .slip b { display: block; font: 600 24px/1.3 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin-bottom: 14px; }
 .slip.pay { border-left: 14px solid var(--before); } .slip.cx { border-left: 14px solid var(--after); }
 .slip .stamp { position: absolute; right: 36px; bottom: 34px; font-size: 44px; }
@@ -123,7 +123,8 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 .flow text { font-family: var(--font-body); }
 
 /* s6 demo */
-.demo-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 56px; margin-top: 12px; align-items: start; }
+.demo-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 56px; margin-top: 12px; align-items: start; }
+.pic { position: relative; }
 .callout { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 28px/56px var(--font-data); text-align: center; box-shadow: 0 0 0 5px var(--bg); }
 .callout.red { background: var(--after); }
 .keys { list-style: none; padding: 0; margin: 40px 0 0; display: grid; gap: 22px; font: 32px/1.35 var(--font-body); }
@@ -136,7 +137,7 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 .ledger > div { padding: 44px 56px; }
 .ledger > div + div { border-left: 3px solid var(--ink); background: var(--paper-2); }
 .ledger h3 { font: 600 26px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin: 0 0 22px; }
-.ledger ul { list-style: none; margin: 0; padding: 0; font: 54px/1.7 var(--font-data); }
+.ledger ul { list-style: none; margin: 0; padding: 0; font: 60px/1.7 var(--font-data); }
 .ledger .can li::before { content: "✓  "; color: var(--cleared); }
 .ledger .cannot li { color: var(--after); text-decoration: line-through 3px; }
 .ledger .cannot li span { color: var(--ink-soft); }
@@ -145,8 +146,8 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 .rcpts { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 10px; border-block: 3px solid var(--ink); }
 .rcpts > div { padding: 44px 34px 38px; border-right: 2px solid var(--rule); }
 .rcpts > div:first-child { padding-left: 0; } .rcpts > div:last-child { border-right: 0; }
-.rcpts .n { white-space: nowrap; font: 700 128px/1 var(--font-data); letter-spacing: -.04em; }
-.rcpts p { font: 32px/1.35 var(--font-body); margin: 22px 0 16px; }
+.rcpts .n { white-space: nowrap; font: 700 140px/1 var(--font-data); letter-spacing: -.04em; }
+.rcpts p { font: 34px/1.35 var(--font-body); margin: 22px 0 16px; }
 .rcpts code { font-size: 22px; color: var(--label); }
 .small { font: 26px/1.5 var(--font-body); color: var(--label); margin-top: 36px; max-width: 70em; }
 
@@ -155,15 +156,15 @@ h2 { font-size: 108px; line-height: 1.03; margin: 0 0 40px; }
 .cols3 > div { padding: 30px 34px 0 0; }
 .cols3 > div + div { padding-left: 34px; border-left: 2px solid var(--rule); }
 .cols3 h3 { font: 600 26px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin: 0 0 20px; }
-.cols3 ul { margin: 0; padding: 0; list-style: none; font: 42px/1.7 var(--font-data); }
+.cols3 ul { margin: 0; padding: 0; list-style: none; font: 46px/1.7 var(--font-data); }
 .cols3 .not li { color: var(--label); text-decoration: line-through 2px; }
 
 /* s10 honest */
 .s-honest { background-color: var(--carbon); }
-.rm { display: grid; grid-template-columns: 90px 1fr; gap: 20px; padding: 32px 0; border-bottom: 2px solid color-mix(in srgb, var(--before) 30%, var(--bg)); align-items: baseline; }
-.rm .k { font: 30px var(--font-data); color: var(--before); }
-.rm q { font: 400 70px/1.2 var(--font-display); quotes: "“" "”"; }
-.remarks { margin-top: 0; border-top: 3px solid var(--before); }
+.rm { display: grid; grid-template-columns: 90px 1fr; gap: 20px; padding: 32px 0; border-bottom: 2px solid color-mix(in srgb, var(--ink) 18%, var(--carbon)); align-items: baseline; }
+.rm .k { font: 30px var(--font-data); color: var(--label); }
+.rm q { font: 400 80px/1.2 var(--font-display); quotes: "“" "”"; }
+.remarks { margin-top: 0; border-top: 3px solid var(--ink); }
 
 /* s11 ask */
 .ask { display: grid; grid-template-columns: 1fr 460px; gap: 100px; align-items: center; }
@@ -228,30 +229,30 @@ body.overview #grid { display: grid; }
 
 <!-- 2 · HOOK -->
 <section class="slide hook" data-title="Hook">
-  <div class="lbl"><span class="no">L-01</span> Business email compromise, 2024</div>
+  <div class="lbl"><span class="no">L-02</span> Business email compromise, 2024</div>
   <div class="big rise"><span class="cur">$</span>2,770,151,146</div>
   <p class="body rise d2">in reported losses across <b>21,442 complaints</b> to the FBI’s IC3. On a stablecoin chain, a paid line is final.</p>
   <p class="src">Source: FBI IC3 2024 Internet Crime Report, complaint and loss tables</p>
-  <aside class="speaker-notes">The attack is mundane: a vendor's mailbox says the bank details changed. Card and wire rails have recall windows; a stablecoin transfer does not. That is the gap Brake closes.</aside>
+  <aside class="speaker-notes">The attack is mundane: a vendor's mailbox says the bank details changed. On a stablecoin chain a paid line is final, so the only safe moment to act is before payday. That is the gap Brake closes.</aside>
 </section>
 
 <!-- 3 · PROBLEM -->
 <section class="slide" data-title="Problem">
-  <div class="lbl"><span class="no">L-02</span> The problem</div>
+  <div class="lbl"><span class="no">L-03</span> The problem</div>
   <div class="two"><div>
   <h2 class="rise">Signed Monday. Wrong by Tuesday.</h2>
   <p class="body rise d2">Today, stopping it needs the key holder online.</p></div>
   <div class="days3 rise d3">
     <div><b>Monday</b><span>Rina, the AP clerk, signs four vendor lines.</span></div>
-    <div><b class="red">Tuesday</b><span>“Acme” emails new bank details.</span></div>
+    <div><b class="red">Tuesday</b><span>“Acme” confirms a new payout address.</span></div>
     <div><b>Payday</b><span>The line pays wherever it points.</span></div>
   </div></div>
-  <aside class="speaker-notes">Rina is our persona: the sole AP clerk. She approves on Monday, the fraud arrives Tuesday, and she is in meetings. Today her choices are to stay online with the key, or to hand a bot a key that can pay.</aside>
+  <aside class="speaker-notes">Rina is our persona, an AP clerk. She approves on Monday, the fraud arrives Tuesday, and she is in meetings. Today her choices are to stay online with the key, or to hand a bot a key that can pay.</aside>
 </section>
 
 <!-- 4 · SOLUTION -->
 <section class="slide" data-title="Solution">
-  <div class="lbl"><span class="no">L-03</span> The idea</div>
+  <div class="lbl"><span class="no">L-04</span> The idea</div>
   <h2 class="rise">Sign the cancel with the payment.</h2>
   <div class="slips rise d2">
     <div class="slip pay"><b>Payment · EIP-3009</b>transferWithAuthorization<br>valid from payday<br>to 0xFe83…a5De · 0.500</div>
@@ -262,20 +263,20 @@ body.overview #grid { display: grid; }
 
 <!-- 5 · HOW IT WORKS -->
 <section class="slide" data-title="How it works">
-  <div class="lbl"><span class="no">L-04</span> How it works</div>
+  <div class="lbl"><span class="no">L-05</span> How it works</div>
   <h2 class="rise" style="margin-bottom:10px">Three days, one run.</h2>
   <svg class="flow rise d2" viewBox="0 0 1664 600" role="img" aria-label="Monday finance signs payment and cancel; Tuesday the agent stops line 3 through Brake and tUSD8; Payday Multicall3 pays lines 1, 2 and 4 and the replay of line 3 reverts.">
     <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1C2230"/></marker></defs>
-    <g font-size="28" fill="#1C2230">
+    <g font-size="30" fill="#1C2230">
       <rect x="0" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
       <text x="30" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Monday</text>
-      <text x="30" y="175" fill="#555962" font-size="22" letter-spacing="2">FINANCE SIGNS</text>
+      <text x="30" y="175" fill="#555962" font-size="26" letter-spacing="2">FINANCE SIGNS</text>
       <rect x="30" y="205" width="380" height="88" fill="none" stroke="#2F4FA2" stroke-width="3"/><text x="50" y="258" font-family="Courier Prime, monospace" fill="#2F4FA2">payment · from payday</text>
       <rect x="30" y="315" width="380" height="88" fill="none" stroke="#C2272D" stroke-width="3"/><text x="50" y="368" font-family="Courier Prime, monospace" fill="#C2272D">cancel · same nonce</text>
 
       <rect x="612" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
       <text x="642" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Tuesday</text>
-      <text x="642" y="175" fill="#555962" font-size="22" letter-spacing="2">AGENT READS, STOPS</text>
+      <text x="642" y="175" fill="#555962" font-size="26" letter-spacing="2">AGENT READS, STOPS</text>
       <text x="642" y="240" font-family="Courier Prime, monospace">email · vendor file</text>
       <text x="642" y="280" font-family="Courier Prime, monospace">invoices · isBlacklisted</text>
       <line x1="662" y1="300" x2="662" y2="345" stroke="#1C2230" stroke-width="3" marker-end="url(#ar)"/>
@@ -283,7 +284,7 @@ body.overview #grid { display: grid; }
 
       <rect x="1224" y="60" width="440" height="420" fill="#F3F1E7" stroke="#1C2230" stroke-width="3"/>
       <text x="1254" y="118" font-family="Ibarra Real Nova, Georgia, serif" font-size="54" font-weight="600">Payday</text>
-      <text x="1254" y="175" fill="#555962" font-size="22" letter-spacing="2">ONE BATCH</text>
+      <text x="1254" y="175" fill="#555962" font-size="26" letter-spacing="2">ONE BATCH</text>
       <text x="1254" y="240" font-family="Courier Prime, monospace" fill="#2E6B4F" font-weight="700">paid [1, 2, 4]</text>
       <text x="1254" y="330" font-family="Courier Prime, monospace" fill="#C2272D" font-weight="700">line 3 replay</text>
       <text x="1254" y="370" font-family="Courier Prime, monospace" fill="#C2272D">→ reverts</text>
@@ -297,52 +298,52 @@ body.overview #grid { display: grid; }
 
 <!-- 6 · DEMO -->
 <section class="slide" data-title="Demo">
-  <div class="lbl"><span class="no">L-05</span> The hero run · fork</div>
+  <div class="lbl"><span class="no">L-06</span> The hero run · fork</div>
   <h2 class="rise" style="margin:20px 0 34px">Line 3 never cleared.</h2>
   <div class="demo-grid">
-    <div class="frame rise d2"><div class="bar"><i></i><i></i><i></i>&nbsp; local fork</div><img src="../assets/demo-stamp.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
-      <span class="callout red" style="left:81%;top:54%">1</span><span class="callout" style="left:51%;top:57%">2</span></div>
+    <div class="frame rise d2"><div class="bar"><i></i><i></i><i></i>&nbsp; separate fork run</div><div class="pic"><img src="../assets/demo-line3.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
+      <span class="callout red" style="left:calc(79.6% - 66px);top:calc(81% - 28px)">1</span><span class="callout" style="left:calc(56.6% - 34px);top:calc(62.5% - 28px)">2</span></div></div>
     <div class="rise d3">
       <div class="tape"><span class="cap">pnpm demo:hero</span><span class="t">+13.4s</span> line 3 <span class="no">STOP</span><br><span class="t">      </span> rules fired 0<br><span class="t">+44.5s</span> <span class="ok">paid [1, 2, 4]</span><br><span class="t">      </span> line 3 <span class="no">reverted</span></div>
-      <ul class="keys"><li><span class="red">1</span>Serial = the cancel tx.</li><li><span>2</span>Amount struck; re-issued later.</li></ul>
+      <ul class="keys"><li><span class="red">1</span>Serial = the cancel tx.</li><li><span>2</span>Amount struck through.</li></ul>
     </div>
   </div>
-  <aside class="speaker-notes">This is the recorded run from evidence/hero-fork.json. The model alone stopped line 3; no rule fired. Payday paid the other three lines in one batch and the stopped line's replay reverted. The whole run took 64 seconds.</aside>
+  <aside class="speaker-notes">The screenshot is the real run sheet from a separate fork run; the timings come from evidence/hero-fork.json, recorded before the final contract change. The model alone stopped line 3; no rule fired. Payday paid the other three in one batch and the stopped line's replay reverted. The CLI run took 64 seconds.</aside>
 </section>
 
 <!-- 7 · POWERS -->
 <section class="slide" data-title="The agent's powers">
-  <div class="lbl"><span class="no">L-06</span> Least privilege</div>
+  <div class="lbl"><span class="no">L-07</span> Least privilege</div>
   <h2 class="rise">An agent with no wallet.</h2>
   <div class="ledger rise d2">
     <div class="can"><h3>It may</h3><ul><li>allow a line</li><li>hold a line</li><li>stop ≤ maxStops</li></ul></div>
     <div class="cannot"><h3>It cannot</h3><ul><li><span>pay anyone</span></li><li><span>change a payee</span></li><li><span>hold funds</span></li></ul></div>
   </div>
-  <p class="small">0 tUSD8 and no allowance, checked on /verify · revocable at once.</p>
+  <p class="small">0 tUSD8 and no allowance, checked on /verify · Brake-routed stops revocable at once.</p>
   <aside class="speaker-notes">A hijacked agent can delay a run: cancel up to maxStops lines and hold others. Each stop is re-issuable and a hold is released by one payer allow. It can never create a payment or redirect one.</aside>
 </section>
 
 <!-- 8 · RECEIPTS -->
 <section class="slide" data-title="Receipts">
-  <div class="lbl"><span class="no">L-07</span> Receipts</div>
+  <div class="lbl"><span class="no">L-08</span> Receipts</div>
   <h2 class="rise">Every number has a file.</h2>
   <div class="rcpts rise d2">
     <div><div class="n">121</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
-    <div><div class="n" style="color:var(--after)">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
-    <div><div class="n" style="color:var(--before)">4.1 s</div><p>median email → cancel (fork)</p><code>bench/results.json</code></div>
+    <div><div class="n">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
+    <div><div class="n">4.1 s</div><p>median email → cancel (fork)</p><code>bench/results.json</code></div>
     <div><div class="n">25/25</div><p>injection emails; rules alone 6</p><code>evidence/g4/</code></div>
   </div>
   <p class="small">n = 25: a regression suite, not a detection rate.</p>
-  <aside class="speaker-notes">121 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel. The model numbers predate the architecture review's agent changes, and we say so in the README.</aside>
+  <aside class="speaker-notes">121 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel, measured at commit 494c2a6. Both latency and model numbers predate the architecture review's changes, and the README says so.</aside>
 </section>
 
 <!-- 9 · AEVUM -->
 <section class="slide" data-title="Built on Aevum">
-  <div class="lbl"><span class="no">L-08</span> Aevum testnet 44005</div>
+  <div class="lbl"><span class="no">L-09</span> Aevum testnet 44005</div>
   <h2 class="rise">Built on what is live.</h2>
   <div class="cols3 rise d2">
     <div><h3>Live, used</h3><ul><li>tUSD8 EIP-3009</li><li>isBlacklisted</li><li>Multicall3</li><li>CREATE2 deployer</li></ul></div>
-    <div><h3>Self-deployed</h3><ul><li>ERC-8004 Identity</li><li>ERC-8004 Validation</li><li>Brake.sol</li></ul></div>
+    <div><h3>Self-deployed (fork only)</h3><ul><li>ERC-8004 Identity</li><li>ERC-8004 Validation</li><li>Brake.sol</li></ul></div>
     <div class="not"><h3>Not live, not used</h3><ul><li>@qday-io/sdk</li><li>PQ precompiles</li><li>public bundler</li></ul></div>
   </div>
   <aside class="speaker-notes">We probed the chain with eth_getCode and eth_call before building. Everything Brake depends on is live on 44005, except ERC-8004, which we deploy ourselves from the reference contracts.</aside>
@@ -350,7 +351,7 @@ body.overview #grid { display: grid; }
 
 <!-- 10 · HONEST -->
 <section class="slide s-honest" data-title="Honest limits">
-  <div class="lbl"><span class="no">L-09</span> Honest by design · README</div>
+  <div class="lbl"><span class="no">L-10</span> Honest by design · README</div>
   <h2 class="rise">What it cannot do.</h2>
   <div class="remarks rise d2">
     <div class="rm"><span class="k">R-1</span><q>Brake prevents only what it detects.</q></div>
@@ -362,7 +363,7 @@ body.overview #grid { display: grid; }
 
 <!-- 11 · ASK -->
 <section class="slide" data-title="The ask">
-  <div class="lbl"><span class="no">L-10</span> Try to break it</div>
+  <div class="lbl"><span class="no">L-11</span> Try to break it</div>
   <div class="ask">
     <div>
       <h2 class="rise">Make the agent pay.</h2>

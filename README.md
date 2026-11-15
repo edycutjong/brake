@@ -284,7 +284,7 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 
 ## 📽️ Demo Materials
 
-Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: [docs/index.html](docs/index.html) (served at https://edycutjong.github.io/brake/ once the repo is public). Pitch deck: [docs/pitch/index.html](docs/pitch/index.html). No live app URL or demo video yet.
+Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: [docs/index.html](docs/index.html) (served at https://edycutjong.github.io/brake/ once the repo is public). Pitch deck: [docs/pitch/index.html](docs/pitch/index.html) (both open as HTML source on GitHub until Pages is enabled). No live app URL or demo video yet.
 
 ## 📄 License
 
