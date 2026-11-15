@@ -326,12 +326,12 @@ contract Brake is ReentrancyGuard {
     ) internal returns (Status) {
         Run storage run = _runs[runId];
         LineState storage l = _line(runId, idx);
+        Status st = l.status;
+        // idempotent: a line Brake already stopped (or re-issued) or already marked CONSUMED returns as-is, no budget —
+        // before the grant check, so a keeper retry after revoke/expiry still reads the terminal status
+        if (st == Status.STOPPED || st == Status.REISSUED || st == Status.CONSUMED) return st;
         if (byAgent) _checkGrant(run, l);
         if (!isStopReason(reason)) revert UnknownReason();
-
-        Status st = l.status;
-        // idempotent: a line Brake already stopped (or re-issued) or already marked CONSUMED returns as-is, no budget
-        if (st == Status.STOPPED || st == Status.REISSUED || st == Status.CONSUMED) return st;
         if (st != Status.OPEN && st != Status.ALLOWED && st != Status.HELD) revert BadTransition(st);
 
         if (token.authorizationState(run.payer, l.nonce)) {

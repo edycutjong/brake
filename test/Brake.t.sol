@@ -277,4 +277,17 @@ contract BrakeTest is BrakeFixture {
         assertEq(resp, 0);
         assertEq(tag, "GOODS_NOT_RECEIVED");
     }
+
+    function test_stop_idempotentRetryAfterRevokeReturnsTerminalStatus() public {
+        _open(2, 2, 2);
+        _agentStop(0, "INVOICE_DISPUTED");
+        vm.prank(payer);
+        brake.revokeAgent(RUN);
+        assertEq(uint8(_agentStop(0, "INVOICE_DISPUTED")), uint8(Brake.Status.STOPPED));
+        // but a fresh stop on an open line is refused
+        Cancel memory c = signed[1].cancel;
+        vm.prank(agent);
+        vm.expectRevert(Brake.GrantRevoked.selector);
+        brake.stop(RUN, 1, "INVOICE_DISPUTED", bytes32(0), "", c.v, c.r, c.s);
+    }
 }
