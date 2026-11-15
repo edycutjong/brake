@@ -2,8 +2,8 @@
   "deployment": "fork",
   "note": "Anvil fork of Aevum 44005 — these hashes exist only on the local fork, never on the explorer.",
   "scenario": "late",
-  "run": "run_94e17dd155d18f82",
-  "runId": "0x2dd2c0a04cd7ed791e586fff7f4ca8fab71f96353708275d14154e1851a12a9d",
+  "run": "run_7478e60b9344eb3f",
+  "runId": "0xa37b7cfca868c4eb3638fba10cf3a31bceebd6c484f62780b74f34d08a74132c",
   "brake": "0xE92AF9439c95505335C578F7584ADC0B6A35956B",
   "model": "claude-sonnet-5-5 (claude-cli)",
   "lines": [
@@ -12,8 +12,8 @@
       "invoice": "INV-0099",
       "amount": "0.045",
       "status": "TOO_LATE",
-      "paidTx": "0x39c8e18d7e6f61ae29a15027e4e61e9876511faca245542f4712b468a661da88",
-      "stopTx": "0x226a8d69f9cf173d43d16b140041207daaa1103e0090302850cc17c5ff73980f",
+      "paidTx": "0xb27b8733c512eb7af9b9edc4eb40a33d5e2440fd0ba405067a225915f4277b51",
+      "stopTx": "0x38db6fd8bd6e40cb498fbc6599a416c7f6bc4cdc5fc56689d3e322e22474ffee",
       "proofTx": null,
       "proofReason": null
     }
@@ -26,8 +26,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "none (no linked messages)",
-      "evidence_hash": "0x27f4e38b48d22aee1de31d6369d67dc3266babc7f9c7ee2fb89d4f07c0bff64d",
-      "tx": "0xbe50be69c8df10e73619af5cb845b4c07771559750cd09fbb759628ef06bb306",
+      "evidence_hash": "0xed42c6ecd976b875cddc0cf7d00b8884724a96611626750dc91f4920ec3daf8d",
+      "tx": "0x631cc089f91c72f259dcc9191787507ee5fa0f2a3200629aa585d430e2c731ba",
       "chain_status": "ALLOWED"
     },
     {
@@ -37,18 +37,18 @@
       "reason_code": "DUPLICATE_INVOICE",
       "rules_fired": [],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0xc9a433fbb225355fd0f273a95f52635db2424ee066143810e22e07d8cce7d8a1",
-      "tx": "0x226a8d69f9cf173d43d16b140041207daaa1103e0090302850cc17c5ff73980f",
+      "evidence_hash": "0x3b0495246a2d3822e5e8dac13dd74e75c08949abc2ee31cbf64992553484e1bb",
+      "tx": "0x38db6fd8bd6e40cb498fbc6599a416c7f6bc4cdc5fc56689d3e322e22474ffee",
       "chain_status": "CONSUMED"
     }
   ],
   "alarms": [
     {
       "name": "StopConsumed",
-      "tx_hash": "0x226a8d69f9cf173d43d16b140041207daaa1103e0090302850cc17c5ff73980f",
+      "tx_hash": "0x38db6fd8bd6e40cb498fbc6599a416c7f6bc4cdc5fc56689d3e322e22474ffee",
       "args": {
         "idx": "0",
-        "runId": "0x2dd2c0a04cd7ed791e586fff7f4ca8fab71f96353708275d14154e1851a12a9d"
+        "runId": "0xa37b7cfca868c4eb3638fba10cf3a31bceebd6c484f62780b74f34d08a74132c"
       }
     }
   ],
@@ -56,69 +56,69 @@
     {
       "kind": "recovery",
       "idx": 0,
-      "body": "TOO LATE: line 1 was already paid in 0x39c8e18d7e6f61ae29a15027e4e61e9876511faca245542f4712b468a661da88 before the stop — recover from the payee"
+      "body": "TOO LATE: line 1 was already paid in 0xb27b8733c512eb7af9b9edc4eb40a33d5e2440fd0ba405067a225915f4277b51 before the stop — recover from the payee"
     }
   ],
   "steps": [
     {
       "step": "run created + signed",
-      "at": "2026-11-15T18:18:17.528Z",
-      "sinceStartMs": 531,
-      "run": "run_94e17dd155d18f82",
-      "runId": "0x2dd2c0a04cd7ed791e586fff7f4ca8fab71f96353708275d14154e1851a12a9d",
+      "at": "2026-11-15T18:30:36.106Z",
+      "sinceStartMs": 265,
+      "run": "run_7478e60b9344eb3f",
+      "runId": "0xa37b7cfca868c4eb3638fba10cf3a31bceebd6c484f62780b74f34d08a74132c",
       "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
       "step": "openRun (payer)",
-      "at": "2026-11-15T18:18:18.138Z",
-      "sinceStartMs": 1141,
-      "tx": "0x6d07b5cabe1234c392a8f544ed9ab4e7cd29e3a6e0b5ce6b7344ad1f3bd3941b"
+      "at": "2026-11-15T18:30:37.206Z",
+      "sinceStartMs": 1365,
+      "tx": "0xeded07c0ba3fe2da2e6a896f2142eace9763720dc47b8111cc5e45d26efbec46"
     },
     {
       "step": "review (open: open)",
-      "at": "2026-11-15T18:18:19.244Z",
-      "sinceStartMs": 2247,
+      "at": "2026-11-15T18:30:38.267Z",
+      "sinceStartMs": 2426,
       "model": "none (no linked messages)",
-      "ms": 1101,
+      "ms": 1059,
       "executed": [
         {
           "idx": 0,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0xbe50be69c8df10e73619af5cb845b4c07771559750cd09fbb759628ef06bb306",
+          "tx": "0x631cc089f91c72f259dcc9191787507ee5fa0f2a3200629aa585d430e2c731ba",
           "chainStatus": "ALLOWED"
         }
       ]
     },
     {
       "step": "payday (keeper pays first)",
-      "at": "2026-11-15T18:18:20.306Z",
-      "sinceStartMs": 3309,
-      "batchTx": "0x39c8e18d7e6f61ae29a15027e4e61e9876511faca245542f4712b468a661da88",
+      "at": "2026-11-15T18:30:39.318Z",
+      "sinceStartMs": 3477,
+      "batchTx": "0xb27b8733c512eb7af9b9edc4eb40a33d5e2440fd0ba405067a225915f4277b51",
       "paid": [
         1
       ]
     },
     {
       "step": "deliver E13 (double billed) — after the payment",
-      "at": "2026-11-15T18:18:20.340Z",
-      "sinceStartMs": 3343,
+      "at": "2026-11-15T18:30:39.347Z",
+      "sinceStartMs": 3506,
       "linkedLines": [
         1
       ]
     },
     {
       "step": "review (E13: seed:E13)",
-      "at": "2026-11-15T18:18:24.244Z",
-      "sinceStartMs": 7247,
+      "at": "2026-11-15T18:30:43.314Z",
+      "sinceStartMs": 7473,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 3901,
+      "ms": 3966,
       "executed": [
         {
           "idx": 0,
           "verdict": "STOP",
           "action": "stop",
-          "tx": "0x226a8d69f9cf173d43d16b140041207daaa1103e0090302850cc17c5ff73980f",
+          "tx": "0x38db6fd8bd6e40cb498fbc6599a416c7f6bc4cdc5fc56689d3e322e22474ffee",
           "chainStatus": "CONSUMED",
           "note": "DUPLICATE_INVOICE"
         }
@@ -126,29 +126,29 @@
     },
     {
       "step": "reconcile",
-      "at": "2026-11-15T18:18:24.317Z",
-      "sinceStartMs": 7320,
-      "events": 162,
+      "at": "2026-11-15T18:30:43.355Z",
+      "sinceStartMs": 7514,
+      "events": 6,
       "updates": [
         {
-          "runId": "run_94e17dd155d18f82",
+          "runId": "run_7478e60b9344eb3f",
           "idx": 0,
           "status": "TOO_LATE",
-          "tx": "0x39c8e18d7e6f61ae29a15027e4e61e9876511faca245542f4712b468a661da88"
+          "tx": "0xb27b8733c512eb7af9b9edc4eb40a33d5e2440fd0ba405067a225915f4277b51"
         }
       ]
     },
     {
       "step": "events + tickets",
-      "at": "2026-11-15T18:18:24.317Z",
-      "sinceStartMs": 7320,
+      "at": "2026-11-15T18:30:43.356Z",
+      "sinceStartMs": 7515,
       "alarms": [
         {
           "name": "StopConsumed",
-          "tx_hash": "0x226a8d69f9cf173d43d16b140041207daaa1103e0090302850cc17c5ff73980f",
+          "tx_hash": "0x38db6fd8bd6e40cb498fbc6599a416c7f6bc4cdc5fc56689d3e322e22474ffee",
           "args": {
             "idx": "0",
-            "runId": "0x2dd2c0a04cd7ed791e586fff7f4ca8fab71f96353708275d14154e1851a12a9d"
+            "runId": "0xa37b7cfca868c4eb3638fba10cf3a31bceebd6c484f62780b74f34d08a74132c"
           }
         }
       ],
@@ -156,16 +156,16 @@
         {
           "kind": "recovery",
           "idx": 0,
-          "body": "TOO LATE: line 1 was already paid in 0x39c8e18d7e6f61ae29a15027e4e61e9876511faca245542f4712b468a661da88 before the stop — recover from the payee"
+          "body": "TOO LATE: line 1 was already paid in 0xb27b8733c512eb7af9b9edc4eb40a33d5e2440fd0ba405067a225915f4277b51 before the stop — recover from the payee"
         }
       ]
     },
     {
       "step": "sweep-back",
-      "at": "2026-11-15T18:18:25.361Z",
-      "sinceStartMs": 8364,
-      "tx": "0xcec87434dcc8f8d96b18f1ee588b70cf022c6d04cbf985802f9f3ad26c2dac51"
+      "at": "2026-11-15T18:30:44.407Z",
+      "sinceStartMs": 8566,
+      "tx": "0x615c1270d54fb1beeb39420d1caab9da44199831df6fcb9163a4a1e8e06d2f40"
     }
   ],
-  "totalMs": 8365
+  "totalMs": 8568
 }

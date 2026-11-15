@@ -2,8 +2,8 @@
   "deployment": "fork",
   "note": "Anvil fork of Aevum 44005 — these hashes exist only on the local fork, never on the explorer.",
   "scenario": "flood",
-  "run": "run_1ea7b268e40dcefb",
-  "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+  "run": "run_a914845efdf33c89",
+  "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
   "brake": "0xE92AF9439c95505335C578F7584ADC0B6A35956B",
   "model": "claude-sonnet-5-5 (claude-cli)",
   "lines": [
@@ -13,8 +13,8 @@
       "amount": "0.125",
       "status": "STOPPED",
       "paidTx": null,
-      "stopTx": "0xf82a3386368230fb0dfc4d90f7855e1ce5b40e7ba40398b52306b48e7c445bca",
-      "proofTx": "0xfb3c77911cc6723daf5ad043380471ba6639272d33d2f6612f29485c411376b2",
+      "stopTx": "0x1317042a6d2de761ad67bcd8d7193a178a245713628c260bdbcf69746889918d",
+      "proofTx": "0x50f62d9136f253ab7b3477bde6314e413eb70e743b902c472a8557181f4230b1",
       "proofReason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
     },
     {
@@ -23,8 +23,8 @@
       "amount": "0.24",
       "status": "STOPPED",
       "paidTx": null,
-      "stopTx": "0xc14f632f2b901c454ddaa0e82b2d8599c900cdc08cbaf82c95bd7cbea22ed735",
-      "proofTx": "0xae1809f1e291aa93dd72e95e124f85982f4fa14f3469cf10ac4a9eb97f6545d5",
+      "stopTx": "0x44108bc3db3fc5a643cffd437bf4ab46cbeee65798d49afc9f58b0182b4b6d5d",
+      "proofTx": "0x126df580c2e35111c6e7060562d4a4851eef1142876f8f7e49ae792d3ccb1fa7",
       "proofReason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
     },
     {
@@ -42,7 +42,7 @@
       "invoice": "INV-5520",
       "amount": "0.09",
       "status": "PAID",
-      "paidTx": "0x90db5c3b3fe414a5bb29180c9c200214d93ec822334ef8174979c7407305353e",
+      "paidTx": "0x5f762e00ccb2146693bad56ac7433a8264bcc376f59d7119991eb274f072ab05",
       "stopTx": null,
       "proofTx": null,
       "proofReason": null
@@ -56,8 +56,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "none (no linked messages)",
-      "evidence_hash": "0xa59544caa5469033c2a874d0004461834df1ba27e65f88ff984ef20f1d015b4d",
-      "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+      "evidence_hash": "0x04ee3b610637be539578b6af5ca52d12a21a29f750a8502c31b37ffef162b673",
+      "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
       "chain_status": "ALLOWED"
     },
     {
@@ -67,8 +67,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "none (no linked messages)",
-      "evidence_hash": "0x8c5eebccd115f1826c733fb63ab6e3413fb181611c23af919fea5796f6516f88",
-      "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+      "evidence_hash": "0x75a9467a05d4c57d32c34041d0fda0ae5d1d12b951b0e43b09db88f01c286bff",
+      "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
       "chain_status": "ALLOWED"
     },
     {
@@ -78,8 +78,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "none (no linked messages)",
-      "evidence_hash": "0x968764d349bb3452e2ddfee4c2a652cc01c0a04fb8b0fc7ae54daae3fa3e62a2",
-      "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+      "evidence_hash": "0x1762fce8bd7604a4919962d44b2f8a4abc813464684a3d333c20ac388cebb9b2",
+      "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
       "chain_status": "ALLOWED"
     },
     {
@@ -89,8 +89,8 @@
       "reason_code": null,
       "rules_fired": [],
       "model": "none (no linked messages)",
-      "evidence_hash": "0x7a40ae9d740645a6b7b4d2177d3cedbc3b5cbd76b2a1a84a915ef3e31e91fdf2",
-      "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+      "evidence_hash": "0xb16ea5435fc197e211357342f7e24be7393738e2c2f75dbc4764f034bc26d9f9",
+      "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
       "chain_status": "ALLOWED"
     },
     {
@@ -101,13 +101,13 @@
       "rules_fired": [
         {
           "id": "R-DOM",
-          "detail": "msg_2e65f1a1c3839df3 from kopi-nusantara.example imitates kopinusantara.example",
+          "detail": "msg_c0e09d635ec5e443 from kopi-nusantara.example imitates kopinusantara.example",
           "reason": "SENDER_LOOKALIKE"
         }
       ],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0x250c047926a1f86e733862d5eb904cce780ea9b3265787e6de25f18e147a69a4",
-      "tx": "0xf82a3386368230fb0dfc4d90f7855e1ce5b40e7ba40398b52306b48e7c445bca",
+      "evidence_hash": "0x9381df851ace1abe95ad926a0caecd98c4fe5c49b952e2ed5b3560f957274211",
+      "tx": "0x1317042a6d2de761ad67bcd8d7193a178a245713628c260bdbcf69746889918d",
       "chain_status": "STOPPED"
     },
     {
@@ -118,13 +118,13 @@
       "rules_fired": [
         {
           "id": "R-DOM",
-          "detail": "msg_a3ee128bbe73128d from studio-garis.example imitates studiogaris.example",
+          "detail": "msg_eaf09384740d48ea from studio-garis.example imitates studiogaris.example",
           "reason": "SENDER_LOOKALIKE"
         }
       ],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0xe9dea8ebbb4611f480fc9420e28a10f17aeb529f9f1a5829c7f0548436eb9937",
-      "tx": "0xc14f632f2b901c454ddaa0e82b2d8599c900cdc08cbaf82c95bd7cbea22ed735",
+      "evidence_hash": "0x60630f2e7b5e0aeace51c2bf166673d6843457409cd801c26cb05aea94566a75",
+      "tx": "0x44108bc3db3fc5a643cffd437bf4ab46cbeee65798d49afc9f58b0182b4b6d5d",
       "chain_status": "STOPPED"
     },
     {
@@ -135,33 +135,33 @@
       "rules_fired": [
         {
           "id": "R-DOM",
-          "detail": "msg_b77e6160726e5974 from cloudnlne.example imitates cloudnine.example",
+          "detail": "msg_668d0279b76207f4 from cloudnlne.example imitates cloudnine.example",
           "reason": "SENDER_LOOKALIKE"
         }
       ],
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "evidence_hash": "0x9b44ae15eb914b53621de4199b95a3a646c61c85e33f381deb96bcfdda09d7f8",
-      "tx": "0x756f4ec3f974444e6e8edaa865738b8f2fce0d4ce15a529d94dcd96a862941c2",
+      "evidence_hash": "0x563b8ab355d3b479b581bf868fa323f4eb721b9f73b76dad9d37df8595589b62",
+      "tx": "0x88bc2468c4521e517dac621b84abec545e3f4d38791771133bfd31b29425bbc1",
       "chain_status": "HELD"
     }
   ],
   "alarms": [
     {
       "name": "StopAlarm",
-      "tx_hash": "0xc14f632f2b901c454ddaa0e82b2d8599c900cdc08cbaf82c95bd7cbea22ed735",
+      "tx_hash": "0x44108bc3db3fc5a643cffd437bf4ab46cbeee65798d49afc9f58b0182b4b6d5d",
       "args": {
-        "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+        "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
         "stops": 2
       }
     },
     {
       "name": "LineHeld",
-      "tx_hash": "0x756f4ec3f974444e6e8edaa865738b8f2fce0d4ce15a529d94dcd96a862941c2",
+      "tx_hash": "0x88bc2468c4521e517dac621b84abec545e3f4d38791771133bfd31b29425bbc1",
       "args": {
         "idx": "2",
-        "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+        "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
         "reason": "0x4255444745545f45584841555354454400000000000000000000000000000000",
-        "evidenceHash": "0x9b44ae15eb914b53621de4199b95a3a646c61c85e33f381deb96bcfdda09d7f8"
+        "evidenceHash": "0x563b8ab355d3b479b581bf868fa323f4eb721b9f73b76dad9d37df8595589b62"
       }
     }
   ],
@@ -180,75 +180,75 @@
   "steps": [
     {
       "step": "run created + signed",
-      "at": "2026-11-15T18:18:33.844Z",
-      "sinceStartMs": 298,
-      "run": "run_1ea7b268e40dcefb",
-      "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+      "at": "2026-11-15T18:30:46.163Z",
+      "sinceStartMs": 285,
+      "run": "run_a914845efdf33c89",
+      "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
       "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
       "step": "openRun (payer)",
-      "at": "2026-11-15T18:18:35.013Z",
-      "sinceStartMs": 1467,
-      "tx": "0x1363b046fae6c356ede0f382a71e10836c0cdbb193185f46534bdc61c25becdb"
+      "at": "2026-11-15T18:30:47.348Z",
+      "sinceStartMs": 1470,
+      "tx": "0xbbd47accb853e81ce53178c50b917238d0fcdbae1027babfc9b67889fdda32a7"
     },
     {
       "step": "review (open: open)",
-      "at": "2026-11-15T18:18:36.117Z",
-      "sinceStartMs": 2571,
+      "at": "2026-11-15T18:30:48.430Z",
+      "sinceStartMs": 2552,
       "model": "none (no linked messages)",
-      "ms": 1097,
+      "ms": 1081,
       "executed": [
         {
           "idx": 0,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+          "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 1,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+          "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 2,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+          "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
           "chainStatus": "ALLOWED"
         },
         {
           "idx": 3,
           "verdict": "ALLOW",
           "action": "allow",
-          "tx": "0x109acefafdfb58e14d68dc3c0d1c60e9e11776662c17d5232497cc3911a9adf8",
+          "tx": "0x5fbe09f895f0bb55f10248d304f53b8dc9e16ce5e516d60b4c9d3ac1764b8730",
           "chainStatus": "ALLOWED"
         }
       ]
     },
     {
       "step": "deliver E14",
-      "at": "2026-11-15T18:18:36.154Z",
-      "sinceStartMs": 2608,
+      "at": "2026-11-15T18:30:48.462Z",
+      "sinceStartMs": 2584,
       "linkedLines": [
         1
       ]
     },
     {
       "step": "review (E14: seed:E14)",
-      "at": "2026-11-15T18:18:42.962Z",
-      "sinceStartMs": 9416,
+      "at": "2026-11-15T18:30:54.417Z",
+      "sinceStartMs": 8539,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 6806,
+      "ms": 5951,
       "executed": [
         {
           "idx": 0,
           "verdict": "STOP",
           "action": "stop",
-          "tx": "0xf82a3386368230fb0dfc4d90f7855e1ce5b40e7ba40398b52306b48e7c445bca",
+          "tx": "0x1317042a6d2de761ad67bcd8d7193a178a245713628c260bdbcf69746889918d",
           "chainStatus": "STOPPED",
           "note": "SENDER_LOOKALIKE"
         },
@@ -274,24 +274,24 @@
     },
     {
       "step": "deliver E15",
-      "at": "2026-11-15T18:18:42.992Z",
-      "sinceStartMs": 9446,
+      "at": "2026-11-15T18:30:54.462Z",
+      "sinceStartMs": 8585,
       "linkedLines": [
         2
       ]
     },
     {
       "step": "review (E15: seed:E15)",
-      "at": "2026-11-15T18:18:48.039Z",
-      "sinceStartMs": 14493,
+      "at": "2026-11-15T18:30:58.308Z",
+      "sinceStartMs": 12430,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 5046,
+      "ms": 3844,
       "executed": [
         {
           "idx": 1,
           "verdict": "STOP",
           "action": "stop",
-          "tx": "0xc14f632f2b901c454ddaa0e82b2d8599c900cdc08cbaf82c95bd7cbea22ed735",
+          "tx": "0x44108bc3db3fc5a643cffd437bf4ab46cbeee65798d49afc9f58b0182b4b6d5d",
           "chainStatus": "STOPPED",
           "note": "SENDER_LOOKALIKE"
         },
@@ -311,24 +311,24 @@
     },
     {
       "step": "deliver E16",
-      "at": "2026-11-15T18:18:48.075Z",
-      "sinceStartMs": 14529,
+      "at": "2026-11-15T18:30:58.360Z",
+      "sinceStartMs": 12482,
       "linkedLines": [
         3
       ]
     },
     {
       "step": "review (E16: seed:E16)",
-      "at": "2026-11-15T18:18:52.087Z",
-      "sinceStartMs": 18541,
+      "at": "2026-11-15T18:31:02.293Z",
+      "sinceStartMs": 16415,
       "model": "claude-sonnet-5-5 (claude-cli)",
-      "ms": 4009,
+      "ms": 3931,
       "executed": [
         {
           "idx": 2,
           "verdict": "STOP",
           "action": "budget-hold",
-          "tx": "0x756f4ec3f974444e6e8edaa865738b8f2fce0d4ce15a529d94dcd96a862941c2",
+          "tx": "0x88bc2468c4521e517dac621b84abec545e3f4d38791771133bfd31b29425bbc1",
           "chainStatus": "HELD",
           "note": "StopBudgetExhausted → held (SENDER_LOOKALIKE)"
         },
@@ -342,9 +342,9 @@
     },
     {
       "step": "payday",
-      "at": "2026-11-15T18:19:39.280Z",
-      "sinceStartMs": 65734,
-      "batchTx": "0x90db5c3b3fe414a5bb29180c9c200214d93ec822334ef8174979c7407305353e",
+      "at": "2026-11-15T18:31:52.006Z",
+      "sinceStartMs": 66128,
+      "batchTx": "0x5f762e00ccb2146693bad56ac7433a8264bcc376f59d7119991eb274f072ab05",
       "paid": [
         4
       ],
@@ -357,44 +357,44 @@
       "proofs": [
         {
           "line": 1,
-          "tx": "0xfb3c77911cc6723daf5ad043380471ba6639272d33d2f6612f29485c411376b2",
+          "tx": "0x50f62d9136f253ab7b3477bde6314e413eb70e743b902c472a8557181f4230b1",
           "replayed": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
         },
         {
           "line": 2,
-          "tx": "0xae1809f1e291aa93dd72e95e124f85982f4fa14f3469cf10ac4a9eb97f6545d5",
+          "tx": "0x126df580c2e35111c6e7060562d4a4851eef1142876f8f7e49ae792d3ccb1fa7",
           "replayed": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
         }
       ]
     },
     {
       "step": "reconcile",
-      "at": "2026-11-15T18:19:39.307Z",
-      "sinceStartMs": 65761,
+      "at": "2026-11-15T18:31:52.045Z",
+      "sinceStartMs": 66167,
       "events": 19,
       "updates": []
     },
     {
       "step": "events + tickets",
-      "at": "2026-11-15T18:19:39.310Z",
-      "sinceStartMs": 65764,
+      "at": "2026-11-15T18:31:52.046Z",
+      "sinceStartMs": 66168,
       "alarms": [
         {
           "name": "StopAlarm",
-          "tx_hash": "0xc14f632f2b901c454ddaa0e82b2d8599c900cdc08cbaf82c95bd7cbea22ed735",
+          "tx_hash": "0x44108bc3db3fc5a643cffd437bf4ab46cbeee65798d49afc9f58b0182b4b6d5d",
           "args": {
-            "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+            "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
             "stops": 2
           }
         },
         {
           "name": "LineHeld",
-          "tx_hash": "0x756f4ec3f974444e6e8edaa865738b8f2fce0d4ce15a529d94dcd96a862941c2",
+          "tx_hash": "0x88bc2468c4521e517dac621b84abec545e3f4d38791771133bfd31b29425bbc1",
           "args": {
             "idx": "2",
-            "runId": "0xe6005a619d8a90d2fd41732e109bc5ec0d3945dca9c40ee9c0574af033579420",
+            "runId": "0x89fbcd058b0b59b3d88da3804ae933d4d6cbbed9ec2823c2c7d183eade68a35a",
             "reason": "0x4255444745545f45584841555354454400000000000000000000000000000000",
-            "evidenceHash": "0x9b44ae15eb914b53621de4199b95a3a646c61c85e33f381deb96bcfdda09d7f8"
+            "evidenceHash": "0x563b8ab355d3b479b581bf868fa323f4eb721b9f73b76dad9d37df8595589b62"
           }
         }
       ],
@@ -412,5 +412,5 @@
       ]
     }
   ],
-  "totalMs": 65765
+  "totalMs": 66169
 }
