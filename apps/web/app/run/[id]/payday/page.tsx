@@ -20,6 +20,7 @@ export default function Payday() {
   if (!run) return null;
   const vendor = (id: string) => run.vendors.find((v) => v.vendor_id === id);
   const stopAt = (idx: number) => [...run.decisions].reverse().find((d) => d.idx === idx && /STOP/.test(d.verdict))?.created_at;
+  const allDone = run.lines.every((l) => ["PAID", "TOO_LATE", "STOPPED", "CONSUMED", "REISSUED", "EXPIRED", "EXTERNALLY_CANCELLED", "FAILED"].includes(l.status));
   const due = Math.min(...run.lines.map((l) => new Date(l.validAfter).getTime()));
   const wrap = async (k: string, fn: () => Promise<unknown>) => {
     setBusy(k); setErr(null);
@@ -30,10 +31,10 @@ export default function Payday() {
       <h2>Payday &amp; receipts</h2>
       <p className="lede">Payday is one batched <span className="data">transferWithAuthorization</span> call for every allowed line. A stopped line is replayed too — and must revert.</p>
       <div className="actions">
-        <button className="btn" disabled={!run.session || payday.busy || !!run.settledAt} onClick={() => { if (run.scenario === "hero" && !run.decisions.some((d) => d.verdict === "STOP") && !window.confirm("No vendor email has been delivered yet, so every allowed line — including line 3 — pays the address on file. To see the agent stop line 3, cancel and use Play the hero on the Run sheet. Run payday anyway?")) return; void payday.run(!run.lines.some((l) => l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx))); }}>
+        <button className="btn" disabled={!run.session || payday.busy || !!run.settledAt || allDone} onClick={() => { if (run.scenario === "hero" && !run.decisions.some((d) => d.verdict === "STOP") && !window.confirm("No vendor email has been delivered yet, so every allowed line — including line 3 — pays the address on file. To see the agent stop line 3, cancel and use Play the hero on the Run sheet. Run payday anyway?")) return; void payday.run(!run.lines.some((l) => l.status === "STOPPED" && !run.lines.some((x) => x.reissuedFrom === l.idx))); }}>
           {payday.busy ? "Running payday…" : "Run payday now"}
         </button>
-        <span className="note" role="status">{payday.busy ? payday.note : run.settledAt ? `Settled ${fmtTime(run.settledAt)} — unused funds swept back.` : `Scheduled for ${fmtTime(new Date(due).toISOString())}; the keeper also runs it by itself.`}</span>
+        <span className="note" role="status">{payday.busy ? payday.note : run.settledAt || allDone ? `Settled${run.settledAt ? ` ${fmtTime(run.settledAt)} — unused funds swept back` : " — no line is waiting for payday"}.` : `Scheduled for ${fmtTime(new Date(due).toISOString())}; the keeper also runs it by itself.`}</span>
       </div>
       {payday.error ? <p className="err" role="alert">{payday.error}</p> : null}
       {err ? <p className="err" role="alert">{err}</p> : null}

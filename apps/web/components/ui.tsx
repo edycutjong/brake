@@ -59,7 +59,7 @@ export function RecoveryTicket({ ticket }: { ticket: TicketView }) {
   return (
     <div className="panel alarm" role="note">
       <h3>Too late — recovery ticket {ticket.id.slice(-6)}</h3>
-      <p>{ticket.body}</p>
+      <p>{ticket.body.replace(/0x[0-9a-fA-F]{64}/g, (h) => short(h))}</p>
       <p className="note">Status: {ticket.status}. Brake does not claim a recovery; finance contacts the vendor.</p>
     </div>
   );
