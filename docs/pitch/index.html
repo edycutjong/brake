@@ -217,7 +217,7 @@ body.overview #grid { display: grid; }
 </head>
 <body>
 <script>document.documentElement.classList.add('js')</script>
-<div id="stage">
+<main id="stage">
 
 <!-- 1 · COVER -->
 <section class="slide cover" data-title="Cover">
@@ -376,11 +376,11 @@ body.overview #grid { display: grid; }
   <aside class="speaker-notes">Our ask: try to make the agent move money. The repo has the fork setup and the hero script. Score us on the stop, the receipts and the limits we disclose.</aside>
 </section>
 
-</div>
+</main>
 
-<div id="grid" aria-label="Slide overview"></div>
-<div class="notes-panel" id="notes" aria-live="polite"></div>
-<div class="ui"><button type="button" id="prev" aria-label="Previous slide">←</button><span id="count">01 / 11</span><button type="button" id="next" aria-label="Next slide">→</button><button type="button" id="pres" aria-label="Toggle presenter notes">P</button></div>
+<nav id="grid" aria-label="Slide overview"></nav>
+<aside class="notes-panel" id="notes" aria-live="polite" aria-label="Speaker notes"></aside>
+<nav class="ui" aria-label="Slide controls"><button type="button" id="prev" aria-label="Previous slide">←</button><span id="count">01 / 11</span><button type="button" id="next" aria-label="Next slide">→</button><button type="button" id="pres" aria-label="Toggle presenter notes">P</button></nav>
 
 <script>
 (() => {
