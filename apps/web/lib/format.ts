@@ -27,3 +27,6 @@ export function plain(e: unknown): string {
   if (/failed to fetch|networkerror/i.test(m)) return "Can't reach the server. Check your connection and try again.";
   return m;
 }
+
+/** Lines the agent has stopped (an on-chain stop tx exists), including ones later superseded by a re-issue. */
+export const agentStops = (run: RunView) => run.lines.filter((l) => l.stopTx && ["STOPPED", "REISSUED", "CONSUMED", "TOO_LATE"].includes(l.status)).length;

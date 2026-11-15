@@ -44,6 +44,7 @@ export default function Verify() {
   const [obs, setObs] = useState<Obs | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [shown, setShown] = useState(25);
   useEffect(() => {
     let live = true;
     const tick = async () => {
@@ -89,7 +90,7 @@ export default function Verify() {
           <table className="verify-table">
             <thead><tr><th>Event</th><th>Line</th><th>Block</th><th>Depth</th><th>Tx</th></tr></thead>
             <tbody>
-              {ev.events.map((e) => (
+              {ev.events.slice(0, shown).map((e) => (
                 <tr key={e.tx_hash + e.log_index}>
                   <td>{e.name === "LineStopped" ? <StopStamp run={fakeRun as never} tx={null} small /> : null} {e.name}</td>
                   <td className="data">{e.idx === null ? "—" : e.idx + 1}</td>
@@ -102,6 +103,7 @@ export default function Verify() {
           </table>
         </div>
       ) : null}
+      {ev && ev.events.length > shown ? <p><button className="btn ghost small" onClick={() => setShown(shown + 25)}>Show 25 more ({ev.events.length - shown} older)</button></p> : null}
       <p className="note">Aevum&apos;s &ldquo;finalized&rdquo; tag lags the head by thousands of blocks (observed ~78 min); the depth column reports soft confirmations and finalization separately.</p>
 
       <Suspense fallback={null}><Recompute /></Suspense>

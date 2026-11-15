@@ -9,7 +9,8 @@
     "demo:hero": "tsx demo_hero.ts",
     "g4": "tsx g4.ts",
     "demo:late": "tsx demo_edge.ts late",
-    "demo:flood": "tsx demo_edge.ts flood"
+    "demo:flood": "tsx demo_edge.ts flood",
+    "sign:local": "tsx sign_local.ts"
   },
   "dependencies": {
     "brake-signer": "workspace:*",

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { RunView, TicketView } from "@/lib/types";
-import { short, txUrl, fmtTime } from "@/lib/format";
+import { short, txUrl, fmtTime, agentStops } from "@/lib/format";
 
 /** A tx hash: a link to explorer-test.qday.info on the live deployment; plain text labelled "fork" on a local fork (no explorer). */
 export function ExplorerLink({ run, hash, label }: { run: Pick<RunView, "explorer" | "deployment">; hash: string | null | undefined; label?: string }) {
@@ -58,7 +58,7 @@ export function RecoveryTicket({ ticket }: { ticket: TicketView }) {
 }
 
 export function AlarmBanner({ run }: { run: RunView }) {
-  const stops = run.lines.filter((l) => ["STOPPED", "CONSUMED", "TOO_LATE"].includes(l.status) && l.reissuedFrom === null).length;
+  const stops = agentStops(run);
   const alarm = run.tickets.find((t) => t.kind === "alarm" || t.kind === "escalation");
   if (!alarm && stops < run.maxStops) return null;
   return (

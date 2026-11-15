@@ -49,7 +49,7 @@ function DecisionCard({ d, older, explain }: { d: DecisionView; older: DecisionV
       <dl className="kv">
         <dt>Evidence</dt><dd className="data hash">{short(d.evidence_hash, 10, 8)} <Link href={`/verify?hash=${d.evidence_hash}`}>recompute</Link> <Copy text={d.evidence_hash} /></dd>
         <dt>Tx</dt><dd><ExplorerLink run={run} hash={d.tx} /></dd>
-        {d.model ? <><dt>Model</dt><dd className="data">{d.model}</dd></> : null}
+        {d.model && d.model !== "finance" ? <><dt>Model</dt><dd className="data">{d.model}</dd></> : null}
       </dl>
       {older.length ? (
         <div className="hist">History: {older.map((o) => `${fmtClock(o.created_at)} ${o.verdict}`).join(" · ")} → {fmtClock(d.created_at)} {d.verdict}</div>

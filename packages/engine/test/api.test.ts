@@ -19,7 +19,8 @@ import { settleExpired, payday } from "../src/keeper.js";
 import { reconcile } from "../src/reconciler.js";
 import { revokeAgent, reissueLine } from "../src/runs.js";
 import { modelFromEnv } from "../src/agent/model.js";
-import { verifyEvidence } from "brake-signer";
+import { verifyEvidence, signRun } from "brake-signer";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 const FORK = "http://127.0.0.1:8545";
 const keysDir = join(homedir(), ".config", "brake");
@@ -304,6 +305,32 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(ok.tag).toBe("ALLOW");
     const tampered = await verifyEvidence({ ...row.evidence, verdict: "STOP" }, { hash: row.evidence_hash });
     expect(tampered.ok).toBe(false);
+  });
+
+  it("wallet mode: the server accepts only signatures that recover to the payer, and never needs the key", async () => {
+    const plan = (await (await call("GET", "/api/plan?scenario=hero")).json()) as { validAfter: string; validBefore: string; lines: { to: `0x${string}`; value: string }[] };
+    const payer = privateKeyToAccount(process.env.DEMO_PAYER_PRIVATE_KEY as `0x${string}`);
+    const sign = (acct: typeof payer) =>
+      signRun(acct, { name: "tUSD8", version: "2", chainId: 44005, verifyingContract: ctx.cfg.token } as never, {
+        validAfter: BigInt(plan.validAfter), validBefore: BigInt(plan.validBefore), lines: plan.lines.map((l) => ({ to: l.to, value: BigInt(l.value) })),
+      });
+    const body = (pairs: Awaited<ReturnType<typeof sign>>, runId: string) => ({
+      mode: "wallet", scenario: "hero", payer: payer.address, runId, validAfter: plan.validAfter, validBefore: plan.validBefore,
+      pairs: pairs.map((p) => ({ to: p.authorization.to, value: p.authorization.value.toString(), nonce: p.authorization.nonce, payment: p.payment.signature, cancel: p.cancel.signature })),
+    });
+    const stranger = privateKeyToAccount(generatePrivateKey());
+    const bad = await call("POST", "/api/runs", { body: body(await sign(stranger), `0x${"11".repeat(32)}`), ip: "10.9.9.1" });
+    expect(bad.status).toBe(400);
+    expect(((await bad.json()) as { error: string }).error).toMatch(/not the payer's/);
+    const good = await call("POST", "/api/runs", { body: body(await sign(payer), `0x${"22".repeat(32)}`), ip: "10.9.9.2" });
+    expect(good.status).toBe(201);
+    const made = (await good.json()) as { id: string; token: string; mode: string };
+    expect(made.mode).toBe("wallet");
+    // the server cannot open a wallet-mode run: only the payer can, and the server checks the receipt
+    const open = await call("POST", `/api/runs/${made.id}/open`, { token: made.token });
+    expect(open.status).not.toBe(200);
+    const bogus = await call("POST", `/api/runs/${made.id}/opened`, { token: made.token, body: { tx: `0x${"33".repeat(32)}` } });
+    expect(bogus.status).toBe(409);
   });
 
   it("reorg rescan: an event that disappears in a reorg (anvil snapshot/revert) is dropped on the next reconcile", async () => {

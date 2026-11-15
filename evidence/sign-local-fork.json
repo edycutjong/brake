@@ -1,0 +1,71 @@
+{
+  "deployment": "fork",
+  "payer": "0xC7c83c06494d266e96B7D33D81dD5599BfCA46d7",
+  "run": "run_2d0022aadbd2ce47",
+  "runId": "0xa1a506501307fb31f7042a2bc09cfb77b258487fa7567ebc6c087dcc07bd5a72",
+  "openTx": "0x2e81644709c0c05749e8a6c799a5f9d722d250112a4d20bed88f4770736ea1b9",
+  "steps": [
+    {
+      "step": "plan fetched",
+      "sinceStartMs": 120,
+      "lines": 4
+    },
+    {
+      "step": "signed locally (payment + paired cancel per line)",
+      "sinceStartMs": 142,
+      "payer": "0xC7c83c06494d266e96B7D33D81dD5599BfCA46d7",
+      "lines": 4
+    },
+    {
+      "step": "server accepted signed authorizations (it never saw the key)",
+      "sinceStartMs": 272,
+      "run": "run_2d0022aadbd2ce47"
+    },
+    {
+      "step": "openRun sent by the payer's own wallet",
+      "sinceStartMs": 4495,
+      "tx": "0x2e81644709c0c05749e8a6c799a5f9d722d250112a4d20bed88f4770736ea1b9"
+    },
+    {
+      "step": "Monday review done",
+      "sinceStartMs": 10576
+    },
+    {
+      "step": "line 3 stopped by the agent",
+      "sinceStartMs": 18691,
+      "stopTx": "0xa342b1f8ee1f9d9f237a36e51bc5c39408b19bc46341df1fb735c3a300b7968d"
+    },
+    {
+      "step": "payday: keeper paid with the payer's signatures",
+      "sinceStartMs": 47010,
+      "batchTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+      "lines": [
+        {
+          "idx": 1,
+          "status": "PAID",
+          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "proofTx": null
+        },
+        {
+          "idx": 2,
+          "status": "PAID",
+          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "proofTx": null
+        },
+        {
+          "idx": 3,
+          "status": "STOPPED",
+          "paidTx": null,
+          "proofTx": "0xd069d465be228af52e72895da21eb2fbb5d09e9ee0057555247d9b733641354d"
+        },
+        {
+          "idx": 4,
+          "status": "PAID",
+          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "proofTx": null
+        }
+      ]
+    }
+  ],
+  "note": "payer key never left this process; server received signatures + the openRun tx hash only"
+}

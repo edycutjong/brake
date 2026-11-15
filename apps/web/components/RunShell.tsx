@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { RunContext, useRunState, useRunCtx } from "@/lib/client";
-import { fmtTime, tusd } from "@/lib/format";
+import { agentStops, fmtTime, tusd } from "@/lib/format";
 import { AlarmBanner } from "./ui";
 
 function Money() {
@@ -11,7 +11,7 @@ function Money() {
   if (!run) return null;
   const live = run.lines.filter((l) => l.status !== "REISSUED");
   const total = live.reduce((s, l) => s + BigInt(l.amountUnits), 0n);
-  const stopped = live.filter((l) => ["STOPPED"].includes(l.status)).reduce((s, l) => s + BigInt(l.amountUnits), 0n);
+  const stopped = run.lines.filter((l) => l.stopTx && ["STOPPED", "REISSUED"].includes(l.status)).reduce((s, l) => s + BigInt(l.amountUnits), 0n);
   const paid = live.filter((l) => l.status === "PAID").reduce((s, l) => s + BigInt(l.amountUnits), 0n);
   return (
     <div className="stat" aria-live="polite">
@@ -27,7 +27,7 @@ function GrantBar() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   if (!run) return null;
-  const used = run.lines.filter((l) => ["STOPPED", "CONSUMED", "TOO_LATE"].includes(l.status) && l.reissuedFrom === null).length;
+  const used = agentStops(run);
   return (
     <div className="panel" aria-label="Agent grant">
       <div className="actions" style={{ justifyContent: "space-between" }}>

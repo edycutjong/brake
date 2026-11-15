@@ -15,6 +15,10 @@ import {
   getRun,
   HttpError,
   openRunOnChain,
+  planRun,
+  registerOpened,
+  verifyExternal,
+  type WalletRunBody,
   reissueLine,
   REVIEW_BUDGET,
   revokeAgent,
@@ -136,10 +140,20 @@ const intParam = (s: string | undefined, name: string) => {
 
 // ---------------------------------------------------------------------------------------------------- runs
 
+/** Wallet mode step 1: the exact lines a wallet must sign (payees, scaled amounts, window, agent grant). */
+route("GET", "/api/plan", async (req, _p, { db, ctx }) => json(200, await planRun(db, ctx, new URL(req.url).searchParams.get("scenario") ?? "hero")));
+
 route("POST", "/api/runs", async (req, _p, { db, ctx, limits, defer, model }) => {
-  const b = await body<{ scenario?: string; open?: boolean }>(req);
+  const b = await body<{ scenario?: string; open?: boolean; mode?: string } & Partial<WalletRunBody>>(req);
   const scenario = b.scenario ?? "hero";
   if (!(await hit(db, `runs:${clientIp(req)}`, limits.runsPerIpPerHour, 3600))) throw new HttpError(429, "≤ 3 demo runs per IP per hour");
+  if (b.mode === "wallet") {
+    // non-custodial: the caller signed every authorization with its own key; the server only verifies and stores them,
+    // and the payer sends openRun itself (POST /api/runs/:id/opened registers the receipt)
+    const ext = await verifyExternal(ctx, scenario, await planRun(db, ctx, scenario), b as WalletRunBody);
+    const run = await createRun(db, ctx, { scenario, ip: clientIp(req), external: ext });
+    return json(201, { id: run.id, runId: run.runId, token: run.token, validAfter: run.validAfter, validBefore: run.validBefore, mode: "wallet" });
+  }
   // global daily spend cap (rows in Postgres), then the payer's free liquidity after other unsettled runs' reservations
   const spent = await db.query<{ s: string }>(SPENT_TODAY);
   if (BigInt(spent.rows[0]!.s) >= limits.dailySpendUnits) throw new HttpError(429, "daily demo spend cap reached — try tomorrow");
@@ -177,6 +191,15 @@ export async function admit(db: Db | Tx, ctx: ChainCtx) {
 route("POST", "/api/runs/:id/open", async (req, p, { db, ctx }) => {
   await requireSession(req, db, p.id!);
   return json(200, await openRunOnChain(db, ctx, p.id!));
+});
+
+route("POST", "/api/runs/:id/opened", async (req, p, { db, ctx, defer, model }) => {
+  await requireSession(req, db, p.id!);
+  const b = await body<{ tx?: string }>(req);
+  if (!/^0x[0-9a-fA-F]{64}$/.test(b.tx ?? "")) throw new HttpError(400, "tx must be the openRun transaction hash");
+  const r = await registerOpened(db, ctx, p.id!, b.tx as Hex);
+  if (!r.reused) defer(runReviewJobs(db, ctx, model, { runId: p.id! }));
+  return json(200, r);
 });
 
 route("GET", "/api/runs/:id", async (req, p, { db, ctx }) => {

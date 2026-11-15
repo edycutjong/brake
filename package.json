@@ -15,6 +15,7 @@
     "fork:up": "scripts/fork_up.sh",
     "g4": "pnpm --filter @brake/scripts g4",
     "demo:late": "pnpm --filter @brake/scripts demo:late",
-    "demo:flood": "pnpm --filter @brake/scripts demo:flood"
+    "demo:flood": "pnpm --filter @brake/scripts demo:flood",
+    "sign:local": "pnpm --filter @brake/scripts sign:local"
   }
 }

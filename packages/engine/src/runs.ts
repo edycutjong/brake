@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { encodeFunctionData, keccak256, toHex, type Address, type Hex } from "viem";
-import { brakeAbi, signPair, signRun, type SignedPair } from "brake-signer";
+import { encodeFunctionData, keccak256, parseEventLogs, parseSignature, recoverAddress, toHex, type Address, type Hex } from "viem";
+import { brakeAbi, cancelDigest, signPair, signRun, transferDigest, type Sig, type SignedPair } from "brake-signer";
 import { sendQueued, wallet, type ChainCtx } from "./chain.js";
 import { lock, newId, open as unseal, seal, sha256, withTx, type Db, type Tx } from "./db.js";
 import { fill, fromUnits, mailTemplates, payeeAddress, runFixtures, templateTime, vendorFixtures } from "./fixtures.js";
@@ -12,6 +12,7 @@ export const TERMINAL = ["STOPPED", "CONSUMED", "TOO_LATE", "EXTERNALLY_CANCELLE
 export interface RunRow {
   id: string;
   run_id: Hex;
+  demo: boolean;
   scenario: string;
   payer: Address;
   agent: Address;
@@ -153,23 +154,24 @@ export function templateVars(mnemonic: string, amounts: Record<string, bigint>):
 export async function createRun(
   db: Db,
   ctx: ChainCtx,
-  opts: { scenario: string; ip?: string; now?: Date; tx?: Tx },
+  opts: { scenario: string; ip?: string; now?: Date; tx?: Tx; external?: ExternalRun },
 ): Promise<CreateRunResult> {
   const fx = runFixtures()[opts.scenario];
   if (!fx) throw new HttpError(400, `unknown scenario ${opts.scenario}`);
   const { cfg } = ctx;
   if (!cfg.sigEncKey || !cfg.payeesMnemonic) throw new Error("SIG_ENC_KEY / PAYEES_MNEMONIC missing");
-  const payer = wallet(ctx, "payer");
+  const ext = opts.external;
+  const payerAddr = ext?.payer ?? wallet(ctx, "payer").account.address;
   const agent = (ctx.wallets.agent?.account.address ?? process.env.AGENT_ADDRESS) as Address;
   if (!agent) throw new Error("agent address unknown");
   const now = opts.now ?? new Date();
   const t = await chainNow(ctx);
-  const validAfter = t + BigInt(fx.paydayDelaySec);
-  const validBefore = validAfter + BigInt(fx.windowHours * 3600);
+  const validAfter = ext?.validAfter ?? t + BigInt(fx.paydayDelaySec);
+  const validBefore = ext?.validBefore ?? validAfter + BigInt(fx.windowHours * 3600);
   const vendorFx = new Map(vendorFixtures().map((v) => [v.id, v]));
 
   const id = newId("run");
-  const runId = keccak256(toHex(`${id}:${randomBytes(8).toString("hex")}`));
+  const runId = ext?.runId ?? keccak256(toHex(`${id}:${randomBytes(8).toString("hex")}`));
   const token = randomBytes(24).toString("hex");
 
   // inside the caller's transaction when given (admission lock), so no second pool connection is needed
@@ -187,19 +189,22 @@ export async function createRun(
       return { inv, vendorId: r.vendor_id as string, payee: r.payee as Address, amount: BigInt(r.amount_units) };
     });
     const amounts = lines.map((l) => l.amount);
-    const pairs = await signRun(payer.account, await ctx.domain(), {
-      validAfter,
-      validBefore,
-      lines: lines.map((l) => ({ to: l.payee, value: l.amount })),
-    });
+    // wallet mode: the signatures arrive already made (and verified by the caller); the server never holds the payer key
+    const pairs = ext
+      ? ext.pairs
+      : await signRun(wallet(ctx, "payer").account, await ctx.domain(), {
+          validAfter,
+          validBefore,
+          lines: lines.map((l) => ({ to: l.payee, value: l.amount })),
+        });
 
     await c.query(
       `insert into runs (id, run_id, scenario, payer, agent, agent_id, valid_after, valid_before, max_stops, alarm_at,
          session_hash, demo, reserved_units, creator_ip, created_at)
-       values ($1,$2,$3,$4,$5,$6,to_timestamp($7),to_timestamp($8),$9,$10,$11,true,$12,$13,$14)`,
+       values ($1,$2,$3,$4,$5,$6,to_timestamp($7),to_timestamp($8),$9,$10,$11,$15,$12,$13,$14)`,
       [
-        id, runId, opts.scenario, payer.account.address, agent, cfg.agentId.toString(), Number(validAfter),
-        Number(validBefore), fx.maxStops, fx.alarmAt, sha256(token), reservation(amounts).toString(), opts.ip ?? null, now,
+        id, runId, opts.scenario, payerAddr, agent, cfg.agentId.toString(), Number(validAfter),
+        Number(validBefore), fx.maxStops, fx.alarmAt, sha256(token), (ext ? 0n : reservation(amounts)).toString(), opts.ip ?? null, now, !ext,
       ],
     );
     const vendorIds = [...new Set(lines.map((l) => l.vendorId))];
@@ -268,6 +273,14 @@ export async function openRunOnChain(db: Db, ctx: ChainCtx, id: string) {
     data,
   });
   if (tx.status !== "mined") throw new Error(`openRun reverted: ${tx.hash}`);
+  await markOpened(db, ctx, id, run.run_id, lines.length, tx.hash);
+  return { tx: tx.hash, reused: tx.reused };
+}
+
+async function markOpened(db: Db, ctx: ChainCtx, id: string, runId: Hex, nLines: number, txHash: Hex) {
+  const lines = Array.from({ length: nLines }, (_, idx) => ({ idx }));
+  const run = { run_id: runId };
+  const tx = { hash: txHash };
   for (const l of lines) {
     const rh = (await ctx.pub.readContract({
       address: ctx.cfg.brake,
@@ -281,7 +294,92 @@ export async function openRunOnChain(db: Db, ctx: ChainCtx, id: string) {
   }
   await db.query(`update runs set open_tx = $2 where id = $1`, [id, tx.hash]);
   await enqueueReview(db, id, "open");
-  return { tx: tx.hash, reused: tx.reused };
+}
+
+// ------------------------------------------------------------------------------------------- wallet mode (non-custodial)
+
+export interface ExternalRun { payer: Address; runId: Hex; pairs: SignedPair[]; validAfter: bigint; validBefore: bigint }
+
+/** The lines a scenario will pay (vendor payees and scaled invoice amounts) so a wallet can sign exactly those. */
+export async function planRun(db: Db, ctx: ChainCtx, scenario: string) {
+  const fx = runFixtures()[scenario];
+  if (!fx) throw new HttpError(400, `unknown scenario ${scenario}`);
+  const r = await db.query(
+    `select i.id as invoice_id, i.amount_units, v.id as vendor_id, v.payee from invoices i join vendors v on v.id = i.vendor_id where i.id = any($1)`,
+    [fx.lines],
+  );
+  const by = new Map(r.rows.map((x) => [x.invoice_id as string, x]));
+  const t = await chainNow(ctx);
+  return {
+    scenario,
+    chainId: ctx.cfg.chainId,
+    token: ctx.cfg.token,
+    brake: ctx.cfg.brake,
+    agentId: ctx.cfg.agentId.toString(),
+    agent: ctx.wallets.agent?.account.address ?? null,
+    maxStops: fx.maxStops,
+    alarmAt: fx.alarmAt,
+    validAfter: (t + BigInt(fx.paydayDelaySec)).toString(),
+    validBefore: (t + BigInt(fx.paydayDelaySec) + BigInt(fx.windowHours * 3600)).toString(),
+    lines: fx.lines.map((inv) => {
+      const x = by.get(inv);
+      if (!x) throw new HttpError(503, `invoice ${inv} not seeded`);
+      return { invoice: inv, vendorId: x.vendor_id as string, to: x.payee as Address, value: String(x.amount_units) };
+    }),
+  };
+}
+
+export interface WalletRunBody {
+  payer: Address; runId: Hex; validAfter: string; validBefore: string;
+  pairs: { to: Address; value: string; nonce: Hex; payment: Hex; cancel: Hex }[];
+}
+
+/** Rebuild each pair from what the wallet sent and check every signature recovers to the payer over the live token domain. */
+export async function verifyExternal(ctx: ChainCtx, scenario: string, plan: Awaited<ReturnType<typeof planRun>>, b: WalletRunBody): Promise<ExternalRun> {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(b.payer ?? "") || !/^0x[0-9a-fA-F]{64}$/.test(b.runId ?? "")) throw new HttpError(400, "bad payer or runId");
+  if (!Array.isArray(b.pairs) || b.pairs.length !== plan.lines.length) throw new HttpError(400, `expected ${plan.lines.length} signed lines`);
+  const validAfter = BigInt(b.validAfter);
+  const validBefore = BigInt(b.validBefore);
+  const t = await chainNow(ctx);
+  if (validAfter < t - 60n || validAfter > t + 3600n) throw new HttpError(400, "validAfter must be within an hour of chain time");
+  if (validBefore !== validAfter + BigInt(runFixtures()[scenario]!.windowHours * 3600)) throw new HttpError(400, "unexpected payment window length");
+  const domain = await ctx.domain();
+  const toSig = (signature: Hex): Sig => {
+    const p = parseSignature(signature);
+    return { v: p.v !== undefined ? Number(p.v) : (p.yParity ?? 0) + 27, r: p.r, s: p.s, signature };
+  };
+  const pairs: SignedPair[] = [];
+  const nonces = new Set<string>();
+  for (const [i, l] of plan.lines.entries()) {
+    const x = b.pairs[i]!;
+    if (x.to.toLowerCase() !== l.to.toLowerCase() || x.value !== l.value) throw new HttpError(400, `line ${i + 1} does not match the plan`);
+    if (!/^0x[0-9a-fA-F]{64}$/.test(x.nonce) || nonces.has(x.nonce)) throw new HttpError(400, `line ${i + 1}: bad or duplicate nonce`);
+    nonces.add(x.nonce);
+    const authorization = { from: b.payer, to: x.to, value: BigInt(x.value), validAfter, validBefore, nonce: x.nonce };
+    const pd = transferDigest(domain, authorization);
+    const cd = cancelDigest(domain, b.payer, x.nonce);
+    const [pa, ca] = await Promise.all([recoverAddress({ hash: pd, signature: x.payment }), recoverAddress({ hash: cd, signature: x.cancel })]);
+    if (pa.toLowerCase() !== b.payer.toLowerCase()) throw new HttpError(400, `line ${i + 1}: payment signature is not the payer's`);
+    if (ca.toLowerCase() !== b.payer.toLowerCase()) throw new HttpError(400, `line ${i + 1}: cancel signature is not the payer's`);
+    pairs.push({ authorization, payment: toSig(x.payment), cancel: toSig(x.cancel), paymentDigest: pd, cancelDigest: cd });
+  }
+  return { payer: b.payer, runId: b.runId, pairs, validAfter, validBefore };
+}
+
+/** Wallet mode: the payer sent openRun itself; the server checks the receipt really opened this run for this payer, then starts review. */
+export async function registerOpened(db: Db, ctx: ChainCtx, id: string, txHash: Hex) {
+  const run = await getRun(db, id);
+  if (run.open_tx) return { tx: run.open_tx as Hex, reused: true };
+  if (run.demo) throw new HttpError(409, "demo runs are opened by the server");
+  const receipt = await ctx.pub.getTransactionReceipt({ hash: txHash }).catch(() => null);
+  if (!receipt || receipt.status !== "success") throw new HttpError(409, "that transaction is not a confirmed success yet");
+  const ev = parseEventLogs({ abi: brakeAbi, logs: receipt.logs, eventName: "RunOpened" }).find(
+    (e) => e.address.toLowerCase() === ctx.cfg.brake.toLowerCase() && String(e.args.runId).toLowerCase() === String(run.run_id).toLowerCase(),
+  );
+  if (!ev || String(ev.args.payer).toLowerCase() !== String(run.payer).toLowerCase()) throw new HttpError(409, "no RunOpened for this run and payer in that transaction");
+  const n = (await getLines(db, id)).length;
+  await markOpened(db, ctx, id, run.run_id as Hex, n, txHash);
+  return { tx: txHash, reused: false };
 }
 
 // --------------------------------------------------------------------------------------------------- inbox
