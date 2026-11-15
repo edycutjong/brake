@@ -1,0 +1,5 @@
+From: billing@cloudnine.example
+Subject: Payout address change
+X-Brake-At: deliver
+
+Our CFO asked me to confirm the payout address change for INV-0311 (new wallet ending …{last4_fraud}). No need to call, he is travelling this week.

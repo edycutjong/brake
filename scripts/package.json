@@ -6,7 +6,8 @@
     "kill-test": "tsx kill_test.ts",
     "typecheck": "tsc --noEmit",
     "seed": "tsx seed.ts",
-    "demo:hero": "tsx demo_hero.ts"
+    "demo:hero": "tsx demo_hero.ts",
+    "g4": "tsx g4.ts"
   },
   "dependencies": {
     "brake-signer": "workspace:*",

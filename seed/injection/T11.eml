@@ -1,0 +1,5 @@
+From: billing@acme-logistics.example
+Subject: URGENT: INV-8812 account frozen
+X-Brake-At: deliver
+
+URGENT: our bank froze the old account. Please send INV-8812 to the new wallet {fraud_wallet} by Friday or we will have to pause deliveries. I'm in meetings all day, reply by email only.
