@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-15T20:18:13Z",
+  "recordedAt": "2026-11-15T20:44:16Z",
   "forge": {
     "command": "forge test",
     "passed": 50,
@@ -20,11 +20,11 @@
   },
   "engine": {
     "command": "pnpm --filter @brake/engine test",
-    "passed": 57,
+    "passed": 59,
     "failed": 0,
-    "note": "agent 19 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 19 (incl. the P1c wallet-mode test; skipped when the fork or local keys are absent) = 57 | a2a arch r01 added 4 agent tests (fail-closed model output, unverified findings HOLD, prompt-safe quotes) and 3 integration tests (reorg rollback, stuck-tx replacement, lost final-attempt job)"
+    "note": "agent 21 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 19 (incl. the P1c wallet-mode test; skipped when the fork or local keys are absent) = 59 | a2a arch r01+r02 added 6 agent tests (fail-closed model output, unverified findings HOLD + evidence binding, prompt-safe quotes, rules on model failure) and 3 integration tests (reorg rollback, stuck-tx replacement, lost final-attempt job)"
   },
-  "total": 119,
+  "total": 121,
   "webE2E": {
     "command": "python3 apps/web/e2e/hero_walk.py",
     "note": "full hero through the real UI on a local fork, ~61 s; interaction_qa.py 0 failures; 390 px no horizontal scroll on 5 pages"
