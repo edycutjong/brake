@@ -117,9 +117,14 @@ interface RawFinding {
   note?: string;
 }
 
+/**
+ * Validate the record_findings payload. A missing or non-array `findings` is an invalid model response and throws, so the
+ * review fails and the keeper HOLDS the lines (fail-closed) — it never reads as "no findings" (a2a arch r01). Individual
+ * malformed items (unknown intent, non-integer line) are dropped.
+ */
 export function parseFindings(raw: unknown): Finding[] {
-  const arr = (raw as { findings?: RawFinding[] })?.findings;
-  if (!Array.isArray(arr)) return [];
+  const arr = (raw as { findings?: RawFinding[] } | null | undefined)?.findings;
+  if (!Array.isArray(arr)) throw new Error("invalid model output: no findings array");
   return arr
     .filter((f) => Number.isInteger(f.line) && (INTENTS as readonly string[]).includes(f.intent))
     .map((f) => ({
@@ -150,7 +155,9 @@ export class AnthropicModel implements ModelClient {
       messages: [{ role: "user", content: userPrompt(input) }],
     });
     const call = res.content.find((b) => b.type === "tool_use");
-    return { model: res.model ?? this.id, findings: parseFindings(call && "input" in call ? call.input : null), raw: call };
+    // a forced tool call that is missing or cut off by max_tokens is an invalid response, never an empty one
+    if (!call || res.stop_reason === "max_tokens") throw new Error(`invalid model output: stop_reason ${res.stop_reason}, tool_use ${call ? "truncated" : "missing"}`);
+    return { model: res.model ?? this.id, findings: parseFindings("input" in call ? call.input : null), raw: call };
   }
 }
 
@@ -223,5 +230,7 @@ export function modelFromEnv(env = process.env): ModelClient {
     return new AnthropicModel(env.ANTHROPIC_API_KEY);
   }
   if (mode === "claude-cli") return new ClaudeCliModel();
-  return new NullModel();
+  // the ablation is explicit only: a typo in BRAKE_MODEL must not silently remove the model-only detections (a2a arch r01)
+  if (mode === "none") return new NullModel();
+  throw new Error(`unknown BRAKE_MODEL "${mode}" (anthropic | claude-cli | none)`);
 }

@@ -134,12 +134,15 @@ const INTENT_REASON: Partial<Record<Finding["intent"], string>> = {
 
 /**
  * STOP if any rule fires or a verified finding carries a stop intent. A verified INJECTION_ATTEMPT on a line whose payee
- * was ever changed → STOP (BANK_CHANGE_UNVERIFIED); otherwise → HOLD (INJECTION_FLAGGED). Else ALLOW.
+ * was ever changed → STOP (BANK_CHANGE_UNVERIFIED); otherwise → HOLD (INJECTION_FLAGGED). A non-BENIGN finding whose
+ * quotes did not verify neither stops nor approves → HOLD (finance decides; a2a arch r01: it used to fall through to
+ * ALLOW). Else ALLOW.
  * Invariant I4: findings are consulted only after rules, so no model output can turn a rule STOP into anything else.
  */
-export function decide(line: LineCtx, rules: RuleHit[], verified: Finding[]): Decision {
+export function decide(line: LineCtx, rules: RuleHit[], verified: Finding[], unsupported: Finding[] = []): Decision {
   const findings = verified.filter((f) => f.line === line.idx);
-  const base = { idx: line.idx, rules, findings };
+  const unverified = unsupported.filter((f) => f.line === line.idx && f.intent !== "BENIGN");
+  const base = { idx: line.idx, rules, findings, ...(unverified.length ? { unverified } : {}) };
   if (rules.length > 0) return { ...base, verdict: "STOP", reason: rules[0]!.reason };
   const stopF = findings.find((f) => INTENT_REASON[f.intent]);
   if (stopF) return { ...base, verdict: "STOP", reason: INTENT_REASON[stopF.intent]! };
@@ -147,6 +150,7 @@ export function decide(line: LineCtx, rules: RuleHit[], verified: Finding[]): De
     if (line.vendor.payeeChangedAt) return { ...base, verdict: "STOP", reason: "BANK_CHANGE_UNVERIFIED" };
     return { ...base, verdict: "HOLD", reason: "INJECTION_FLAGGED" };
   }
+  if (unverified.length) return { ...base, verdict: "HOLD", reason: INTENT_REASON[unverified[0]!.intent] ?? "INJECTION_FLAGGED" };
   return { ...base, verdict: "ALLOW" as Verdict, reason: null };
 }
 
@@ -182,6 +186,9 @@ export function buildEvidence(e: EvidenceInput) {
     reason: e.decision.reason,
     rulesFired: e.decision.rules.map((r) => ({ id: r.id, reason: r.reason, detail: r.detail })),
     findings: e.decision.findings.map((f) => ({ intent: f.intent, quotes: f.quotes, note: f.note })),
+    ...(e.decision.unverified?.length
+      ? { unverified: e.decision.unverified.map((f) => ({ intent: f.intent, quotes: f.quotes, note: f.note })) }
+      : {}),
     messages: e.messages
       .filter((m) => usedIds.has(m.id))
       .map((m) => ({ id: m.id, from: m.fromAddr, receivedAt: m.receivedAt.toISOString() })),

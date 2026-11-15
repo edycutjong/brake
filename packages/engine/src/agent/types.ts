@@ -78,4 +78,6 @@ export interface Decision {
   reason: string | null;
   rules: RuleHit[];
   findings: Finding[];
+  /** non-BENIGN findings for this line whose quotes did not verify — recorded in the evidence, they can only HOLD */
+  unverified?: Finding[];
 }

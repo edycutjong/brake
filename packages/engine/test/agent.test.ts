@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Address, Hex } from "viem";
 import { isLookalike, skeleton } from "../src/agent/domain.js";
-import { NullModel, parseFindings, userPrompt } from "../src/agent/model.js";
+import { modelFromEnv, NullModel, parseFindings, userPrompt } from "../src/agent/model.js";
 import { buildEvidence, decide, evaluateRules, linkMessages, verifyFindings } from "../src/agent/pipeline.js";
 import { reviewRun } from "../src/agent/review.js";
 import type { Finding, LineCtx, Message } from "../src/agent/types.js";
@@ -201,6 +201,15 @@ describe("policy", () => {
   it("benign or another line's finding → ALLOW", () => {
     expect(decide(line, [], [finding("BENIGN"), finding("DISPUTE", 1)]).verdict).toBe("ALLOW");
   });
+
+  it("an unverified (bad-quote) stop or injection finding → HOLD, never ALLOW; BENIGN or another line's → ALLOW; rules still win", () => {
+    expect(decide(line, [], [], [finding("PAYMENT_DETAIL_CHANGE")])).toMatchObject({ verdict: "HOLD", reason: "PAYMENT_DETAIL_CHANGE" });
+    expect(decide(line, [], [], [finding("INJECTION_ATTEMPT")])).toMatchObject({ verdict: "HOLD", reason: "INJECTION_FLAGGED" });
+    expect(decide(line, [], [], [finding("BENIGN"), finding("DISPUTE", 1)]).verdict).toBe("ALLOW");
+    expect(decide(line, [rule], [], [finding("PAYMENT_DETAIL_CHANGE")])).toMatchObject({ verdict: "STOP", reason: "AMOUNT_MISMATCH" });
+    expect(decide(line, [], [finding("DISPUTE")], [finding("PAYMENT_DETAIL_CHANGE")])).toMatchObject({ verdict: "STOP", reason: "INVOICE_DISPUTED" });
+    expect(decide(line, [], [], [finding("DISPUTE")]).unverified).toHaveLength(1);
+  });
 });
 
 describe("evidence", () => {
@@ -217,6 +226,19 @@ describe("evidence", () => {
 });
 
 describe("model output parsing", () => {
+  it("a missing findings array is an invalid response (throws → review fails → payday HOLDS), never an empty one", () => {
+    expect(() => parseFindings(null)).toThrow(/invalid model output/);
+    expect(() => parseFindings({})).toThrow(/invalid model output/);
+    expect(() => parseFindings({ findings: "none" })).toThrow(/invalid model output/);
+    expect(parseFindings({ findings: [] })).toEqual([]);
+  });
+
+  it("the ablation is explicit: BRAKE_MODEL=none → null model; an unknown mode throws", () => {
+    expect(modelFromEnv({ BRAKE_MODEL: "none" }).id).toBe("none");
+    expect(() => modelFromEnv({ BRAKE_MODEL: "antropic" })).toThrow(/unknown BRAKE_MODEL/);
+    expect(modelFromEnv({}).id).toBe("unconfigured");
+  });
+
   it("drops unknown intents and non-integer lines", () => {
     const f = parseFindings({ findings: [{ line: 2, intent: "PAY_NOW", quotes: [], note: "" }, { line: "2", intent: "DISPUTE" }, { line: 1, intent: "BENIGN", quotes: [] }] });
     expect(f).toEqual([{ line: 1, intent: "BENIGN", quotes: [], note: "" }]);

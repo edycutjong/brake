@@ -36,7 +36,7 @@ export async function reviewRun(args: {
   for (const line of args.lines) {
     const msgs = linked.get(line.idx) ?? [];
     const rules = await evaluateRules(line, msgs, args.rules);
-    const decision = decide(line, rules, verified);
+    const decision = decide(line, rules, verified, unsupported.map((u) => u.finding));
     const ev = buildEvidence({
       chainId: args.chainId,
       brake: args.brake,
