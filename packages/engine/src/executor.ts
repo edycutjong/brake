@@ -1,4 +1,4 @@
-import { BaseError, ContractFunctionRevertedError, encodeFunctionData, type Hex } from "viem";
+import { BaseError, ContractFunctionRevertedError, encodeFunctionData, keccak256, stringToHex, type Hex } from "viem";
 import { brakeAbi, lineStatus, reasonToBytes32, type LineStatus } from "brake-signer";
 import { sendQueued, wallet, type ChainCtx } from "./chain.js";
 import { lock, newId, withTx, type Db } from "./db.js";
@@ -99,7 +99,8 @@ export async function applyDecisions(db: Db, ctx: ChainCtx, id: string, reviewed
         role: "agent",
         runId: id,
         action: "allow",
-        idempotencyKey: `tx:allow:${allowBatch.map((a) => a.key).join(",")}`,
+        // fixed length for any batch size (≤ 64 lines): a digest of the member decision keys (a2a arch r01)
+        idempotencyKey: `tx:allow:${id}:${keccak256(stringToHex(allowBatch.map((a) => a.key).join(",")))}`,
         to: ctx.cfg.brake,
         data,
       });

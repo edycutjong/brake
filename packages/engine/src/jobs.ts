@@ -19,19 +19,25 @@ export interface JobResult {
 }
 
 /**
- * Claim and run queued review jobs (optionally for one run): `for update skip locked` + a 120 s lease, so concurrent
+ * Claim and run queued review jobs (optionally for one run): `for update skip locked` + a 300 s lease, so concurrent
  * workers (a request's after() and the cron tick) never run the same job. A failed job is retried up to 3 attempts.
+ * Completion is fenced on the claimed attempt, so a worker that outlived its lease cannot overwrite the newer claim, and
+ * a job whose final attempt died with its worker is marked failed instead of staying 'running' (a2a arch r01).
  */
 export async function runReviewJobs(db: Db, ctx: ChainCtx, model: ModelClient, opts: { runId?: string; max?: number } = {}): Promise<JobResult[]> {
   const out: JobResult[] = [];
+  await db.query(
+    `update review_jobs set status = 'failed', error = coalesce(error, 'worker lost on the final attempt (lease expired)')
+      where status = 'running' and lease_until < now() and attempts >= 3`,
+  );
   for (let n = 0; n < (opts.max ?? 10); n++) {
-    const claim = await db.query<{ id: string; run_id: string; trigger: string }>(
-      `update review_jobs set status = 'running', attempts = attempts + 1, lease_until = now() + interval '120 seconds'
+    const claim = await db.query<{ id: string; run_id: string; trigger: string; attempts: number }>(
+      `update review_jobs set status = 'running', attempts = attempts + 1, lease_until = now() + interval '300 seconds'
         where id = (select id from review_jobs
                      where (status = 'queued' or (status = 'running' and lease_until < now())) and attempts < 3
                        and ($1::text is null or run_id = $1)
                      order by created_at for update skip locked limit 1)
-        returning id, run_id, trigger`,
+        returning id, run_id, trigger, attempts`,
       [opts.runId ?? null],
     );
     const job = claim.rows[0];
@@ -39,11 +45,15 @@ export async function runReviewJobs(db: Db, ctx: ChainCtx, model: ModelClient, o
     const t0 = Date.now();
     try {
       const r = await reviewOnce(db, ctx, model, job.run_id);
-      await db.query(`update review_jobs set status = 'done', error = null where id = $1`, [job.id]);
+      await db.query(`update review_jobs set status = 'done', error = null where id = $1 and attempts = $2 and status = 'running'`, [job.id, job.attempts]);
       out.push({ jobId: job.id, runId: job.run_id, trigger: job.trigger, ...r, ms: Date.now() - t0 });
     } catch (e) {
       const msg = String((e as Error).message ?? e).slice(0, 500);
-      await db.query(`update review_jobs set status = case when attempts >= 3 then 'failed' else 'queued' end, error = $2 where id = $1`, [job.id, msg]);
+      await db.query(
+        `update review_jobs set status = case when attempts >= 3 then 'failed' else 'queued' end, error = $2
+          where id = $1 and attempts = $3 and status = 'running'`,
+        [job.id, msg, job.attempts],
+      );
       out.push({ jobId: job.id, runId: job.run_id, trigger: job.trigger, error: msg, ms: Date.now() - t0 });
     }
   }
