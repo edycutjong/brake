@@ -1,0 +1,8 @@
+# Public EVM contract/wallet addresses (20 bytes) are not secrets. 32-byte hex (private keys) stay flagged.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "public 20-byte EVM addresses"
+regexTarget = "match"
+regexes = ['''(?i)["']?[a-z_]*["']?\s*[:=]\s*["']0x[0-9a-f]{40}["']''']
