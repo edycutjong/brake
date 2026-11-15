@@ -14,6 +14,8 @@ export interface ReviewOutput {
   model: string;
   lines: ReviewedLine[];
   unsupported: { line: number; intent: string; why: string }[];
+  /** the model call failed: only rule-hit lines carry a (STOP) decision; every other line stays undecided → payday HOLDS */
+  modelError?: string;
 }
 
 /**
@@ -30,12 +32,23 @@ export async function reviewRun(args: {
   rules: RuleEnv;
 }): Promise<ReviewOutput> {
   const linked = linkMessages(args.lines, args.messages);
-  const res = await args.model.findings({ lines: args.lines, linked });
+  // a failed model call (outage, invalid output, no model configured) must not skip the deterministic rules: rule STOPs
+  // still go out as token-level cancels; lines without a rule hit stay undecided (a2a arch r02 — was: the throw aborted
+  // the whole review, so a rule-catchable line was only HELD at payday)
+  let res: Awaited<ReturnType<ModelClient["findings"]>>;
+  let modelError: string | undefined;
+  try {
+    res = await args.model.findings({ lines: args.lines, linked });
+  } catch (e) {
+    modelError = String((e as Error)?.message ?? e).slice(0, 300);
+    res = { model: `unavailable (${modelError.slice(0, 80)})`, findings: [] };
+  }
   const { verified, unsupported } = verifyFindings(res.findings, linked);
   const out: ReviewedLine[] = [];
   for (const line of args.lines) {
     const msgs = linked.get(line.idx) ?? [];
     const rules = await evaluateRules(line, msgs, args.rules);
+    if (modelError && rules.length === 0) continue; // undecided, never ALLOW without the model
     const decision = decide(line, rules, verified, unsupported.map((u) => u.finding));
     const ev = buildEvidence({
       chainId: args.chainId,
@@ -52,5 +65,6 @@ export async function reviewRun(args: {
     model: res.model,
     lines: out,
     unsupported: unsupported.map((u) => ({ line: u.finding.line, intent: u.finding.intent, why: u.why })),
+    ...(modelError ? { modelError } : {}),
   };
 }

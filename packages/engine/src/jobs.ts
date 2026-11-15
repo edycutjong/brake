@@ -82,6 +82,8 @@ export async function reviewOnce(db: Db, ctx: ChainCtx, model: ModelClient, id: 
     },
   });
   const executed = await applyDecisions(db, ctx, id, review.lines, review.model);
+  // rule STOPs are applied above; the model failure still fails the job, so it retries and the rest stays undecided
+  if (review.modelError) throw new Error(review.modelError);
   await db.query(`insert into cursors (name, last_block) values ('last_model_call', $1) on conflict (name) do update set last_block = excluded.last_block`, [
     Date.now(),
   ]);

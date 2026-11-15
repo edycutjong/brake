@@ -185,7 +185,9 @@ export async function sendQueued(
   } catch (e) {
     // gone from the mempool (dropped, or reorged out): free the key so the next call rebuilds it at a fresh nonce
     const notFound = await ctx.pub.getTransaction({ hash: sent.hash }).then(() => false, (x) => x instanceof TransactionNotFoundError);
-    if (notFound) await qdb.query(`update tx_queue set status = 'dropped', error = $2 where id = $1`, [sent.id, String(e).slice(0, 300)]);
+    // fenced on the hash this waiter checked: a row repointed at a pending replacement is not dropped (a2a arch r02)
+    if (notFound)
+      await qdb.query(`update tx_queue set status = 'dropped', error = $2 where id = $1 and tx_hash = $3 and status = 'sent'`, [sent.id, String(e).slice(0, 300), sent.hash]);
     throw e;
   }
   const status = rc.status === "success" ? "mined" : "reverted";

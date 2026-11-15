@@ -60,8 +60,11 @@ const asMessage = (id: string, text: string, at = new Date(T0.getTime() + 86400e
   return { id, fromAddr: t.from, fromDomain: t.from.split("@")[1]!, subject: fill(t.subject, vars), body: fill(t.body, vars), receivedAt: at };
 };
 const rules = { isBlacklisted: () => false, otherOpenInvoices: new Set<string>() };
-const review = (model: ModelClient, extra: Message[]) =>
-  reviewRun({ chainId: 44005, brake: BRAKE, runId: RUN_ID, lines, messages: [...base, ...extra], model, rules });
+const review = async (model: ModelClient, extra: Message[]) => {
+  const r = await reviewRun({ chainId: 44005, brake: BRAKE, runId: RUN_ID, lines, messages: [...base, ...extra], model, rules });
+  if (r.modelError) throw new Error(r.modelError); // a failed model call is a failed case, never a measured one
+  return r;
+};
 const outcome = (v: string) => (v === "ALLOW" ? "NO_CHANGE" : v);
 
 async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {

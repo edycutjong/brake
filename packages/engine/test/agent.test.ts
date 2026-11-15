@@ -104,6 +104,22 @@ describe("seed hero invariants (seed-data.md)", () => {
     expect(out.lines[2]!.evidence.model).toBe("none");
   });
 
+  it("a failed model call still applies rule STOPs; lines without a rule hit stay undecided (never ALLOW)", async () => {
+    const lines = heroLines();
+    const out = await reviewRun({
+      chainId: 44005,
+      brake: "0x0000000000000000000000000000000000000001",
+      runId: `0x${"ab".repeat(32)}`,
+      lines,
+      messages: heroMessages([...MONDAY, "E4"]),
+      model: { id: "down", findings: async () => { throw new Error("upstream 529"); } },
+      rules: { ...noRules, isBlacklisted: (payee) => payee === lines[1]!.payee },
+    });
+    expect(out.modelError).toMatch(/upstream 529/);
+    expect(out.lines.map((l) => [l.decision.idx, l.decision.verdict, l.decision.reason])).toEqual([[1, "STOP", "PAYEE_BLACKLISTED"]]);
+    expect(out.lines[0]!.evidence.model).toMatch(/^unavailable/);
+  });
+
   it("the prompt quotes messages as untrusted data blocks and strips forged tags", () => {
     const lines = heroLines();
     const msgs = heroMessages(["E4"]);
