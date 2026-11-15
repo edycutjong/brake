@@ -75,7 +75,11 @@ export async function applyDecisions(db: Db, ctx: ChainCtx, id: string, reviewed
       const revChanged = lastAllow.rows[0] ? lastAllow.rows[0].rev !== rev : true;
       const action = planAction(verdict, on, revChanged);
       if (action === "allow") allowBatch.push({ r, key });
-      else if (action === "noop") out.push({ idx, verdict, action, chainStatus: on });
+      else if (action === "noop") {
+        // a lost DB update after a mined tx must not strand the line: copy Brake's live status back
+        if (on === "OPEN" || on === "ALLOWED" || on === "HELD") await syncStatus(db, ctx, id, run.run_id, idx);
+        out.push({ idx, verdict, action, chainStatus: on });
+      }
       else if (action === "hold") out.push(await sendHold(db, ctx, id, run.run_id, idx, r.decision.reason ?? "INJECTION_FLAGGED", r.evidenceHash, key, verdict));
       else out.push(await sendStop(db, ctx, id, run.run_id, idx, r, key));
     }

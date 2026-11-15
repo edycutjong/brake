@@ -6,7 +6,8 @@ export type Db = pg.Pool;
 export type Tx = pg.PoolClient;
 
 export function connect(url: string): Db {
-  return new pg.Pool({ connectionString: url, max: 8 });
+  // connectionTimeoutMillis: pool pressure surfaces as an error (retried by the caller/tick), never a silent wedge
+  return new pg.Pool({ connectionString: url, max: 10, connectionTimeoutMillis: 15_000 });
 }
 
 export async function migrate(db: Db) {

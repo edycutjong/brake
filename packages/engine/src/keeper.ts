@@ -4,7 +4,7 @@ import { eip3009Abi, lineStatus, randomNonce, signTransferAuthorization } from "
 import { multicall3Abi, replayRevert, sendQueued, wallet, type ChainCtx } from "./chain.js";
 import { lock, withTx, type Db } from "./db.js";
 import { sendHold } from "./executor.js";
-import { chainNow, enqueueReview, getLines, getRun, loadSig, TERMINAL, type LineRow } from "./runs.js";
+import { chainNow, enqueueReview, getLines, getRun, loadSig, syncStatus, TERMINAL, type LineRow } from "./runs.js";
 
 export interface PaydayResult {
   notYet: { idx: number; validAfter: number; secondsLeft: number }[];
@@ -43,6 +43,9 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
   for (const l of lines) {
     if (l.status === "PAID" || l.status === "SIGNED") continue;
     const on = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, l.idx)).status;
+    if ((on === "OPEN" || on === "ALLOWED" || on === "HELD") && l.status !== on && !TERMINAL.includes(l.status)) {
+      l.status = (await syncStatus(db, ctx, id, run.run_id, l.idx)) as string;
+    }
     const va = Math.floor(l.valid_after.getTime() / 1000);
     const open = now > BigInt(va);
     // the proof-of-stop runs inside the payment window, so its revert is "used or canceled", not "not yet valid"
@@ -91,7 +94,12 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
         const d = (await c.query<{ rev: number; verdict: string }>(`select rev, verdict from decisions where run_id = $1 and idx = $2 order by created_at desc limit 1`, [id, p.line.idx])).rows[0];
         const on = (await lineStatus(ctx.pub, ctx.cfg.brake, run.run_id, p.line.idx)).status;
         const ok = on === "ALLOWED" && cur.status === "ALLOWED" && d && (d.verdict === "ALLOW" || d.verdict === "FINANCE_ALLOW") && d.rev === cur.evidence_rev;
-        if (ok) still.push(p);
+        // already paid by an earlier batch whose PAID update was lost: record it (the reconciler fills paid_tx), never re-send
+        const used = ok && ((await ctx.pub.readContract({ address: ctx.cfg.token, abi: eip3009Abi, functionName: "authorizationState", args: [run.payer, p.line.nonce] })) as boolean);
+        if (used) {
+          await c.query(`update lines set status = 'PAID' where run_id = $1 and idx = $2`, [id, p.line.idx]);
+          res.skipped.push({ idx: p.line.idx, why: "already paid on-chain (authorizationState used) — marked PAID" });
+        } else if (ok) still.push(p);
         else res.skipped.push({ idx: p.line.idx, why: "changed at broadcast (new evidence, hold or finance decision) — not paid, re-review queued" });
       }
       payable.length = 0;
@@ -215,11 +223,10 @@ export async function sweep(db: Db, ctx: ChainCtx, id: string) {
  */
 export async function expireRuns(db: Db): Promise<string[]> {
   const r = await db.query<{ id: string }>(
-    `update runs r set settled_at = now(), reserved_units = 0
+    `select r.id from runs r
       where r.settled_at is null and (
         (r.open_tx is null and r.created_at < now() - interval '30 minutes') or
-        not exists (select 1 from lines l where l.run_id = r.id and l.valid_before > now() - interval '10 minutes'))
-      returning r.id`,
+        not exists (select 1 from lines l where l.run_id = r.id and l.valid_before > now() - interval '10 minutes'))`,
   );
   const ids = r.rows.map((x) => x.id);
   if (ids.length) {
@@ -227,6 +234,19 @@ export async function expireRuns(db: Db): Promise<string[]> {
       `update lines set status = 'EXPIRED' where run_id = any($1) and status in ('SIGNED','OPEN','ALLOWED','HELD')`,
       [ids],
     );
+  }
+  return ids;
+}
+
+/** Expire, then sweep: paid lines of an expired run go back to the payer before its reservation is released. */
+export async function settleExpired(db: Db, ctx: ChainCtx): Promise<string[]> {
+  const ids = await expireRuns(db);
+  for (const id of ids) {
+    try {
+      await sweep(db, ctx, id);
+    } catch {
+      /* retried on the next tick: the run stays unsettled */
+    }
   }
   return ids;
 }

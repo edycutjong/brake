@@ -153,7 +153,7 @@ export function templateVars(mnemonic: string, amounts: Record<string, bigint>):
 export async function createRun(
   db: Db,
   ctx: ChainCtx,
-  opts: { scenario: string; ip?: string; now?: Date },
+  opts: { scenario: string; ip?: string; now?: Date; tx?: Tx },
 ): Promise<CreateRunResult> {
   const fx = runFixtures()[opts.scenario];
   if (!fx) throw new HttpError(400, `unknown scenario ${opts.scenario}`);
@@ -172,7 +172,9 @@ export async function createRun(
   const runId = keccak256(toHex(`${id}:${randomBytes(8).toString("hex")}`));
   const token = randomBytes(24).toString("hex");
 
-  return withTx(db, async (c) => {
+  // inside the caller's transaction when given (admission lock), so no second pool connection is needed
+  const inTx = <T>(fn: (c: Tx) => Promise<T>) => (opts.tx ? fn(opts.tx) : withTx(db, fn));
+  return inTx(async (c) => {
     const snap = await c.query(
       `select v.*, v.id as vendor_id, i.id as invoice_id, i.amount_units, i.status as invoice_status
          from invoices i join vendors v on v.id = i.vendor_id where i.id = any($1)`,

@@ -1,5 +1,6 @@
 import {
   keccak256,
+  TransactionNotFoundError,
   createPublicClient,
   createWalletClient,
   defineChain,
@@ -165,11 +166,10 @@ export async function sendQueued(
     try {
       await ctx.pub.sendRawTransaction({ serializedTransaction: serialized });
     } catch (e) {
-      const seen = await ctx.pub.getTransaction({ hash }).then(() => true, () => false);
-      if (!seen) {
-        await markDropped(e);
-        throw e;
-      }
+      // drop the record only when the node positively says "not found"; an RPC error keeps it 'sent' (receipt decides)
+      const notFound = await ctx.pub.getTransaction({ hash }).then(() => false, (x) => x instanceof TransactionNotFoundError);
+      if (notFound) await markDropped(e);
+      throw e;
     }
     return { id, hash, status: "sent" as const, reused: false };
   });
@@ -180,8 +180,8 @@ export async function sendQueued(
     rc = await ctx.pub.waitForTransactionReceipt({ hash: sent.hash, timeout: 120_000 });
   } catch (e) {
     // gone from the mempool (dropped, or reorged out): free the key so the next call rebuilds it at a fresh nonce
-    const seen = await ctx.pub.getTransaction({ hash: sent.hash }).then(() => true, () => false);
-    if (!seen) await qdb.query(`update tx_queue set status = 'dropped', error = $2 where id = $1`, [sent.id, String(e).slice(0, 300)]);
+    const notFound = await ctx.pub.getTransaction({ hash: sent.hash }).then(() => false, (x) => x instanceof TransactionNotFoundError);
+    if (notFound) await qdb.query(`update tx_queue set status = 'dropped', error = $2 where id = $1`, [sent.id, String(e).slice(0, 300)]);
     throw e;
   }
   const status = rc.status === "success" ? "mined" : "reverted";
@@ -191,15 +191,18 @@ export async function sendQueued(
 
 async function withSessionLock<T>(pool: Db, key: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
   const c = await pool.connect();
+  let broken = false;
   try {
     await c.query("select pg_advisory_lock(hashtextextended($1, 0))", [key]);
     try {
       return await fn(c);
     } finally {
-      await c.query("select pg_advisory_unlock(hashtextextended($1, 0))", [key]);
+      await c.query("select pg_advisory_unlock(hashtextextended($1, 0))", [key]).catch(() => {
+        broken = true; // a connection that may still hold the lock is destroyed, never pooled
+      });
     }
   } finally {
-    c.release();
+    c.release(broken);
   }
 }
 

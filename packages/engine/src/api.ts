@@ -2,10 +2,10 @@ import { timingSafeEqual } from "node:crypto";
 import { formatEther, type Hex } from "viem";
 import { eip3009Abi } from "brake-signer";
 import type { ChainCtx } from "./chain.js";
-import { lock, sha256, withTx, type Db } from "./db.js";
+import { lock, sha256, withTx, type Db, type Tx } from "./db.js";
 import type { ModelClient } from "./agent/model.js";
 import { runReviewJobs } from "./jobs.js";
-import { dueRuns, expireRuns, payday, sweep } from "./keeper.js";
+import { dueRuns, settleExpired, payday, sweep } from "./keeper.js";
 import { reconcile } from "./reconciler.js";
 import {
   createRun,
@@ -146,11 +146,11 @@ route("POST", "/api/runs", async (req, _p, { db, ctx, limits, defer, model }) =>
   // admission is atomic: the balance check and the reservation insert happen under one advisory lock
   const run = await withTx(db, async (c) => {
     await lock(c, "admission");
-    const res = await admit(db, ctx);
+    const res = await admit(c, ctx);
     if (!res.ok) {
       throw new HttpError(409, `a demo run is in progress, yours starts in ~${res.waitMin} min`, { busy: true, waitMin: res.waitMin });
     }
-    return createRun(db, ctx, { scenario, ip: clientIp(req) });
+    return createRun(db, ctx, { scenario, ip: clientIp(req), tx: c });
   });
   if (b.open !== false) {
     defer(
@@ -161,7 +161,7 @@ route("POST", "/api/runs", async (req, _p, { db, ctx, limits, defer, model }) =>
 });
 
 /** Admission: payer tUSD8 balance minus every unsettled run's reservation must cover a new hero-sized reservation. */
-export async function admit(db: Db, ctx: ChainCtx) {
+export async function admit(db: Db | Tx, ctx: ChainCtx) {
   const payer = ctx.wallets.payer?.account.address;
   if (!payer) throw new HttpError(503, "demo payer not configured");
   const bal = (await ctx.pub.readContract({ address: ctx.cfg.token, abi: eip3009Abi, functionName: "balanceOf", args: [payer] })) as bigint;
@@ -352,7 +352,7 @@ route("POST", "/api/keeper/tick", async (req, _p, { db, ctx, model }) => {
     }
   }
   const rec = await reconcile(db, ctx);
-  const expired = await expireRuns(db);
+  const expired = await settleExpired(db, ctx);
   await db.query(`insert into cursors (name, last_block) values ('last_tick_ms', $1) on conflict (name) do update set last_block = excluded.last_block`, [Date.now()]);
   return json(200, { jobs: jobs.length, paydays, expired: expired.length, reconciled: { to: rec.to, events: rec.events, updates: rec.updates.length, retried: rec.retried.length } });
 });
