@@ -1,0 +1,3 @@
+{"note":"Read-only probe of the LIVE Aevum testnet 44005 (no transactions sent), 2026-11-15T22:06:58Z","block":3269705,
+"codeBytes":{"multicall3_0xcA11bde05977b3631167028862bE2a173976CA11":3808,"arachnid_create2_0x4e59b44847b379578588920cA78FbF26c0B4956C":69,"erc8004_identity_0x8004A169FB4a3325136EB29fA0ceB6D2e539a432":0,"erc8004_reputation_0x8004BAa17C55a88189AE136b182e5fdA19dE9b63":0},
+"tUSD8_paused":"false"}
