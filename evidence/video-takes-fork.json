@@ -577,12 +577,12 @@
    ]
   },
   "composer-hero": {
-   "run": "run_c6ff5114663902a3",
-   "chain_run_id": "0xa61dbb940e584d678e14e4a87dbe470097712eb1ded8e48f05cf22ec3bfed018",
+   "run": "run_f8908dc51fd43f47",
+   "chain_run_id": "0x67efdd207abccfc92a6150fe0f2caa0c79b3d945b7d6f09621aa57c3febc5992",
    "scenario": "hero",
-   "open_tx": "0xe08cfbe869c1acdc5892dd779d2f444895cc9189aaf5d3389e1bc8554b451edc",
+   "open_tx": "0xf0327ba6813accd726e2951148bc6ea174c0f77a403df3323bf03f57b783b791",
    "sweep_tx": null,
-   "created": "2026-11-15T23:05:55Z",
+   "created": "2026-11-15T23:14:15Z",
    "lines": [
     {
      "line": 1,
@@ -605,7 +605,7 @@
     {
      "line": 3,
      "status": "STOPPED",
-     "stop_tx": "0x0824558c1e686bc361f387f10815755338e3c53d386fc3142ee50a82ce942666",
+     "stop_tx": "0xd0eb48489ac53f3e8fe3e5b8def9e4d2c878425631e0d5199e688285e9a3f93d",
      "paid_tx": null,
      "proof_tx": null,
      "proof_reason": null,
@@ -629,8 +629,8 @@
      "reason": null,
      "rules_fired": [],
      "chain_status": "ALLOWED",
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089",
-     "evidence_hash": "0x1cea6958100a805bca8711f812a60dbea08db39b4ea2a6a6343ffbff742e460b",
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1",
+     "evidence_hash": "0x452223e03e82a047aff21a0b3ddf70853d445ad5af19d3f94b8edc96b79bb06b",
      "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
@@ -640,8 +640,8 @@
      "reason": null,
      "rules_fired": [],
      "chain_status": "ALLOWED",
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089",
-     "evidence_hash": "0xe95147d8f02e53e36bb8ac7bb284e72eb6826902cae3c7c36a84faf0eeb82990",
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1",
+     "evidence_hash": "0xc9419d197eaa92297dc61d15179b2a6804232f03192c8742a4dc9941fd6cae6a",
      "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
@@ -651,8 +651,8 @@
      "reason": null,
      "rules_fired": [],
      "chain_status": "ALLOWED",
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089",
-     "evidence_hash": "0x489b486e7c109d174aedf452e43480d84decb21b5f26ce6d696ba0c9d04298a0",
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1",
+     "evidence_hash": "0x3761feb832baac1da9dc9d3a996f0b81ac3e562855cd85a0ac0478a6d723bb68",
      "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
@@ -662,8 +662,8 @@
      "reason": null,
      "rules_fired": [],
      "chain_status": "ALLOWED",
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089",
-     "evidence_hash": "0x47c21ad1daed2d485ccddc0d444e5de2e0e3ecb3b92eb68239b6e154facbd988",
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1",
+     "evidence_hash": "0x377e0fb004adbf09422471bf1ba48d027a216bd414fe476c7a040f9432d126ad",
      "model": "claude-sonnet-5-5 (claude-cli)"
     },
     {
@@ -673,8 +673,8 @@
      "reason": "PAYMENT_DETAIL_CHANGE",
      "rules_fired": [],
      "chain_status": "STOPPED",
-     "tx": "0x0824558c1e686bc361f387f10815755338e3c53d386fc3142ee50a82ce942666",
-     "evidence_hash": "0x214eee522711b1e9977e66e583fb82328edb727689231996d0627e156269153f",
+     "tx": "0xd0eb48489ac53f3e8fe3e5b8def9e4d2c878425631e0d5199e688285e9a3f93d",
+     "evidence_hash": "0x2ab2ece4e242a415c39be78592a18b7d57dc837b6ca0758446c2dae09dc6b072",
      "model": "claude-sonnet-5-5 (claude-cli)"
     }
    ],
@@ -682,74 +682,74 @@
     {
      "name": "RunOpened",
      "line": null,
-     "block": 3273345,
-     "tx": "0xe08cfbe869c1acdc5892dd779d2f444895cc9189aaf5d3389e1bc8554b451edc"
+     "block": 3273845,
+     "tx": "0xf0327ba6813accd726e2951148bc6ea174c0f77a403df3323bf03f57b783b791"
     },
     {
      "name": "LineAllowed",
      "line": 1,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "ReceiptRecorded",
      "line": 1,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "LineAllowed",
      "line": 2,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "ReceiptRecorded",
      "line": 2,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "LineAllowed",
      "line": 3,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "ReceiptRecorded",
      "line": 3,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "LineAllowed",
      "line": 4,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "ReceiptRecorded",
      "line": 4,
-     "block": 3273350,
-     "tx": "0x56df6ded131e29ed95e05726b4115ceffc1dcd93e0999e0d3cd32d111f5e6089"
+     "block": 3273850,
+     "tx": "0xd00e3ef152b4e12a94c726b7113ffb7f7acb140daf2a65a53879043e8b24ecc1"
     },
     {
      "name": "AuthorizationCanceled",
      "line": 3,
-     "block": 3273377,
-     "tx": "0x0824558c1e686bc361f387f10815755338e3c53d386fc3142ee50a82ce942666"
+     "block": 3273875,
+     "tx": "0xd0eb48489ac53f3e8fe3e5b8def9e4d2c878425631e0d5199e688285e9a3f93d"
     },
     {
      "name": "LineStopped",
      "line": 3,
-     "block": 3273377,
-     "tx": "0x0824558c1e686bc361f387f10815755338e3c53d386fc3142ee50a82ce942666"
+     "block": 3273875,
+     "tx": "0xd0eb48489ac53f3e8fe3e5b8def9e4d2c878425631e0d5199e688285e9a3f93d"
     },
     {
      "name": "ReceiptRecorded",
      "line": 3,
-     "block": 3273377,
-     "tx": "0x0824558c1e686bc361f387f10815755338e3c53d386fc3142ee50a82ce942666"
+     "block": 3273875,
+     "tx": "0xd0eb48489ac53f3e8fe3e5b8def9e4d2c878425631e0d5199e688285e9a3f93d"
     }
    ]
   }
