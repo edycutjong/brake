@@ -1,0 +1,15 @@
+{
+  "gate": "G2a ERC-8004 reference registries",
+  "mode": "fork (forge, Aevum testnet 44005 @ block 3252000)",
+  "source": "https://github.com/erc-8004/erc-8004-contracts",
+  "commit": "b9e466c250744a7e06b13dff9d3c2844ed64f825",
+  "licence": "README: CC0; file headers: SPDX MIT",
+  "identityVersion": "2.0.0",
+  "answers": {
+    "secondResponsePerRequestHash": "accepted — validationResponse overwrites response/hash/tag; ValidationResponse events keep the history (test_q1_secondResponseOverwrites)",
+    "agentAddressBinding": "exists — setAgentWallet(agentId, wallet, deadline, sig) needs an EIP-712 signature by the wallet itself; cleared on token transfer (test_q2_agentWalletBindingNeedsAgentSignature, test_transferClearsAgentWallet)",
+    "singleTokenApprove": "honoured — validationRequest accepts getApproved(agentId) == msg.sender, no setApprovalForAll needed (test_q3_singleTokenApproveIsHonoured)",
+    "duplicateRequestHash": "rejected with 'exists'; only the named validator may respond"
+  },
+  "tests": "test/G2aERC8004.t.sol — 6 passed"
+}

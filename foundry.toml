@@ -13,6 +13,7 @@ bytecode_hash = "none"
 cbor_metadata = true
 remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+  "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
   "forge-std/=lib/forge-std/src/",
 ]
 fs_permissions = [{ access = "read-write", path = "./evidence" }]
@@ -29,3 +30,6 @@ aevum = { key = "blockscout", url = "https://explorer-test.qday.info/api", chain
 
 [fmt]
 line_length = 120
+
+[lint]
+lint_on_build = false
