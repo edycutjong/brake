@@ -6,6 +6,10 @@ import { fmtTime, short, tusd } from "@/lib/format";
 import { ExplorerLink, PaidMark, RecoveryTicket, StopStamp, TxStatus } from "@/components/ui";
 
 function heldWhy(run: RunView, idx: number) {
+  const latest = [...run.decisions].reverse().find((d) => d.idx === idx);
+  // a budget hold is recorded as the agent's STOP decision whose chain action became a hold (executor: StopBudgetExhausted → sendHold)
+  if (latest?.verdict === "STOP" && latest.chain_status === "HELD")
+    return `Held — the agent wanted to stop this line (${latest.reason_code ?? "STOP"}), but its ${run.maxStops}-stop budget for this run was used up. Held on-chain; finance decides.`;
   const h = [...run.decisions].reverse().find((d) => d.idx === idx && d.verdict === "HOLD");
   if (h?.reason_code === "BUDGET_EXHAUSTED") return `Held — the agent wanted to stop this line, but its ${run.maxStops}-stop budget for this run was used up. Finance decides.`;
   if (h?.reason_code) return `Held (${h.reason_code}) — finance decides.`;
