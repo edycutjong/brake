@@ -14,8 +14,8 @@ jobs:
           submodules: recursive
       - uses: foundry-rs/foundry-toolchain@v1
       - run: forge build --sizes
-      # fork tests read live Aevum testnet state (public RPC, no secrets)
-      - run: forge test --fork-url https://rpc-test.qday.info -vv
+      # tests pin their own fork of Aevum testnet (foundry.toml rpc alias, public RPC, no secrets)
+      - run: forge test -vv
   node:
     runs-on: ubuntu-latest
     steps:
@@ -28,3 +28,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r --if-present typecheck
       - run: pnpm -r --if-present test
+      - run: pnpm --filter @brake/web build
