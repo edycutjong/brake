@@ -120,6 +120,9 @@ code, .data { font-family: var(--font-data); font-variant-numeric: tabular-nums;
 .hero h1 .stamp { font-size: .86em; margin: 0 .04em; padding: .04em .2em .1em; }
 .hero .sub { font-size: 1.12rem; color: var(--ink-soft); max-width: 36em; margin: 0 0 28px; }
 .hero .sub strong { color: var(--ink); font-weight: 700; }
+.hp { list-style: none; margin: 0 0 26px; padding: 14px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; border-top: 1px solid var(--ink); max-width: 36em; }
+.hp li { font-size: .84rem; line-height: 1.35; color: var(--ink-soft); }
+.hp b { display: block; font: 700 1.9rem/1.05 var(--font-data); color: var(--ink); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
 .ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
 .proof { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; font-size: .9rem; color: var(--label); }
 .cmd { display: inline-flex; align-items: center; gap: 10px; font: 400 .9rem/1 var(--font-data); background: var(--paper-2); border: 1px dashed var(--muted); padding: 7px 8px 7px 12px; color: var(--ink); }
@@ -233,7 +236,7 @@ figure { margin: 0; }
 .cell:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink); }
 .cell h3 { font: 600 1.4rem/1.15 var(--font-display); margin: 0; }
 .cell p { margin: 0; color: var(--ink-soft); font-size: .97rem; }
-.cell .chip { margin-top: auto; align-self: flex-start; font: .74rem/1 var(--font-data); border: 1px solid var(--ink); color: var(--ink); padding: 5px 8px; }
+.cell .chip { line-height: 1.4; margin-top: auto; align-self: flex-start; font: .74rem/1 var(--font-data); border: 1px solid var(--ink); color: var(--ink); padding: 5px 8px; }
 .cell .ln { font: .74rem var(--font-data); color: var(--label); }
 .c1 { grid-column: span 4; } .c2 { grid-column: span 2; background: var(--ink); color: var(--bg); }
 .c2 p { color: color-mix(in srgb, var(--bg) 82%, var(--ink)); } .c2 .ln { color: color-mix(in srgb, var(--bg) 70%, var(--ink)); }
@@ -370,7 +373,8 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <div class="copy">
       <div class="label"><span class="no">SP-1</span> <span class="opt">Stop-payment order ·</span> <b>QDay Aevum Builder Challenge</b></div>
       <h1>The agent reads the inbox. It can <span class="nw"><span class="stamp">stop</span>,</span> never pay.</h1>
-      <p class="sub">Rina in finance approves Monday’s four vendor payments, each signed with its own cancellation. On Tuesday “Acme” confirms a new payout address and asks her not to call. The agent stops that line before payday. It holds <strong>0 tUSD8</strong>, and in <strong>5 of 5</strong> recorded runs the model alone made the stop.</p>
+      <p class="sub">Rina in finance approves Monday’s four vendor payments, each signed with its own cancellation. When “Acme” confirms a new payout address on Tuesday and asks her not to call, the agent stops that line before payday.</p>
+      <ul class="hp"><li><b>0</b>tUSD8 held by the agent</li><li><b>5/5</b>recorded runs: the model alone made the stop</li><li><b>121</b>tests passing</li></ul>
       <div class="ctas">
         <a class="btn primary" href="https://github.com/edycutjong/brake"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>View on GitHub</a>
         <a class="btn" href="pitch/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="13"/><path d="M12 17v4M8 21h8"/></svg>Pitch deck</a>
@@ -380,7 +384,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <div class="meta">
       <div class="proof">
         <span class="cmd"><span id="cmdtext">pnpm fork:up &amp;&amp; pnpm demo:hero</span><button type="button" id="copy" aria-label="Copy the demo command">Copy</button></span>
-        <span>121 tests · 0 agent-initiated transfers</span>
+        <span>0 agent-initiated transfers</span>
       </div>
       <p class="status">Ran on an anvil fork of Aevum 44005: transaction hashes are labelled <span class="fork">FORK</span> (<code>fork:</code> in the terminal) and have no explorer link. The live testnet run is pending faucet funding.</p>
     </div>
@@ -401,7 +405,7 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
 <section class="receipts" aria-label="Receipts">
   <div class="wrap">
     <div class="rc"><div class="n" data-count="121">121</div><p>tests passing: forge 50 · signer 12 · engine 59</p><code>evidence/test-counts.json</code></div>
-    <div class="rc"><div class="n" data-count="0">0</div><p>agent-initiated transfers. The agent holds no tUSD8 and no allowance.</p><code>bench/results.json</code></div>
+    <div class="rc"><div class="n" data-count="0">0</div><p>agent-initiated transfers. The agent’s 0 tUSD8 and 0 allowance are read on <code>/verify</code>.</p><code>bench/results.json · /verify</code></div>
     <div class="rc"><div class="n" data-count="4.1" data-dec="1" data-suffix=" s">4.1 s</div><p>median, vendor email to cancel confirmed (p95 6.3 s, n = 11, fork, commit 494c2a6)</p><code>bench/results.json</code></div>
     <div class="rc"><div class="n" data-count="25" data-suffix="/25">25/25</div><p>injection-suite emails decided correctly by the model (rules alone: 6). n = 25, a regression suite.</p><code>evidence/g4/ · README</code></div>
     <p class="rnote">5 of 5: <code>evidence/g4/hero-sonnet-5-5-cli.json</code>. Model numbers were measured with claude-sonnet-5-5 through a local CLI adapter at commit dbb1acb and latency at 494c2a6, both before the architecture review’s changes; re-measuring them is on the roadmap. Four collateral stops (lines whose on-file payee is the fraud wallet) are reported per row in the README.</p>
@@ -415,8 +419,8 @@ figure.shot figcaption b { display: block; font: 600 1rem/1.3 var(--font-display
     <p class="lede">A compromised vendor mailbox re-confirms a changed payout address for line 3 and asks finance not to call. The model reads it as untrusted data, the line is stopped on-chain, and payday pays the other three in one batch. The terminal replays <code>evidence/hero-fork.json</code>, recorded before the final contract change of the architecture review.</p>
     <div class="pair">
       <figure class="frame">
-        <div class="bar"><i></i><i></i><i></i><span>Run sheet · line 3 stopped · separate fork run</span></div>
-        <picture><source media="(max-width: 640px)" srcset="assets/demo-line3-mobile.png" width="680" height="220"><img src="assets/demo-line3.png" width="1150" height="480" alt="Brake run sheet: lines 1 and 2 scheduled and allowed; line 3, Acme Logistics, 0.5 tUSD8, struck through under a red STOP PAYMENT stamp labelled FORK." loading="lazy"></picture>
+        <div class="bar"><i></i><i></i><i></i><span>Run sheet · fork run B</span></div>
+        <picture><source media="(max-width: 640px)" srcset="assets/demo-line3-mobile.png" width="580" height="440"><img src="assets/demo-line3.png" width="1150" height="480" alt="Brake run sheet: lines 1 and 2 scheduled and allowed; line 3, Acme Logistics, 0.5 tUSD8, struck through under a red STOP PAYMENT stamp labelled FORK." loading="lazy"></picture>
         <figcaption>The real run sheet after the agent’s stop, from a separate fork run; its stamp carries that run’s cancel tx. The register above and the terminal use <code>evidence/hero-fork.json</code>.</figcaption>
       </figure>
       <div class="tape">

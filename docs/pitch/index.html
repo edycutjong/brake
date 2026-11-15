@@ -303,7 +303,7 @@ body.overview #grid { display: grid; }
   <div class="lbl"><span class="no">L-06</span> The hero run · fork</div>
   <h2 class="rise" style="margin:0 0 30px">Line 3 never cleared.</h2>
   <div class="frame rise d2 demo-full"><div class="bar"><i></i><i></i><i></i>&nbsp; fork run B</div><div class="pic"><img src="../assets/demo-line3-deck.png" alt="Run sheet with line 3, Acme Logistics, struck through under a red STOP PAYMENT stamp.">
-      <span class="callout red" style="left:calc(77.6% - 28px);top:calc(66% - 28px)">1</span><span class="callout" style="left:calc(56.2% - 28px);top:calc(33% - 28px)">2</span></div></div>
+      <span class="callout red" style="left:calc(79.6% - 28px);top:calc(66% - 28px)">1</span><span class="callout" style="left:calc(57.2% - 28px);top:calc(33% - 28px)">2</span></div></div>
   <div class="demo-grid">
     <div class="tape rise d3"><span class="cap">fork run A</span><span class="t">+13.4s</span> line 3 <span class="no">STOP</span><br><span class="t">      </span> rules fired 0<br><span class="t">+44.5s</span> <span class="ok">paid [1, 2, 4]</span><br><span class="t">      </span> line 3 <span class="no">reverted</span></div>
     <ul class="keys rise d3"><li><span class="red">1</span>Run B’s cancel tx.</li><li><span>2</span>Struck amount.</li></ul>
@@ -330,10 +330,10 @@ body.overview #grid { display: grid; }
   <div class="rcpts rise d2">
     <div><div class="n">121</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
     <div><div class="n">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
-    <div><div class="n">4.1 s</div><p>median email → cancel (fork)</p><code>bench/results.json</code></div>
+    <div><div class="n">4.1 s</div><p>median email → cancel (fork, n = 11)</p><code>bench/results.json</code></div>
     <div><div class="n">25/25</div><p>injection emails; rules alone 6</p><code>evidence/g4/</code></div>
   </div>
-  <p class="small">n = 25: a regression suite, not a detection rate.</p>
+  <p class="small">n = 25 regression suite, measured pre-review.</p>
   <aside class="speaker-notes">121 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel, measured at commit 494c2a6. Both latency and model numbers predate the architecture review's changes, and the README says so.</aside>
 </section>
 
