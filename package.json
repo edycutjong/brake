@@ -16,6 +16,8 @@
     "g4": "pnpm --filter @brake/scripts g4",
     "demo:late": "pnpm --filter @brake/scripts demo:late",
     "demo:flood": "pnpm --filter @brake/scripts demo:flood",
-    "sign:local": "pnpm --filter @brake/scripts sign:local"
+    "sign:local": "pnpm --filter @brake/scripts sign:local",
+    "db:migrate": "pnpm --filter @brake/scripts db:migrate",
+    "bench": "python3 scripts/bench.py"
   }
 }

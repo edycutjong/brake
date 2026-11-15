@@ -1,67 +1,73 @@
 {
   "deployment": "fork",
-  "payer": "0xC7c83c06494d266e96B7D33D81dD5599BfCA46d7",
-  "run": "run_2d0022aadbd2ce47",
-  "runId": "0xa1a506501307fb31f7042a2bc09cfb77b258487fa7567ebc6c087dcc07bd5a72",
-  "openTx": "0x2e81644709c0c05749e8a6c799a5f9d722d250112a4d20bed88f4770736ea1b9",
+  "payer": "0xB39Da12037431F915fF5e0a50e0aa2C7C267ca08",
+  "run": "run_09c76aa5c9327f61",
+  "runId": "0x22147a7ee3abc62e94aa0be4798c44b939358a4f065295f9584203cea7dd7041",
+  "openTx": "0x45d7a498472b69cd0b97837a5ab8c33b2dba557038ebf42b1a71b21cf4e3c0f3",
   "steps": [
     {
+      "step": "own ERC-8004 agent identity registered, agent wallet bound, Brake approved",
+      "sinceStartMs": 16213,
+      "agentId": "1",
+      "owner": "0xB39Da12037431F915fF5e0a50e0aa2C7C267ca08"
+    },
+    {
       "step": "plan fetched",
-      "sinceStartMs": 120,
+      "sinceStartMs": 16329,
       "lines": 4
     },
     {
       "step": "signed locally (payment + paired cancel per line)",
-      "sinceStartMs": 142,
-      "payer": "0xC7c83c06494d266e96B7D33D81dD5599BfCA46d7",
+      "sinceStartMs": 16341,
+      "payer": "0xB39Da12037431F915fF5e0a50e0aa2C7C267ca08",
       "lines": 4
     },
     {
       "step": "server accepted signed authorizations (it never saw the key)",
-      "sinceStartMs": 272,
-      "run": "run_2d0022aadbd2ce47"
+      "sinceStartMs": 16477,
+      "run": "run_09c76aa5c9327f61"
     },
     {
       "step": "openRun sent by the payer's own wallet",
-      "sinceStartMs": 4495,
-      "tx": "0x2e81644709c0c05749e8a6c799a5f9d722d250112a4d20bed88f4770736ea1b9"
+      "sinceStartMs": 20603,
+      "tx": "0x45d7a498472b69cd0b97837a5ab8c33b2dba557038ebf42b1a71b21cf4e3c0f3"
     },
     {
       "step": "Monday review done",
-      "sinceStartMs": 10576
+      "sinceStartMs": 26690
     },
     {
       "step": "line 3 stopped by the agent",
-      "sinceStartMs": 18691,
-      "stopTx": "0xa342b1f8ee1f9d9f237a36e51bc5c39408b19bc46341df1fb735c3a300b7968d"
+      "sinceStartMs": 34785,
+      "stopTx": "0x97a6639df4db39ee5491a48a4c62ec805b3dc7a8b62e33b1b6073e73bee31a51"
     },
     {
       "step": "payday: keeper paid with the payer's signatures",
-      "sinceStartMs": 47010,
-      "batchTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+      "sinceStartMs": 62572,
+      "batchTx": "0xd80893238a16bdae998de22081af6a5c6fb390a94797ab5b8f90e23eb3f8b0b8",
       "lines": [
         {
           "idx": 1,
           "status": "PAID",
-          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "paidTx": "0xd80893238a16bdae998de22081af6a5c6fb390a94797ab5b8f90e23eb3f8b0b8",
           "proofTx": null
         },
         {
           "idx": 2,
           "status": "PAID",
-          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "paidTx": "0xd80893238a16bdae998de22081af6a5c6fb390a94797ab5b8f90e23eb3f8b0b8",
           "proofTx": null
         },
         {
           "idx": 3,
           "status": "STOPPED",
           "paidTx": null,
-          "proofTx": "0xd069d465be228af52e72895da21eb2fbb5d09e9ee0057555247d9b733641354d"
+          "proofTx": "0xebaf9259ef9302b1867f09d4995cbddd0f2770ac71e028ba9275d1ed0cd8d448"
         },
         {
           "idx": 4,
           "status": "PAID",
-          "paidTx": "0xee6b0494a27c760ca5a5ac390f86717f6bb3c9929a880bb4d8ed0d3caef77441",
+          "paidTx": "0xd80893238a16bdae998de22081af6a5c6fb390a94797ab5b8f90e23eb3f8b0b8",
           "proofTx": null
         }
       ]

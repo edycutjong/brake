@@ -1,0 +1,21 @@
+# Keeper backstop. Reviews already run on email delivery (after()), and "Play the hero" triggers payday itself;
+# this tick pays due runs, retries failed reviews, reconciles chain events and sweeps finished runs.
+# Needs repo secret CRON_SECRET and repo variable APP_URL. Private repo: every 30 min (inside the free minutes);
+# switch to */5 when the repo goes public.
+name: tick
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    if: ${{ vars.APP_URL != '' }}
+    steps:
+      - name: keeper tick
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST "$APP_URL/api/keeper/tick" -H "authorization: Bearer $CRON_SECRET" --max-time 120

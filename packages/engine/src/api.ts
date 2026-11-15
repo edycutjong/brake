@@ -383,7 +383,8 @@ export async function maybeReconcile(db: Db, ctx: ChainCtx) {
 
 // ------------------------------------------------------------------------------------------- keeper + health
 
-route("POST", "/api/keeper/tick", async (req, _p, { db, ctx, model }) => {
+/** POST from the GitHub Actions tick; GET from Vercel Cron (which sends `Authorization: Bearer $CRON_SECRET`). */
+const tick: Handler = async (req, _p, { db, ctx, model }) => {
   const secret = ctx.cfg.cronSecret;
   const t = bearer(req);
   if (!secret || !t || !safeEq(t, secret)) throw new HttpError(401, "cron secret required");
@@ -402,7 +403,9 @@ route("POST", "/api/keeper/tick", async (req, _p, { db, ctx, model }) => {
   const expired = await settleExpired(db, ctx);
   await db.query(`insert into cursors (name, last_block) values ('last_tick_ms', $1) on conflict (name) do update set last_block = excluded.last_block`, [Date.now()]);
   return json(200, { jobs: jobs.length, paydays, expired: expired.length, reconciled: { to: rec.to, events: rec.events, updates: rec.updates.length, retried: rec.retried.length } });
-});
+};
+route("POST", "/api/keeper/tick", tick);
+route("GET", "/api/keeper/tick", tick);
 
 route("GET", "/api/health", async (_req, _p, { db, ctx, limits }) => {
   const c = ctx.cfg;

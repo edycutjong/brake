@@ -185,7 +185,7 @@ export async function sendQueued(
     throw e;
   }
   const status = rc.status === "success" ? "mined" : "reverted";
-  await qdb.query(`update tx_queue set status = $2 where id = $1`, [sent.id, status]);
+  await qdb.query(`update tx_queue set status = $2, settled_at = now() where id = $1`, [sent.id, status]);
   return { ...sent, status };
 }
 

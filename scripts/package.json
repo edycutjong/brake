@@ -10,7 +10,8 @@
     "g4": "tsx g4.ts",
     "demo:late": "tsx demo_edge.ts late",
     "demo:flood": "tsx demo_edge.ts flood",
-    "sign:local": "tsx sign_local.ts"
+    "sign:local": "tsx sign_local.ts",
+    "db:migrate": "tsx migrate.ts"
   },
   "dependencies": {
     "brake-signer": "workspace:*",

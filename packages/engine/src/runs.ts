@@ -203,7 +203,7 @@ export async function createRun(
          session_hash, demo, reserved_units, creator_ip, created_at)
        values ($1,$2,$3,$4,$5,$6,to_timestamp($7),to_timestamp($8),$9,$10,$11,$15,$12,$13,$14)`,
       [
-        id, runId, opts.scenario, payerAddr, agent, cfg.agentId.toString(), Number(validAfter),
+        id, runId, opts.scenario, payerAddr, agent, (ext?.agentId ?? cfg.agentId).toString(), Number(validAfter),
         Number(validBefore), fx.maxStops, fx.alarmAt, sha256(token), (ext ? 0n : reservation(amounts)).toString(), opts.ip ?? null, now, !ext,
       ],
     );
@@ -298,7 +298,7 @@ async function markOpened(db: Db, ctx: ChainCtx, id: string, runId: Hex, nLines:
 
 // ------------------------------------------------------------------------------------------- wallet mode (non-custodial)
 
-export interface ExternalRun { payer: Address; runId: Hex; pairs: SignedPair[]; validAfter: bigint; validBefore: bigint }
+export interface ExternalRun { agentId: bigint; payer: Address; runId: Hex; pairs: SignedPair[]; validAfter: bigint; validBefore: bigint }
 
 /** The lines a scenario will pay (vendor payees and scaled invoice amounts) so a wallet can sign exactly those. */
 export async function planRun(db: Db, ctx: ChainCtx, scenario: string) {
@@ -330,7 +330,7 @@ export async function planRun(db: Db, ctx: ChainCtx, scenario: string) {
 }
 
 export interface WalletRunBody {
-  payer: Address; runId: Hex; validAfter: string; validBefore: string;
+  payer: Address; runId: Hex; agentId: string; validAfter: string; validBefore: string;
   pairs: { to: Address; value: string; nonce: Hex; payment: Hex; cancel: Hex }[];
 }
 
@@ -363,7 +363,7 @@ export async function verifyExternal(ctx: ChainCtx, scenario: string, plan: Awai
     if (ca.toLowerCase() !== b.payer.toLowerCase()) throw new HttpError(400, `line ${i + 1}: cancel signature is not the payer's`);
     pairs.push({ authorization, payment: toSig(x.payment), cancel: toSig(x.cancel), paymentDigest: pd, cancelDigest: cd });
   }
-  return { payer: b.payer, runId: b.runId, pairs, validAfter, validBefore };
+  return { agentId: BigInt(b.agentId ?? ctx.cfg.agentId), payer: b.payer, runId: b.runId, pairs, validAfter, validBefore };
 }
 
 /** Wallet mode: the payer sent openRun itself; the server checks the receipt really opened this run for this payer, then starts review. */
@@ -538,6 +538,7 @@ export async function runMessages(db: Db | Tx, id: string): Promise<(Message & {
  */
 export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: number, opts: { delaySec?: number } = {}) {
   const run = await getRun(db, id);
+  if (!run.demo) throw new HttpError(409, "This run is non-custodial: the server holds no payer key, so this payer action needs your own wallet (scripts/sign_local.ts).");
   if (run.settled_at) throw new HttpError(409, "This run is settled — its unused funds were swept back. Start a new demo run to re-issue.");
   const fx = runFixtures()[run.scenario]!;
   // under the run lock: one fresh line per stopped line (a double click or a retry resumes it, never forks a second one)
@@ -636,6 +637,7 @@ export async function syncStatus(db: Db | Tx, ctx: ChainCtx, id: string, runId: 
  */
 export async function financeDecide(db: Db, ctx: ChainCtx, id: string, idx: number, action: "allow" | "stop", findingId?: string) {
   const run = await getRun(db, id);
+  if (!run.demo) throw new HttpError(409, "This run is non-custodial: the server holds no payer key, so this payer action needs your own wallet (scripts/sign_local.ts).");
   const { evidenceHash, reasonToBytes32 } = await import("brake-signer");
   const verdict = action === "allow" ? "FINANCE_ALLOW" : "FINANCE_STOP";
   return withTx(db, async (c) => {
@@ -673,6 +675,7 @@ export async function financeDecide(db: Db, ctx: ChainCtx, id: string, idx: numb
 
 export async function revokeAgent(db: Db, ctx: ChainCtx, id: string) {
   const run = await getRun(db, id);
+  if (!run.demo) throw new HttpError(409, "This run is non-custodial: the server holds no payer key, so this payer action needs your own wallet (scripts/sign_local.ts).");
   const data = encodeFunctionData({ abi: brakeAbi, functionName: "revokeAgent", args: [run.run_id] });
   const tx = await sendQueued(db, ctx, { role: "payer", runId: id, action: "revokeAgent", idempotencyKey: `${id}:revoke`, to: ctx.cfg.brake, data });
   return { tx: tx.hash, status: tx.status };
