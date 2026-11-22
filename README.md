@@ -5,7 +5,7 @@
   <img src="docs/assets/brand/readme-hero-animated.svg" alt="Brake — a cancel-only agent stops a pre-signed tUSD8 payment line before payday: A red STOP PAYMENT stamp lands across line 3 — 5,000 tUSD8 — with the cancel tx hash as its serial number." width="100%">
   <p>Finance signs each payment together with its cancellation. A monitor agent can stop a line or hold it for finance, and it cannot create a payment or change where one goes.</p>
 
-  <p><strong>Status: built and tested on an anvil fork of Aevum 44005. The live testnet deployment, live URL and explorer-verified contracts are pending testnet funding</strong> (see <a href="#%EF%B8%8F-live-deployment">Live Deployment</a>).</p>
+  <p><strong>Status: live on Aevum testnet 44005.</strong> Contracts deployed, the app runs at <a href="https://app.brake.edycu.dev/">app.brake.edycu.dev</a>, and the hero, TOO LATE and stop-budget runs executed on the live chain with <code>claude-sonnet-5-5</code>. Every hash is in <a href="#%EF%B8%8F-live-deployment">Live Deployment</a>.</p>
 
   <br/>
 
@@ -33,7 +33,7 @@
 
 ## 📸 See it in Action
 
-Screens of the product running against a local anvil fork of Aevum 44005 (labelled: not the live chain). The hero walk through the real UI takes about a minute (engine hero run: 64.4 s, `evidence/hero-fork.json`; script: `apps/web/e2e/hero_walk.py`).
+These screens were captured on a local anvil fork of Aevum 44005 during the build (each is labelled). The same flow has since run on the live chain: the live hero took 71.1 s end to end (`evidence/hero-live.json`), and the app at [app.brake.edycu.dev](https://app.brake.edycu.dev/) shows that run with explorer links.
 
 | Run sheet (Monday: every line ALLOWED) | Run sheet (Tuesday: line 3 STOPPED) |
 |---|---|
@@ -90,7 +90,7 @@ flowchart LR
   end
   DB[(Postgres)]
   LLM[Anthropic API]
-  subgraph Aevum[Aevum 44005 · fork today, live pending]
+  subgraph Aevum[Aevum testnet 44005 · live]
     BR[Brake.sol]
     VR[ERC-8004 Validation]
     T[tUSD8]
@@ -122,7 +122,7 @@ Full component and sequence diagrams: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Brake builds on what is live on Aevum 44005 (checked with `eth_getCode` / `eth_call` against `https://rpc-test.qday.info`), and does not use what is not live (`@qday-io/sdk`, PQ precompiles, a public bundler or paymaster).
 
-- **tUSD8 EIP-3009** `transferWithAuthorization`, `cancelAuthorization`, `authorizationState`, plus `isBlacklisted`: the whole stop mechanism. G1 proves any caller, an EOA or a contract, can submit a payer's pre-signed cancel (`test/G1CancelAuthority.t.sol`, 7 tests; `evidence/g1-fork.json`).
+- **tUSD8 EIP-3009** `transferWithAuthorization`, `cancelAuthorization`, `authorizationState`, plus `isBlacklisted`: the whole stop mechanism. G1 proves any caller, an EOA or a contract, can submit a payer's pre-signed cancel (`test/G1CancelAuthority.t.sol`, 7 tests; live on 44005 in `evidence/g1.json`: cancel from an unrelated EOA [`0x8cb8d550…30c2`](https://explorer-test.qday.info/tx/0x8cb8d550f03616e14ef00682022dd20a4ade46e090c8466766d6799dc98330c2), cancel through a contract [`0x50c5cfcc…2df5`](https://explorer-test.qday.info/tx/0x50c5cfcc0d470f71ab91b75cbea227cc820df0c19543bd919e4d293fd2c12df5), the cancelled payment then reverts [`0x07dbb275…bb7d`](https://explorer-test.qday.info/tx/0x07dbb27599ac8615360e0e52e04475ec2193c334c330e76ffd2b6dd52529bb7d)).
 - **Multicall3** `aggregate3`: one payday transaction pays N lines.
 - **ERC-8004**: the canonical ERC-8004 Identity and Reputation addresses have no code on 44005 (`evidence/live-chain-probe.json`), so Brake self-deploys the reference registries (`src/ERC8004Bootstrap.sol`, reference commit `b9e466c`, answers in `evidence/g2a.json`). `openRun` binds the agent's identity (`agentId`); each decision writes a Validation Registry response (ALLOW 100, HOLD 50, STOP 0).
 - **Arachnid CREATE2** deployer for deterministic addresses.
@@ -142,31 +142,44 @@ Brake builds on what is live on Aevum 44005 (checked with `eth_getCode` / `eth_c
 
 ## ⛓️ Live Deployment
 
-**Not yet deployed to the live chain.** The testnet wallets were unfunded when this was built (faucet step pending), so every transaction below ran on an anvil fork of Aevum 44005. Fork hashes exist only on that fork, are never on the explorer, and are labelled `fork` everywhere. The live re-run (deploy, explorer verification, hero, TOO LATE, flood, `sign_local`) is a scripted first step once the wallets are funded.
+**No wallet needed to check any of this:** every link below is a read-only explorer page, and [app.brake.edycu.dev/verify](https://app.brake.edycu.dev/verify) reads the same contracts and events from the chain in your browser.
 
-| Item | Value | Status |
+| Contract | Address on Aevum testnet 44005 | Source |
 |---|---|---|
-| tUSD8 (live, read-only target) | `0x456569838f1d43009A91ebA4263147Afd7233483` | live on 44005 ([explorer](https://explorer-test.qday.info/address/0x456569838f1d43009A91ebA4263147Afd7233483)) |
+| Brake | [`0xbDB614Ce4f1319f78DBF3856070092Cc83405B59`](https://explorer-test.qday.info/address/0xbDB614Ce4f1319f78DBF3856070092Cc83405B59) | verified on the explorer |
+| ERC-8004 IdentityRegistry (proxy) | [`0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e`](https://explorer-test.qday.info/address/0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e) | implementation [`0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8`](https://explorer-test.qday.info/address/0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8) verified |
+| ERC-8004 ValidationRegistry (proxy) | [`0xC4496D7B66f2b768Ea61922A9Fe923f272007b83`](https://explorer-test.qday.info/address/0xC4496D7B66f2b768Ea61922A9Fe923f272007b83) | implementation [`0x1bE269891c41D728aC4B94fd528eb0A70F346E48`](https://explorer-test.qday.info/address/0x1bE269891c41D728aC4B94fd528eb0A70F346E48) verified |
+| tUSD8 (Circle FiatToken v2.2 clone, not ours) | [`0x456569838f1d43009A91ebA4263147Afd7233483`](https://explorer-test.qday.info/address/0x456569838f1d43009A91ebA4263147Afd7233483) | live on 44005 |
 | Multicall3 | `0xcA11bde05977b3631167028862bE2a173976CA11` | live on 44005 |
-| Brake (fork) | see `evidence/deploy-44005-fork.json` | fork only |
-| Brake, registries (live) | pending | not deployed, not verified |
 
-Fork evidence (each file is labelled `deployment: fork`; `g1-fork.json` records its fork block 3252145, and the forge tests pin `FORK_BLOCK` 3252000): `evidence/hero-fork.json`, `late-fork.json`, `flood-fork.json`, `g1-fork.json`, `sign-local-fork.json`. The reproduce steps are in [DEMO.md](DEMO.md).
+Agent identity: ERC-8004 agentId 0, owned by the demo payer; deployed at block 3,821,162 (`evidence/deploy-44005-live.json`).
+
+**Live runs** (model `claude-sonnet-5-5` through the Anthropic API; amounts are the seed invoices × 0.0001 so the faucet can fund them):
+
+| Run | What happened on chain | Transactions |
+|---|---|---|
+| Hero (`evidence/hero-live.json`, 71.1 s) | Monday ALLOW ×4 → Tuesday's email → the model alone stops line 3 (rules fired: none) → lines 1, 2, 4 paid in one Multicall3 batch → line 3's replay reverts `FiatTokenV2: authorization is used or canceled` → finance re-issues line 3 to the phone-verified wallet and it pays | allow [`0xf86f81bc…2943`](https://explorer-test.qday.info/tx/0xf86f81bcec65623a076132b2da6e4427741f853716a608a336b2cee7fc462943) · stop [`0x8832f90c…a581`](https://explorer-test.qday.info/tx/0x8832f90c883dd036839236f3871cef55b149675f623058fe789de3871ec5a581) · batch [`0x89e46933…4d93`](https://explorer-test.qday.info/tx/0x89e469336139f5afd2db1410b686ebe95036c916899acd0c7391a64d4c314d93) · revert [`0x70f0ce1d…345e`](https://explorer-test.qday.info/tx/0x70f0ce1dccf151c5056e3983bba4be0d673d4425edab2f35d68ccebf119f345e) · re-issue paid [`0xe04f2975…f206`](https://explorer-test.qday.info/tx/0xe04f2975fb83ab6c9ff8013f6a978472d3990832aa99e2d65a99acbdfbb7f206) |
+| TOO LATE (`evidence/late-live.json`, 17.0 s) | the keeper pays first, then the "double billed" email arrives; the agent's stop lands on a used nonce, Brake records CONSUMED, the reconciler reads `AuthorizationUsed` and marks TOO LATE with a recovery ticket. The agent never claims a stop it did not make | payment [`0x6d324406…6b9d`](https://explorer-test.qday.info/tx/0x6d32440628c1669f5017041cbfbeac8c261e75121eca8f32cf10a1a264716b9d) · stop → CONSUMED [`0xa5da56c4…01a3`](https://explorer-test.qday.info/tx/0xa5da56c4180e3fc1ba17a8f2d87323f8cdf8eec5dc39b8172af071e8c53e01a3) |
+| Stop budget (`evidence/flood-live.json`, 70.7 s) | three lookalike "goods not received" emails: stop #1, stop #2 fires `StopAlarm`, attempt #3 hits `StopBudgetExhausted` and becomes an on-chain HOLD with an escalation ticket; payday pays line 4 and proves both stops | stop #1 [`0xc30c865e…6646`](https://explorer-test.qday.info/tx/0xc30c865e80d60948d52352bbeae3abde4a7ce9b9b4f0ff479f56fe64e48b6646) · stop #2 + alarm [`0x4d848357…97a6`](https://explorer-test.qday.info/tx/0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6) · budget hold [`0x6e88f1d1…7f6b`](https://explorer-test.qday.info/tx/0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b) · payday [`0x3309930c…acde`](https://explorer-test.qday.info/tx/0x3309930c6a8d6ae103930b6d27f1ea8e0ce130cfae90f0e372a940b613abacde) |
+| G1 kill test (`evidence/g1.json`) | the token itself enforces the cancel: any caller can submit the payer's pre-signed cancel, and the paired payment then reverts | see the tUSD8 bullet in the sponsor section |
+
+Still fork-only: the authorization-only `sign_local.ts` run (`evidence/sign-local-fork.json`) and the forge suite, which pins tUSD8 state at block 3,252,000 so CI is reproducible. Fork files are labelled `deployment: fork` and their hashes never appear on the explorer.
 
 ## 📊 Engineering Rigor
 
 | Metric | Value | Source |
 |---|---|---|
-| Tests | 126 passing: forge 50 + brake-signer 12 + engine 64 | `evidence/test-counts.json` |
+| Tests | 131 passing: forge 50 + brake-signer 12 + engine 69 | `evidence/test-counts.json` |
 | Property checks (fast-check) | 3 properties × 10,000 generated cases = 30,000, 0 counterexamples | `packages/engine/test/properties.test.ts` |
 | E2E (Playwright) | 24 passing: `/judge` with no credentials, no-key smoke, responsive 375/768/1440, desktop + Pixel 7 | `apps/web/e2e/*.spec.ts` |
 | Forge tests run against | tUSD8 state at fork block 3252000 | `evidence/test-counts.json` |
-| Latency, email to cancel confirmed (fork, n=11) | p50 4,116 ms, p95 6,285 ms | `bench/results.json` |
-| Gas, median | stop 183,023 · allow 1,092,452 · payday 109,418 · reissue 312,767 (measured at `494c2a6`, before the a2a architecture contract change) | `bench/results.json` |
+| Latency, email to cancel confirmed (live, n=10) | p50 4,987 ms, p95 10,093 ms (with n=10, p95 sits near the slowest run, 11.9 s) | `bench/results.json`, rows in `evidence/bench-rows.json` |
+| Gas, live median | stop that cancels ~183,000 (n=3) · stop on an already-used nonce 58,941 (n=7, TOO LATE) · allow 302,846 · payday 109,418 · reissue 312,789 · openRun 376,160 | `evidence/bench-rows.json` (receipts from the Aevum RPC) |
 | Agent-initiated transfers | 0 | `bench/results.json` |
-| Hero, model-only stop (5 runs, at `dbb1acb`) | line 3 STOP 5/5 with 0 rules fired; Monday ALLOW all lines 5/5; with the model stubbed, line 3 is ALLOWED | `evidence/g4/hero-sonnet-5-5-cli.json` |
+| Hero, model-only stop (5 runs) | line 3 STOP 5/5 with 0 rules fired; Monday ALLOW all lines 5/5; with the model stubbed, line 3 is ALLOWED | `evidence/g4/hero-sonnet-5-5.json` |
+| Injection suite (25 emails) | with the model: tune 19/19, held-out 6/6, 0 missed, 0 false stops; rules alone: 4/19 and 2/6 | `evidence/g4/{tune,holdout}-{sonnet-5-5,none}.json` |
 
-The model runs used `claude-sonnet-5-5` through a local CLI adapter (labelled in each file). The SDK path was not measured. **The injection-suite and hero model numbers were measured at commit `dbb1acb` (rules-only tune baseline at `2ba7609`), before the agent changes of the a2a architecture review (unverified findings now HOLD, fail-closed model output, quote verifier); re-measuring them is on the roadmap.**
+The model figures come from `claude-sonnet-5-5` through the Anthropic API (the production path). Earlier runs through a local CLI adapter are kept beside them (`*-sonnet-5-5-cli.json`) and say so in each file. This is a 25-email regression suite, not a detection rate.
 
 ### Injection suite (25 emails, G4)
 
@@ -271,7 +284,7 @@ Contract surface (`src/Brake.sol`): `openRun`, `allow`, `hold`, `stop`, `finance
 ```bash
 forge test                                   # 50 fork tests (tUSD8 state at block 3252000)
 pnpm --filter brake-signer test              # 12
-pnpm --filter @brake/engine test             # 64 incl. 3 fast-check properties (integration tests skip without a fork and local keys)
+pnpm --filter @brake/engine test             # 69 incl. 3 fast-check properties (integration tests skip without a fork and local keys)
 pnpm g4                                      # the 25-email injection suite
 python3 scripts/bench.py                     # reproduce bench/results.json from evidence/bench-rows.json
 python3 apps/web/e2e/hero_walk.py            # the hero through the real UI (needs pnpm fork:up)
@@ -291,7 +304,7 @@ pnpm ci                                      # fmt + forge + typecheck + tests +
 | 5 · Performance | Lighthouse CI on the app and the landing/deck; accessibility ≥ 0.9 is a hard gate |
 | 6 · Deploy gate | main only, after every stage above |
 
-Also: CodeQL (`codeql.yml`), Dependabot (grouped, monthly), and `release.yml`, which tags a semantic version from Angular-convention commits (`feat:` minor, `fix:` patch). The 19 engine integration tests need a local anvil fork and keys, so CI runs them as skipped; they pass locally with `pnpm fork:up` (`evidence/test-counts.json`).
+Also: CodeQL (`codeql.yml`), Dependabot (grouped, monthly), and `release.yml`, which tags a semantic version from Angular-convention commits (`feat:` minor, `fix:` patch). The 21 engine integration tests need a local anvil fork and keys, so CI runs them as skipped; they pass locally with `pnpm fork:up` (`evidence/test-counts.json`).
 
 ## 📁 Project Structure
 
@@ -309,19 +322,20 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 
 ## 🗺️ Roadmap
 
-- [x] G1: any caller can submit a payer's pre-signed cancel on tUSD8 (fork)
+- [x] G1: any caller can submit a payer's pre-signed cancel on tUSD8 (live on 44005)
 - [x] Brake contract, ERC-8004 receipts, re-issue, stop budget, TOO LATE
 - [x] Agent: rules, model, policy, verbatim-quote check; injection suite
 - [x] Product app and guided hero walk
 - [x] `sign_local.ts` authorization-only run (fork)
 - [ ] Live deploy on 44005, explorer verification, live hero / TOO LATE / flood runs (needs funded wallets)
 - [ ] Re-measure the model step through the Anthropic SDK path
-- [ ] Re-generate bench and fork evidence from the live run
+- [x] Live deploy on 44005, live hero / TOO LATE / stop-budget runs, live bench
+- [ ] `sign_local.ts` authorization-only run on the live chain (needs one more faucet claim)
 - [ ] `brake-signer` npm publish (human step)
 
 ## 📽️ Demo Materials
 
-Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: https://brake.edycu.dev/ ([source](docs/index.html)). Pitch deck: https://brake.edycu.dev/pitch/ ([source](docs/pitch/index.html)). One page for judges: [JUDGE.md](JUDGE.md) (also `/judge` in the app). Live app: https://app.brake.edycu.dev/ (Aevum testnet 44005).
+Reproduce steps with the live hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: https://brake.edycu.dev/ ([source](docs/index.html)). Pitch deck: https://brake.edycu.dev/pitch/ ([source](docs/pitch/index.html)). One page for judges: [JUDGE.md](JUDGE.md) (also `/judge` in the app). Live app: https://app.brake.edycu.dev/ (Aevum testnet 44005).
 
 ## 📄 License
 
