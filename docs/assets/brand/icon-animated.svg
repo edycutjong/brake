@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Brake — a cancel-only agent stops a pre-signed tUSD8 payment line before payday: A red STOP PAYMENT stamp lands across line 3 — 5,000 tUSD8 — with the cancel tx hash as its serial number.">
+  <!-- STORYBOARD (dur 6s — must equal this file's single master dur)
+    0-10%   steady state (= the poster, and the reduced-motion still): the register sheet with line 3 under the red stamp
+            (no-entry core), its amount red; lines 1, 2, 4 paid — green ticks, amounts in ink. This is the residue of the
+            previous loop, held across the seam. Fully visible at t=0.
+    10-30%  trigger: the sheet resets to Monday (10-13.5%: stamp and ticks lift, all four amounts carbon-copy blue); an envelope
+            (the vendor email) slides into line 3's margin; a blue scan band sweeps rows 1-4 and settles on line 3. data-story="beat-2"
+    31-58%  mechanism: A red STOP PAYMENT stamp lands across line 3 — 5,000 tUSD8 — with the cancel tx hash as its serial number.
+            (the stamp thumps back in at 31%, line 3's amount turns red, the stamp's inner rule draws.)
+    60-70%  resolution: payday — PAID ticks pop whole beside lines 1, 2, 4 (60 / 63 / 66%), never half-drawn; amounts clear to ink.
+    70-100% breathe + seam: the stamped, paid state holds to the end and IS the next loop's frame 0 (seam pair identical).
+  -->
+  <defs>
+    <style>
+      .pop, .thump, .echo { transform-box: fill-box; transform-origin: center; }
+      [data-story] { pointer-events: none; }
+      /* reduced motion: stop CSS motion AND pin the stamped state (author !important outranks SMIL-animated values) */
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; }
+        .rm-off { opacity: 0 !important; }
+        .rm-on { opacity: 1 !important; }
+        .rm-red { fill: #C2272D !important; }
+        .rm-ink { fill: #1C2230 !important; }
+        .rm-drawn { stroke-dashoffset: 0 !important; }
+      }
+      .thump { animation: thump 6s cubic-bezier(.2,1.4,.4,1) infinite; }
+      @keyframes thump { 0%, 13.6% { transform: scale(1) rotate(0deg); } 14%, 31% { transform: scale(1.7) rotate(5deg); } 33.6% { transform: scale(.97) rotate(0deg); } 35%, 100% { transform: scale(1) rotate(0deg); } }
+      .jolt { animation: jolt 6s linear infinite; }
+      @keyframes jolt { 0%, 31.4% { transform: translate(0, 0); } 31.8% { transform: translate(1.6px, 1.3px); } 32.4% { transform: translate(-1px, -.6px); } 33%, 100% { transform: translate(0, 0); } }
+      .pop0 { animation: pop0 6s cubic-bezier(.2,1.4,.4,1) infinite; }
+      @keyframes pop0 { 0%, 13.6% { transform: scale(1); } 14%, 60% { transform: scale(1.5); } 63% { transform: scale(.96); } 64.5%, 100% { transform: scale(1); } }
+      .pop1 { animation: pop1 6s cubic-bezier(.2,1.4,.4,1) infinite; }
+      @keyframes pop1 { 0%, 13.6% { transform: scale(1); } 14%, 63% { transform: scale(1.5); } 66% { transform: scale(.96); } 67.5%, 100% { transform: scale(1); } }
+      .pop2 { animation: pop2 6s cubic-bezier(.2,1.4,.4,1) infinite; }
+      @keyframes pop2 { 0%, 13.6% { transform: scale(1); } 14%, 66% { transform: scale(1.5); } 69% { transform: scale(.96); } 70.5%, 100% { transform: scale(1); } }
+    </style>
+    <filter id="ink" x="-10%" y="-20%" width="120%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.7 2.05" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+    <clipPath id="sheet"><rect x="73" y="73" width="366" height="366" rx="12"/></clipPath>
+  </defs>
+
+  <g class="jolt">
+    <!-- brand layer: second sheet + register sheet -->
+    <rect x="59" y="59" width="422" height="422" rx="34" fill="#1C2230"/>
+    <rect x="45" y="45" width="422" height="422" rx="34" fill="#F3F1E7"/>
+    <rect x="45" y="45" width="422" height="422" rx="34" fill="none" stroke="#1C2230" stroke-width="18"/>
+    <rect x="73" y="73" width="366" height="366" rx="12" fill="none" stroke="#1C2230" stroke-width="5"/>
+    <path d="M137 73V439" fill="none" stroke="#1C2230" stroke-width="6"/>
+    <path d="M137 164.5H439M137 256H439M137 347.5H439" fill="none" stroke="#C9CDBF" stroke-width="5"/>
+
+    <!-- beat 2: scan band sweeps rows 1-4, settles on line 3 -->
+    <g data-story="beat-2" opacity="0" class="rm-off"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.18;0.2;0.28;0.31;1"/>
+      <rect x="138" y="73" width="300" height="91.5" fill="#2F4FA2" opacity=".13"><animate attributeName="y" dur="6s" repeatCount="indefinite" values="73;73;164.5;256;347.5;256;256" keyTimes="0;0.19;0.21;0.24;0.27;0.28;1"/></rect>
+    </g>
+
+    <!-- the four typed amounts: at t=0 line 3 is red (stopped) and 1, 2, 4 are ink (paid); blue (scheduled) between reset and their beat -->
+    <rect x="253" y="104" width="160" height="30" rx="5" fill="#1C2230" class="rm-ink"><animate attributeName="fill" dur="6s" repeatCount="indefinite" values="#1C2230;#1C2230;#2F4FA2;#2F4FA2;#1C2230;#1C2230" keyTimes="0;0.1;0.14;0.6;0.62;1"/></rect>
+    <rect x="217" y="195" width="196" height="30" rx="5" fill="#1C2230" class="rm-ink"><animate attributeName="fill" dur="6s" repeatCount="indefinite" values="#1C2230;#1C2230;#2F4FA2;#2F4FA2;#1C2230;#1C2230" keyTimes="0;0.1;0.14;0.63;0.65;1"/></rect>
+    <rect x="185" y="287" width="228" height="30" rx="5" fill="#C2272D" class="rm-red"><animate attributeName="fill" dur="6s" repeatCount="indefinite" values="#C2272D;#C2272D;#2F4FA2;#2F4FA2;#C2272D;#C2272D" keyTimes="0;0.1;0.14;0.31;0.33;1"/></rect>
+    <rect x="307" y="378" width="106" height="30" rx="5" fill="#1C2230" class="rm-ink"><animate attributeName="fill" dur="6s" repeatCount="indefinite" values="#1C2230;#1C2230;#2F4FA2;#2F4FA2;#1C2230;#1C2230" keyTimes="0;0.1;0.14;0.66;0.68;1"/></rect>
+
+    <!-- beat 2: the vendor email arrives in line 3's margin -->
+    <g clip-path="url(#sheet)">
+      <g data-story="beat-2" opacity="0" class="rm-off"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.17;0.18;0.3;0.33;1"/>
+        <g><animateTransform attributeName="transform" type="translate" dur="6s" repeatCount="indefinite" values="-80 0;-80 0;0 0;0 0" keyTimes="0;0.17;0.23;1"/>
+          <rect x="85" y="288" width="42" height="29" rx="3" fill="#F3F1E7" stroke="#1C2230" stroke-width="5"/>
+          <path d="M86 290l20 15 20-15" fill="none" stroke="#1C2230" stroke-width="5" stroke-linejoin="round"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- beat 3: the STOP PAYMENT stamp on line 3 — visible at t=0 (poster), lifts at the reset, lands again at 31% -->
+    <g transform="translate(275 302) rotate(-8)">
+      <g class="thump rm-on"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="1;1;0;0;1;1" keyTimes="0;0.1;0.14;0.31;0.32;1"/>
+        <!-- the stamp's paper: OPAQUE and outside the ink filter, so line 3's bar / the rules never bleed through (QA r2 M3) -->
+        <rect x="-158" y="-54" width="316" height="108" rx="9" fill="#F3F1E7"/>
+        <g filter="url(#ink)">
+          <rect x="-158" y="-54" width="316" height="108" rx="9" fill="none" stroke="#C2272D" stroke-width="20"/>
+          <rect x="-134" y="-30" width="268" height="60" rx="3" fill="none" stroke="#C2272D" stroke-width="6" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0" class="rm-drawn"><animate attributeName="stroke-dashoffset" dur="6s" repeatCount="indefinite" values="0;0;100;100;0;0" keyTimes="0;0.1;0.14;0.32;0.38;1"/></rect>
+          <rect x="-70" y="-19" width="140" height="38" rx="19" fill="#C2272D"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- beat 4: payday — PAID ticks beside lines 1, 2, 4; visible at t=0, pop back WHOLE at their beat (no half-drawn fragment) -->
+    <g class="pop pop0 rm-on"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="1;1;0;0;1;1" keyTimes="0;0.1;0.14;0.6;0.6;1"/>
+      <path d="M207 119l10 10 20-22" fill="none" stroke="#2E6B4F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="pop pop1 rm-on"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="1;1;0;0;1;1" keyTimes="0;0.1;0.14;0.63;0.64;1"/>
+      <path d="M171 210l10 10 20-22" fill="none" stroke="#2E6B4F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="pop pop2 rm-on"><animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="1;1;0;0;1;1" keyTimes="0;0.1;0.14;0.66;0.67;1"/>
+      <path d="M261 393l10 10 20-22" fill="none" stroke="#2E6B4F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>
