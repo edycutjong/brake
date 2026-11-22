@@ -50,7 +50,7 @@ const DEFAULT_LIMITS: Limits = {
 
 /** tUSD8 signed into demo runs over the last 24 h (sweeps return it, but the cap bounds what one day can put at risk). */
 const SPENT_TODAY = `select coalesce(sum(l.amount_units), 0)::text as s from lines l join runs r on r.id = l.run_id
-  where r.created_at > now() - interval '1 day'`;
+  where r.demo and r.created_at > now() - interval '1 day'`; // wallet-mode runs never touch the demo payer (a2a arch r03)
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body, (_k, v) => (typeof v === "bigint" ? v.toString() : v)), {
@@ -325,20 +325,22 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
   const row = r.rows[0];
   if (!row) throw new HttpError(404, "unknown evidence hash");
   const session = await hasSession(req, db, row.run_id);
-  const ev = row.evidence as { findings?: { quotes: { messageId: string; text: string }[]; note?: string }[] };
+  type F = { quotes: { messageId: string; text: string }[]; note?: string };
+  const ev = row.evidence as { findings?: F[]; unverified?: F[] };
   const composerIds = new Set(
     (await db.query<{ id: string }>(`select id from inbox where run_id = $1 and source = 'composer'`, [row.run_id])).rows.map((x) => x.id),
   );
-  const hasPrivate = (ev.findings ?? []).some((f) => f.quotes.some((q) => composerIds.has(q.messageId)));
+  // unverified findings (a failed quote check → HOLD) carry model output too: redact both lists (a2a arch r03)
+  const touches = (f: F) => (f.quotes ?? []).some((q) => composerIds.has(q.messageId));
+  const hasPrivate = [...(ev.findings ?? []), ...(ev.unverified ?? [])].some(touches);
   if (hasPrivate && !session) {
-    const redacted = {
-      ...ev,
-      findings: (ev.findings ?? []).map((f) => ({
+    const scrub = (list?: F[]) =>
+      list?.map((f) => ({
         ...f,
-        quotes: f.quotes.map((q) => (composerIds.has(q.messageId) ? { messageId: q.messageId, text: "[session-private]" } : q)),
-        ...(f.quotes.some((q) => composerIds.has(q.messageId)) ? { note: "[session-private]" } : {}),
-      })),
-    };
+        quotes: (f.quotes ?? []).map((q) => (composerIds.has(q.messageId) ? { messageId: q.messageId, text: "[session-private]" } : q)),
+        ...(touches(f) ? { note: "[session-private]" } : {}),
+      }));
+    const redacted = { ...ev, findings: scrub(ev.findings) ?? [], ...(ev.unverified ? { unverified: scrub(ev.unverified) } : {}) };
     return json(200, { hash: p.hash, redacted: true, label: "contains session-private quotes — full recompute needs the session token", evidence: redacted });
   }
   return json(200, { hash: p.hash, redacted: false, label: "authored demo data (seed emails written by the builder)", evidence: ev });
@@ -346,7 +348,9 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
 
 route("GET", "/api/verify/events", async (req, _p, { db, ctx }) => {
   const q = new URL(req.url).searchParams;
-  const since = BigInt(q.get("since") ?? "0");
+  const sinceRaw = q.get("since") ?? "0";
+  if (!/^\d{1,20}$/.test(sinceRaw)) throw new HttpError(400, "since must be a block number");
+  const since = BigInt(sinceRaw);
   const runFilter = /^run_[0-9a-f]{8,32}$/.test(q.get("run") ?? "") ? q.get("run")! : null;
   await maybeReconcile(db, ctx);
   const head = await ctx.pub.getBlockNumber();
