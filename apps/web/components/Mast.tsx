@@ -25,7 +25,7 @@ export default function Mast() {
   return (
     <header className="mast">
       <div className="wrap">
-        <Link href="/" className="brand" aria-label="Brake, home">
+        <Link href="/" className="brand">
           <Mark />
           Brake
           <span className="env" title="Aevum testnet, chain 44005">testnet</span>

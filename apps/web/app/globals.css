@@ -281,3 +281,7 @@ main > .label:first-child { margin-top: 32px; }
 }
 @media (max-width: 639px) { .rl .bigstamp { font-size: .8rem; margin: 4px 0 2px; } .rl .bigstamp small { font-size: .66rem; } }
 .register, .hero { overflow-x: clip; }
+
+/* reserved heights for blocks filled after load (keeps CLS under 0.1 on /verify) */
+.slot-contracts { min-height: 176px; } .slot-obs { min-height: 76px; } .slot-events { min-height: 560px; }
+@media (max-width: 639px) { .slot-contracts { min-height: 330px; } .slot-obs { min-height: 150px; } }

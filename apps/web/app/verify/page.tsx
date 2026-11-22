@@ -73,6 +73,7 @@ export default function Verify() {
       <p className="lede">Everything here is read from the chain or recomputed in your browser — nothing is taken on trust from this page.</p>
 
       <h2>Contracts</h2>
+      <div className="slot slot-contracts">
       {health ? (
         <dl className="kv">
           {Object.entries(health.contracts).map(([k, v]) => (
@@ -80,18 +81,22 @@ export default function Verify() {
           ))}
         </dl>
       ) : <p className="muted">Loading…</p>}
+      </div>
       {!live && health ? <p className="note">Local fork deployment — addresses exist only on a local copy of Aevum (44005).</p> : null}
 
       <h2>Live observations <span className="tag">observations, not proof</span></h2>
+      <div className="slot slot-obs">
       {obs ? (
         <dl className="kv">
           <dt>Allowance payer → agent</dt><dd className="data"><b>{obs.allowance}</b> <span className="note">(tUSD8 units; read at block {obs.block})</span></dd>
           <dt>Agent&apos;s tUSD8 balance</dt><dd className="data">{obs.agentBalance} <span className="note">— unsolicited transfers only, not payer funds</span></dd>
         </dl>
       ) : <p className="muted">{err ? "Observations unavailable." : "Reading tUSD8…"}</p>}
+      </div>
 
       <h2>On-chain events <span className="note" role="status">· polled every 3 s{ev ? ` · head ${ev.head} · finalized ${ev.finalized}` : ""}</span></h2>
       {runId ? <label style={{ display: "flex", gap: 8, alignItems: "center", minHeight: 44 }}><input type="checkbox" style={{ width: 24, minHeight: 24 }} checked={mine} onChange={(e) => setMine(e.target.checked)} /><span>Only events of my run</span></label> : null}
+      <div className="slot slot-events">
       {err ? <p className="err" role="alert">{err}</p> : null}
       {ev && ev.events.length === 0 ? <div className="empty">No events yet — start a demo run and play the hero.</div> : null}
       {ev && ev.events.length ? (
@@ -112,6 +117,8 @@ export default function Verify() {
           </table>
         </div>
       ) : null}
+      {!ev && !err ? <p className="muted">Reading events…</p> : null}
+      </div>
       {ev && ev.events.length > shown ? <p><button className="btn ghost small" onClick={() => setShown(shown + 25)}>Show 25 more ({ev.events.length - shown} older)</button></p> : null}
       <p className="note">Aevum&apos;s &ldquo;finalized&rdquo; tag lags the head by thousands of blocks (observed ~78 min); the depth column reports soft confirmations and finalization separately.</p>
 

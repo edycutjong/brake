@@ -6,7 +6,8 @@ import Mast, { Mark } from "@/components/Mast";
 
 const display = Ibarra_Real_Nova({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-display", display: "swap" });
 const body = Libre_Franklin({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--nf-body", display: "swap" });
-const data = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-data", display: "swap" });
+// next/font has no monospace fallback metrics (it would fall back to Arial and reflow every data line); Courier New is metric-matched
+const data = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-data", display: "swap", adjustFontFallback: false, fallback: ["Courier New", "monospace"] });
 
 const TITLE = "Brake — stop a payment run before it clears";
 const DESCRIPTION =
@@ -21,8 +22,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: { title: TITLE, description: DESCRIPTION, siteName: "Brake", type: "website", locale: "en_US" },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  authors: [{ name: "Edy Cu", url: "https://github.com/edycutjong" }],
+  creator: "Edy Cu",
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "/", siteName: "Brake", type: "website", locale: "en_US" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, creator: "@edycutjong" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#F3F1E7" };
 
