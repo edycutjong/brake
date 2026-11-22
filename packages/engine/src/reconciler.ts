@@ -4,7 +4,7 @@ import { sendQueued, type ChainCtx } from "./chain.js";
 import { lock, withTx, type Db } from "./db.js";
 import { enqueueReview } from "./runs.js";
 
-const CHUNK = 5_000n;
+const CHUNK = 1_000n; // Aevum RPC rejects eth_getLogs spans over 1,000 blocks ("block range too large, max range: 1000")
 const usedEvent = eip3009Abi.find((x) => x.type === "event" && x.name === "AuthorizationUsed")!;
 const canceledEvent = eip3009Abi.find((x) => x.type === "event" && x.name === "AuthorizationCanceled")!;
 

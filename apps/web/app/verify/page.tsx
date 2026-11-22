@@ -68,7 +68,7 @@ export default function Verify() {
   const fakeRun = { explorer: EXPLORER, deployment: health?.deployment ?? "fork" };
   return (
     <>
-      <nav className="nav" aria-label="Screens" style={{ marginTop: 6 }}><Link href="/">Home</Link>{last ? <Link href={`/run/${last}`}>Back to your run</Link> : null}<Link href="/verify" aria-current="page">Verify</Link></nav>
+      {last ? <p className="label" style={{ marginTop: 28 }}><Link href={`/run/${last}`}>← Back to your run</Link></p> : null}
       <h1>Verify</h1>
       <p className="lede">Everything here is read from the chain or recomputed in your browser — nothing is taken on trust from this page.</p>
 
