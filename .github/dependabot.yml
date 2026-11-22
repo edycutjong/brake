@@ -2,11 +2,22 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # majors are migrations, not maintenance; they stay deliberate during the submission window
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
-  - package-ecosystem: gitsubmodule
-    directory: /
     schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ["*"]
+# lib/ submodules (forge-std, OpenZeppelin v5.4.0) are pinned to release tags and bumped by hand:
+# Dependabot's gitsubmodule updates track untagged master commits, which verified contracts must not build from.
+# Security alerts stay on regardless of this file.
