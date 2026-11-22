@@ -56,11 +56,26 @@ export async function applyDecisions(db: Db, ctx: ChainCtx, id: string, reviewed
         stale = true;
         continue;
       }
+      // finance already decided this exact evidence revision: an automated review that started before it does not
+      // overrule it (new evidence bumps the revision and re-opens review) — a2a arch r03
+      const fin = await c.query(
+        `select 1 from decisions where run_id = $1 and idx = $2 and rev = $3 and verdict in ('FINANCE_ALLOW','FINANCE_STOP') limit 1`,
+        [id, idx, rev],
+      );
+      if (fin.rowCount) {
+        out.push({ idx, verdict, action: "noop", note: `finance decided evidence revision ${rev}` });
+        continue;
+      }
       const key = decisionKey(id, idx, rev, verdict);
-      // autocommit (not `c`): the tx helpers update this row from other connections; the run lock still serializes
+      // autocommit (not `c`): the tx helpers update this row from other connections; the run lock still serializes.
+      // A retry under the same key before any tx carries the CURRENT evidence, so the stored row always matches what is
+      // broadcast (a2a arch r03: the old do-nothing kept evidence A while calldata carried B)
       await db.query(
         `insert into decisions (id, run_id, idx, verdict, rev, reason_code, rules_fired, quotes, model, evidence, evidence_hash, idempotency_key)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) on conflict (idempotency_key) do nothing`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         on conflict (idempotency_key) do update set reason_code = excluded.reason_code, rules_fired = excluded.rules_fired,
+           quotes = excluded.quotes, model = excluded.model, evidence = excluded.evidence, evidence_hash = excluded.evidence_hash
+         where decisions.tx is null`,
         [
           newId("dec"), id, idx, verdict, rev, r.decision.reason, JSON.stringify(r.decision.rules),
           JSON.stringify(r.decision.findings.flatMap((f) => f.quotes)), model, JSON.stringify(r.evidence), r.evidenceHash, key,

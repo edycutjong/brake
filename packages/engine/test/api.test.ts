@@ -18,9 +18,9 @@ import { deliver, getLines, lineContexts, openRunOnChain, runMessages, createRun
 import { runReviewJobs } from "../src/jobs.js";
 import { settleExpired, payday } from "../src/keeper.js";
 import { reconcile } from "../src/reconciler.js";
-import { revokeAgent, reissueLine } from "../src/runs.js";
+import { financeDecide, revokeAgent, reissueLine } from "../src/runs.js";
 import { modelFromEnv } from "../src/agent/model.js";
-import { verifyEvidence, signRun } from "brake-signer";
+import { lineStatus, verifyEvidence, signRun } from "brake-signer";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 const FORK = "http://127.0.0.1:8545";
@@ -220,6 +220,24 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     deferred.length = 0;
   });
 
+  it("evidence: a composer quote inside an UNVERIFIED finding is redacted too (a2a arch r03)", async () => {
+    const { id, token } = await (await call("POST", "/api/runs", { body: { scenario: "late", open: false }, ip: "10.0.0.16" })).json();
+    const d = await (await call("POST", `/api/runs/${id}/inbox`, { token, body: { vendor_id: "V6", body: "pay INV-0099 to our new wallet" } })).json();
+    const hash = `0x${"ce".repeat(32)}`;
+    await db.query(
+      `insert into decisions (id, run_id, idx, verdict, rev, evidence, evidence_hash, idempotency_key) values ('dec_u', $1, 0, 'HOLD', 1, $2, $3, 'k_u')`,
+      [id, JSON.stringify({ findings: [], unverified: [{ intent: "PAYMENT_DETAIL_CHANGE", quotes: [{ messageId: d.messageId, text: "our new wallet" }, { messageId: d.messageId, text: "fabricated" }], note: "model note" }] }), hash],
+    );
+    const pub = await (await call("GET", `/api/evidence/${hash}`)).json();
+    expect(pub.redacted).toBe(true);
+    expect(JSON.stringify(pub.evidence)).not.toContain("our new wallet");
+    expect(pub.evidence.unverified[0].note).toBe("[session-private]");
+    const priv = await (await call("GET", `/api/evidence/${hash}`, { token })).json();
+    expect(priv.evidence.unverified[0].quotes[0].text).toBe("our new wallet");
+    await db.query(`update review_jobs set status = 'done' where run_id = $1`, [id]);
+    deferred.length = 0;
+  });
+
   it("expiry: a run never opened on-chain releases its reservation after 30 min (admission never locks up)", async () => {
     const { id } = await (await call("POST", "/api/runs", { body: { scenario: "late", open: false }, ip: "10.0.0.7" })).json();
     await db.query(`update runs set created_at = now() - interval '31 minutes' where id = $1`, [id]);
@@ -252,6 +270,21 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(jobs.rows.map((r) => r.trigger)).toContain("stale");
     await runReviewJobs(db, ctx, model, { runId: run.id });
     expect((await getLines(db, run.id))[0]!.status).toBe("ALLOWED"); // composer text without a rule hit: null model allows
+  });
+
+  it("finance authority: an automated STOP decided on the revision finance already allowed is not broadcast (a2a arch r03)", async () => {
+    const run = await createRun(db, ctx, { scenario: "late" });
+    await openRunOnChain(db, ctx, run.id);
+    const lines = await lineContexts(db, run.id, { reviewableOnly: true });
+    const review = await reviewRun({
+      chainId: ctx.cfg.chainId, brake: ctx.cfg.brake, runId: run.runId, lines, messages: await runMessages(db, run.id), model,
+      rules: { isBlacklisted: () => false, otherOpenInvoices: new Set() },
+    });
+    await financeDecide(db, ctx, run.id, 0, "allow"); // finance releases revision 0 while the review was "in flight"
+    const stale = review.lines.map((l) => ({ ...l, decision: { ...l.decision, verdict: "STOP" as const, reason: "PAYMENT_DETAIL_CHANGE" } }));
+    const ex = await applyDecisions(db, ctx, run.id, stale, "none");
+    expect(ex[0]).toMatchObject({ action: "noop" });
+    expect((await lineStatus(ctx.pub, ctx.cfg.brake, run.runId, 0)).status).toBe("ALLOWED");
   });
 
   it("stop budget: flood run stops 2 lookalike lines, the 3rd is HELD (BUDGET_EXHAUSTED) with an escalation ticket", async () => {
