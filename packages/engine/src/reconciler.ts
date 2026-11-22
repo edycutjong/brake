@@ -4,6 +4,7 @@ import { sendQueued, type ChainCtx } from "./chain.js";
 import { lock, withTx, type Db } from "./db.js";
 import { enqueueReview } from "./runs.js";
 
+const MAX_SCAN = 20_000n; // ≤ 20 chunks × 3 calls per reconcile
 const CHUNK = 1_000n; // Aevum RPC rejects eth_getLogs spans over 1,000 blocks ("block range too large, max range: 1000")
 const usedEvent = eip3009Abi.find((x) => x.type === "event" && x.name === "AuthorizationUsed")!;
 const canceledEvent = eip3009Abi.find((x) => x.type === "event" && x.name === "AuthorizationCanceled")!;
@@ -32,11 +33,13 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
   const conf = BigInt(ctx.cfg.confirmations);
   const res = await withTx(db, async (c) => {
     await lock(c, "reconciler");
-    const head = await ctx.pub.getBlockNumber();
+    let head = await ctx.pub.getBlockNumber();
     const cur = await c.query<{ last_block: string }>(`select last_block from cursors where name = $1`, [cursorName(ctx)]);
     const deployBlock = BigInt(process.env.DEPLOY_BLOCK ?? (await firstRunBlock(ctx, c)) ?? head - 1000n);
     let from = opts.fromBlock ?? (cur.rows[0] ? BigInt(cur.rows[0].last_block) - conf : deployBlock);
     if (from < 0n) from = 0n;
+    // bounded catch-up per call (reachable from an unauthenticated route): the cursor resumes from here next time (a2a arch r03)
+    if (head - from > MAX_SCAN) head = from + MAX_SCAN;
     // token-event txs inside the rescan window before it is cleared: any that do not come back were reorged out
     const before = (
       await c.query<{ tx_hash: string }>(
@@ -129,6 +132,14 @@ export async function reconcile(db: Db, ctx: ChainCtx, opts: { fromBlock?: bigin
         );
         updates.push({ runId: r.run_id, idx: r.idx, status: st, tx: h as Hex });
         rereview.add(r.run_id);
+        // a run settled on the now-reorged projection is live again: back into payday selection, liquidity re-reserved
+        // for its open lines (a swept run keeps its sweep; a2a arch r03)
+        await c.query(
+          `update runs set settled_at = null,
+             reserved_units = (select coalesce(sum(amount_units), 0) from lines where run_id = $1 and status in ('OPEN','ALLOWED','HELD'))
+           where id = $1 and settled_at is not null and sweep_tx is null`,
+          [r.run_id],
+        );
       }
     }
     // the rolled-back decisions get re-applied by a fresh review (payday HOLDS anything still stale meanwhile)

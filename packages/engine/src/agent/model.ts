@@ -86,7 +86,8 @@ export const RECORD_FINDINGS_TOOL = {
 
 /** What the model sees of untrusted text: message-tag markup neutralised. Quote verification accepts this form too. */
 export const promptSafe = (s: string) => s.replace(/<\/?message[^>]*>/gi, "[tag removed]");
-const esc = promptSafe;
+/** attribute values (sender, ids): strip message tags AND the characters that could close the attribute (a2a arch r03) */
+const esc = (s: string) => promptSafe(s).replace(/["<>&\r\n]/g, " ");
 
 export function userPrompt({ lines, linked }: ModelInput): string {
   const parts: string[] = ["Payment lines in this run (on file):"];
@@ -133,8 +134,9 @@ export function parseFindings(raw: unknown): Finding[] {
   if (!Array.isArray(arr)) throw new Error("invalid model output: no findings array");
   // any malformed item (unknown intent, non-integer line) makes the whole response invalid: a dropped item could have
   // been the only stop for its line (a2a arch r02 — was: filtered out silently)
-  const bad = arr.find((f) => !Number.isInteger(f?.line) || !(INTENTS as readonly string[]).includes(f?.intent));
-  if (bad) throw new Error(`invalid model output: malformed finding ${JSON.stringify(bad).slice(0, 120)}`);
+  // findIndex, not find: a falsy element (false, 0, "") must fail too (a2a arch r03)
+  const badAt = arr.findIndex((f) => f === null || typeof f !== "object" || Array.isArray(f) || !Number.isInteger(f.line) || !(INTENTS as readonly string[]).includes(f.intent));
+  if (badAt !== -1) throw new Error(`invalid model output: malformed finding at ${badAt}: ${JSON.stringify(arr[badAt]).slice(0, 120)}`);
   return arr
     .map((f) => ({
       line: f.line,

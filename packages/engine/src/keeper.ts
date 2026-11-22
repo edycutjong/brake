@@ -168,7 +168,7 @@ export async function payday(db: Db, ctx: ChainCtx, id: string): Promise<PaydayR
  */
 async function paydayKey(c: { query: Db["query"] }, base: string): Promise<string> {
   const prev = await c.query<{ idempotency_key: string; status: string }>(
-    `select idempotency_key, status from tx_queue where idempotency_key = $1 or idempotency_key like $1 || ':a%'`,
+    `select idempotency_key, status from tx_queue where idempotency_key = $1 or starts_with(idempotency_key, $1 || ':a')`, // literal prefix: run ids contain '_' (a LIKE wildcard)
     [base],
   );
   const inflight = prev.rows.find((r) => r.status === "sent");
