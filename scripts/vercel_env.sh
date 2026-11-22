@@ -8,7 +8,13 @@ set -a; source "$D/wallets.env"; source "$D/app.env"; [ -f "$D/neon.env" ] && so
 [ -f "$D/anthropic.key" ] && ANTHROPIC_API_KEY=$(tr -d '[:space:]' < "$D/anthropic.key")
 put() { printf %s "${!1}" | vercel env add "$1" production --force >/dev/null && echo "set $1"; }
 DEPLOYMENT=live BRAKE_MODEL=${BRAKE_MODEL:-anthropic} DAILY_SPEND_CAP_UNITS=${DAILY_SPEND_CAP_UNITS:-20000000} PUBLIC_URL=$PUBLIC_URL
-for v in DEPLOYMENT BRAKE_MODEL DAILY_SPEND_CAP_UNITS PUBLIC_URL DATABASE_URL DEMO_PAYER_PRIVATE_KEY AGENT_PRIVATE_KEY KEEPER_PRIVATE_KEY \
+# contract addresses from the live deploy record (the serverless bundle cannot be relied on to carry evidence/)
+J="$(dirname "$0")/../evidence/deploy-44005-live.json"
+if [ -f "$J" ]; then
+  jv() { python3 -c "import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$J" "$1"; }
+  TOKEN_ADDRESS=$(jv token) BRAKE_ADDRESS=$(jv brake) IDENTITY_ADDRESS=$(jv identityRegistry) VALIDATION_ADDRESS=$(jv validationRegistry) AGENT_ID=$(jv agentId)
+fi
+for v in TOKEN_ADDRESS BRAKE_ADDRESS IDENTITY_ADDRESS VALIDATION_ADDRESS AGENT_ID DEPLOYMENT BRAKE_MODEL DAILY_SPEND_CAP_UNITS PUBLIC_URL DATABASE_URL DEMO_PAYER_PRIVATE_KEY AGENT_PRIVATE_KEY KEEPER_PRIVATE_KEY \
          SIG_ENC_KEY PAYEES_MNEMONIC CRON_SECRET ANTHROPIC_API_KEY; do
   if [ -n "${!v:-}" ]; then export "$v"; put "$v"; else echo "skip $v (not set)"; fi
 done
