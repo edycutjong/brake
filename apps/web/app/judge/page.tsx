@@ -30,9 +30,11 @@ export default function Judge() {
         <ol className="steps">
           <li>
             <div>
-            Open the <a href="https://brake.edycu.dev/">landing page</a> and press Replay on the recorded{" "}
-            <span className="data">pnpm demo:hero · fork</span> terminal: four lines ALLOW, a vendor email arrives, line 3 is stopped,
-            three lines pay in one batch, line 3&apos;s payment reverts with the token&apos;s own error.
+            Open the stop on the explorer:{" "}
+            <a className="data" href="https://explorer-test.qday.info/tx/0x8832f90c883dd036839236f3871cef55b149675f623058fe789de3871ec5a581">0x8832f90c…a581</a> is the
+            agent cancelling line 3 on Aevum testnet 44005, and{" "}
+            <a className="data" href="https://explorer-test.qday.info/tx/0x70f0ce1dccf151c5056e3983bba4be0d673d4425edab2f35d68ccebf119f345e">0x70f0ce1d…345e</a> is that
+            payment reverting at payday with the token&apos;s own error. The whole live run is on the <Link href="/">home page</Link>.
             </div>
           </li>
           <li>
@@ -62,13 +64,13 @@ export default function Judge() {
       <section className="panel" aria-labelledby="receipts">
         <h2 id="receipts">Receipts</h2>
         <p className="note">
-          Measured on an anvil fork of Aevum testnet 44005 (live tUSD8 bytecode and state at block 3,252,000). The live testnet
-          re-run is pending testnet funding; these are fork figures and say so.
+          Measured on the live Aevum testnet 44005 with claude-sonnet-5-5 through the Anthropic API, except the forge suite, which
+          pins tUSD8 state at block 3,252,000 so CI is reproducible.
         </p>
         <dl className="kv">
           <dt>Tests</dt>
           <dd>
-            126 green: 50 Foundry fork tests, 12 brake-signer, 64 engine (<a href={blob("evidence/test-counts.json")}>test-counts.json</a>)
+            131 green: 50 Foundry fork tests, 12 brake-signer, 69 engine (<a href={blob("evidence/test-counts.json")}>test-counts.json</a>)
           </dd>
           <dt>Property checks</dt>
           <dd>
@@ -83,7 +85,7 @@ export default function Judge() {
           <dd>19/19 tuning, 6/6 held out with the model; rules alone 4/19 and 2/6 — a 25-email regression suite, not a detection rate</dd>
           <dt>Email → cancel confirmed</dt>
           <dd>
-            p50 4,116 ms · p95 6,285 ms, n=11, fork (<a href={blob("bench/results.json")}>bench/results.json</a>)
+            p50 4,987 ms · p95 10,093 ms, n=10, live (<a href={blob("bench/results.json")}>bench/results.json</a>)
           </dd>
           <dt>Agent-initiated transfers</dt>
           <dd>0</dd>
@@ -94,7 +96,7 @@ export default function Judge() {
         <h2 id="repro">Reproduce</h2>
         <pre className="data" style={{ overflowX: "auto", maxWidth: "100%", whiteSpace: "pre" }}>{`pnpm install && forge test          # 50 fork tests against live tUSD8 bytecode
 pnpm fork:up                         # anvil fork of 44005, deploys Brake + registries
-pnpm demo:hero                       # the hero, with a real model (Anthropic key or claude-cli)
+pnpm demo:hero                       # the hero, with a real model (ANTHROPIC_API_KEY)
 python3 scripts/bench.py             # re-derives p50/p95 from evidence/bench-rows.json`}</pre>
         <p className="note">
           The model path is real: with no model configured the engine fails closed and holds every line. The ablation

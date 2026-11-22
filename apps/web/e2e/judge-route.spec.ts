@@ -14,7 +14,7 @@ test("GET /judge returns 200 with no credentials and states the claim", async ({
   }
 });
 
-test("/judge labels its measurements as fork figures", async ({ page }) => {
+test("/judge says where its measurements come from (live chain; forge suite pinned)", async ({ page }) => {
   await page.goto("/judge");
-  await expect(page.getByText(/anvil fork of Aevum testnet 44005/)).toBeVisible();
+  await expect(page.getByText(/Measured on the live Aevum testnet 44005/)).toBeVisible();
 });
