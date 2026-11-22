@@ -569,6 +569,10 @@ export async function reissueLine(db: Db, ctx: ChainCtx, id: string, oldIdx: num
   // under the run lock: one fresh line per stopped line (a double click or a retry resumes it, never forks a second one)
   const prep = await withTx(db, async (c) => {
     await lock(c, `run:${id}`);
+    // re-checked under the lock sweep also takes (a2a arch r04)
+    if ((await c.query(`select 1 from runs where id = $1 and settled_at is not null`, [id])).rowCount) {
+      throw new HttpError(409, "This run is settled — its unused funds were swept back. Start a new demo run to re-issue.");
+    }
     const lines = await getLines(c, id);
     const old = lines.find((l) => l.idx === oldIdx);
     if (!old) throw new HttpError(404, "line not found");

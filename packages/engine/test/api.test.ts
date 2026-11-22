@@ -232,8 +232,13 @@ describe.skipIf(!ready)("API + chain plumbing on the anvil fork", () => {
     expect(pub.redacted).toBe(true);
     expect(JSON.stringify(pub.evidence)).not.toContain("our new wallet");
     expect(pub.evidence.unverified[0].note).toBe("[session-private]");
+    // r04: model notes are withheld publicly once a run holds composer text, whatever the model attributed
+    await db.query(`update decisions set evidence = $2 where id = 'dec_u' and run_id = $1`, [id, JSON.stringify({ findings: [{ intent: "BENIGN", quotes: [], note: "echo of our new wallet" }], messages: [{ id: d.messageId, from: "x@y.example", receivedAt: "t" }] })]);
+    const pub2 = await (await call("GET", `/api/evidence/${hash}`)).json();
+    expect(JSON.stringify(pub2.evidence)).not.toContain("our new wallet");
+    expect(pub2.evidence.messages[0].from).toBe("[session-private]");
     const priv = await (await call("GET", `/api/evidence/${hash}`, { token })).json();
-    expect(priv.evidence.unverified[0].quotes[0].text).toBe("our new wallet");
+    expect(priv.evidence.findings[0].note).toBe("echo of our new wallet"); // the session sees the full bundle
     await db.query(`update review_jobs set status = 'done' where run_id = $1`, [id]);
     deferred.length = 0;
   });

@@ -214,6 +214,14 @@ function payeeAccount(mnemonic: string, idx: number) {
  * in one Multicall3 batch (payees need no gas). Releases the run's liquidity reservation.
  */
 export async function sweep(db: Db, ctx: ChainCtx, id: string) {
+  // the run lock spans eligibility → settlement, so a re-issue cannot add a live line in between (a2a arch r04)
+  return withTx(db, async (c) => {
+    await lock(c, `run:${id}`);
+    return sweepLocked(db, ctx, id);
+  });
+}
+
+async function sweepLocked(db: Db, ctx: ChainCtx, id: string) {
   const run = await getRun(db, id);
   if (run.sweep_tx) return { tx: run.sweep_tx as Hex, reused: true, swept: 0 };
   const lines = await getLines(db, id);

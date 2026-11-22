@@ -279,7 +279,11 @@ route("GET", "/api/runs/:id/inbox", async (req, p, { db }) => {
 
 route("POST", "/api/runs/:id/review", async (req, p, { db, ctx, defer, model }) => {
   await requireSession(req, db, p.id!);
-  const r = await enqueueReview(db, p.id!, "manual");
+  // count + insert under the run lock: concurrent manual requests cannot overrun the review budget (a2a arch r04)
+  const r = await withTx(db, async (c) => {
+    await lock(c, `run:${p.id!}`);
+    return enqueueReview(c, p.id!, "manual");
+  });
   if (r.budgetSpent) throw new HttpError(429, "review budget spent (10 per run, 3 reserved for the scripted hero)", { budgetSpent: true });
   defer(runReviewJobs(db, ctx, model, { runId: p.id! }));
   return json(202, { jobId: r.jobId });
@@ -327,20 +331,29 @@ route("GET", "/api/evidence/:hash", async (req, p, { db }) => {
   const session = await hasSession(req, db, row.run_id);
   type F = { quotes: { messageId: string; text: string }[]; note?: string };
   const ev = row.evidence as { findings?: F[]; unverified?: F[] };
-  const composerIds = new Set(
-    (await db.query<{ id: string }>(`select id from inbox where run_id = $1 and source = 'composer'`, [row.run_id])).rows.map((x) => x.id),
-  );
-  // unverified findings (a failed quote check → HOLD) carry model output too: redact both lists (a2a arch r03)
-  const touches = (f: F) => (f.quotes ?? []).some((q) => composerIds.has(q.messageId));
-  const hasPrivate = [...(ev.findings ?? []), ...(ev.unverified ?? [])].some(touches);
-  if (hasPrivate && !session) {
+  const inbox = (await db.query<{ id: string; source: string; subject: string; body: string }>(
+    `select id, source, subject, body from inbox where run_id = $1`, [row.run_id],
+  )).rows;
+  const composerIds = new Set(inbox.filter((m) => m.source === "composer").map((m) => m.id));
+  // Privacy comes from trusted provenance, never from the model's attribution (a2a arch r04): once a run holds composer
+  // text, a public quote must be found verbatim in the authored seed message it names, and model notes (free text that
+  // could echo composer content) are withheld; composer message metadata is withheld too.
+  if (composerIds.size && !session) {
+    const seedText = new Map(inbox.filter((m) => m.source !== "composer").map((m) => [m.id, `${m.subject}\n${m.body}`]));
+    const publicQuote = (q: { messageId: string; text: string }) => seedText.get(q.messageId)?.includes(q.text) ?? false;
     const scrub = (list?: F[]) =>
       list?.map((f) => ({
         ...f,
-        quotes: (f.quotes ?? []).map((q) => (composerIds.has(q.messageId) ? { messageId: q.messageId, text: "[session-private]" } : q)),
-        ...(touches(f) ? { note: "[session-private]" } : {}),
+        quotes: (f.quotes ?? []).map((q) => (publicQuote(q) ? q : { messageId: q.messageId, text: "[session-private]" })),
+        ...(f.note !== undefined ? { note: "[session-private]" } : {}),
       }));
-    const redacted = { ...ev, findings: scrub(ev.findings) ?? [], ...(ev.unverified ? { unverified: scrub(ev.unverified) } : {}) };
+    const msgs = (ev as { messages?: { id: string }[] }).messages;
+    const redacted = {
+      ...ev,
+      findings: scrub(ev.findings) ?? [],
+      ...(ev.unverified ? { unverified: scrub(ev.unverified) } : {}),
+      ...(msgs ? { messages: msgs.map((m) => (composerIds.has(m.id) ? { id: m.id, from: "[session-private]", receivedAt: "[session-private]" } : m)) } : {}),
+    };
     return json(200, { hash: p.hash, redacted: true, label: "contains session-private quotes — full recompute needs the session token", evidence: redacted });
   }
   return json(200, { hash: p.hash, redacted: false, label: "authored demo data (seed emails written by the builder)", evidence: ev });
