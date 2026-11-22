@@ -18,6 +18,12 @@
     "demo:flood": "pnpm --filter @brake/scripts demo:flood",
     "sign:local": "pnpm --filter @brake/scripts sign:local",
     "db:migrate": "pnpm --filter @brake/scripts db:migrate",
-    "bench": "python3 scripts/bench.py"
+    "bench": "python3 scripts/bench.py",
+    "fmt:check": "forge fmt --check",
+    "build": "pnpm --filter @brake/web build",
+    "e2e": "pnpm --filter @brake/web e2e",
+    "lighthouse": "pnpm --filter @brake/web lighthouse && pnpm --filter @brake/web exec lhci autorun --config=../../lighthouserc.landing.json",
+    "audit": "pnpm audit --prod",
+    "ci": "forge fmt --check && forge test && pnpm typecheck && pnpm test && pnpm build"
   }
 }
