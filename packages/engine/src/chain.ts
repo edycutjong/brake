@@ -137,7 +137,16 @@ export async function sendQueued(
     // the queue's nonce covers an RPC whose pending count lags; with nothing in flight, the chain is authoritative
     // (a dropped or reorged tx would otherwise leave a permanent nonce gap)
     const inflight = await c.query(`select 1 from tx_queue where sender = $1 and status = 'sent' limit 1`, [sender]);
-    const nonce = inflight.rowCount ? Math.max(chainNonce, queueNext) : chainNonce;
+    // a nonce recorded but never broadcast (crash between the 'sent' row and sendRawTransaction, later dropped) leaves a
+    // hole that strands every higher nonce: refill the lowest such hole before allocating past it (a2a arch r03)
+    const hole = await c.query<{ n: string | null }>(
+      `select min(d.nonce)::text as n from tx_queue d
+        where d.sender = $1 and d.status = 'dropped' and d.nonce >= $2
+          and not exists (select 1 from tx_queue o where o.sender = $1 and o.nonce = d.nonce and o.status in ('sent','mined','reverted'))`,
+      [sender, chainNonce],
+    );
+    const holeNonce = hole.rows[0]?.n == null ? null : Number(hole.rows[0].n);
+    const nonce = holeNonce !== null && holeNonce < queueNext ? holeNonce : inflight.rowCount ? Math.max(chainNonce, queueNext) : chainNonce;
     const id = row?.id ?? newId("tx");
     const rowArgs = [id, sender, p.runId ?? null, p.idx ?? null, p.action, p.idempotencyKey, p.evidenceRev ?? null, nonce];
     const markDropped = (e: unknown) =>

@@ -381,8 +381,29 @@ export async function registerOpened(db: Db, ctx: ChainCtx, id: string, txHash: 
     (e) => e.address.toLowerCase() === ctx.cfg.brake.toLowerCase() && String(e.args.runId).toLowerCase() === String(run.run_id).toLowerCase(),
   );
   if (!ev || String(ev.args.payer).toLowerCase() !== String(run.payer).toLowerCase()) throw new HttpError(409, "no RunOpened for this run and payer in that transaction");
-  const n = (await getLines(db, id)).length;
-  await markOpened(db, ctx, id, run.run_id as Hex, n, txHash);
+  // the event proves "a run with this id and payer"; the plan must match too, or a review/stop would protect lines other
+  // than the ones whose signatures the keeper holds (a2a arch r03): grant terms + every line's payee, amount and nonce
+  const lines = await getLines(db, id);
+  const at = { blockNumber: receipt.blockNumber };
+  const onRun = await ctx.pub.readContract({ address: ctx.cfg.brake, abi: brakeAbi, functionName: "runOf", args: [run.run_id as Hex], ...at });
+  const secs = (d: Date) => BigInt(Math.floor(new Date(d).getTime() / 1000));
+  const runMismatch = [
+    onRun.agent.toLowerCase() !== String(run.agent).toLowerCase() && "agent",
+    onRun.agentId !== BigInt(run.agent_id) && "agentId",
+    onRun.maxStops !== Number(run.max_stops) && "maxStops",
+    onRun.alarmAt !== Number(run.alarm_at) && "alarmAt",
+    BigInt(onRun.validAfter) !== secs(run.valid_after) && "validAfter",
+    BigInt(onRun.validBefore) !== secs(run.valid_before) && "validBefore",
+    onRun.lineCount !== lines.length && "lineCount",
+  ].filter(Boolean);
+  if (runMismatch.length) throw new HttpError(409, `openRun does not match the signed plan: ${runMismatch.join(", ")}`);
+  for (const l of lines) {
+    const [line] = await ctx.pub.readContract({ address: ctx.cfg.brake, abi: brakeAbi, functionName: "lineOf", args: [run.run_id as Hex, BigInt(l.idx)], ...at });
+    if (line.payee.toLowerCase() !== l.payee.toLowerCase() || line.amount !== BigInt(l.amount_units) || line.nonce.toLowerCase() !== l.nonce.toLowerCase()) {
+      throw new HttpError(409, `openRun line ${l.idx + 1} does not match its signed payment (payee, amount or nonce)`);
+    }
+  }
+  await markOpened(db, ctx, id, run.run_id as Hex, lines.length, txHash);
   return { tx: txHash, reused: false };
 }
 
