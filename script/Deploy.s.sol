@@ -40,15 +40,15 @@ contract Deploy is Script {
                 bootstrapImpl, abi.encodeCall(ERC8004Bootstrap.initialize, (deployer, address(0)))
             )
         );
-        UUPSUpgradeable(identity).upgradeToAndCall(identityImpl, abi.encodeCall(IdentityRegistryUpgradeable.initialize, ()));
+        UUPSUpgradeable(identity)
+            .upgradeToAndCall(identityImpl, abi.encodeCall(IdentityRegistryUpgradeable.initialize, ()));
         address validation = address(
             new ERC1967Proxy{salt: keccak256("brake.v1.validation")}(
                 bootstrapImpl, abi.encodeCall(ERC8004Bootstrap.initialize, (deployer, identity))
             )
         );
-        UUPSUpgradeable(validation).upgradeToAndCall(
-            validationImpl, abi.encodeCall(ValidationRegistryUpgradeable.initialize, (identity))
-        );
+        UUPSUpgradeable(validation)
+            .upgradeToAndCall(validationImpl, abi.encodeCall(ValidationRegistryUpgradeable.initialize, (identity)));
         Brake brake = new Brake{salt: SALT}(TUSD8, IERC8004Identity(identity), IERC8004Validation(validation));
         vm.stopBroadcast();
 
@@ -56,7 +56,8 @@ contract Deploy is Script {
         vm.startBroadcast(payerPk);
         uint256 agentId = IdentityRegistryUpgradeable(identity).register("https://github.com/edycutjong/brake#agent");
         uint256 deadline = block.timestamp + 4 minutes;
-        bytes memory sig = _agentWalletSig(IdentityRegistryUpgradeable(identity), agentPk, agentId, agent, payer, deadline);
+        bytes memory sig =
+            _agentWalletSig(IdentityRegistryUpgradeable(identity), agentPk, agentId, agent, payer, deadline);
         IdentityRegistryUpgradeable(identity).setAgentWallet(agentId, agent, deadline, sig);
         IdentityRegistryUpgradeable(identity).approve(address(brake), agentId);
         vm.stopBroadcast();

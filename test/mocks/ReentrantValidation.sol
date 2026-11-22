@@ -25,7 +25,11 @@ contract ReentrantValidation is IERC8004Validation {
         (reentryOk, reentryError) = target.call(payload);
     }
 
-    function getValidationStatus(bytes32) external pure returns (address, uint256, uint8, bytes32, string memory, uint256) {
+    function getValidationStatus(bytes32)
+        external
+        pure
+        returns (address, uint256, uint8, bytes32, string memory, uint256)
+    {
         return (address(0), 0, 0, bytes32(0), "", 0);
     }
 }

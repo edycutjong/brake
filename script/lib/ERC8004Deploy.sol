@@ -26,15 +26,13 @@ library ERC8004Deploy {
         r.identity = address(
             new ERC1967Proxy(r.bootstrapImpl, abi.encodeCall(ERC8004Bootstrap.initialize, (owner, address(0))))
         );
-        UUPSUpgradeable(r.identity).upgradeToAndCall(
-            r.identityImpl, abi.encodeCall(IdentityRegistryUpgradeable.initialize, ())
-        );
+        UUPSUpgradeable(r.identity)
+            .upgradeToAndCall(r.identityImpl, abi.encodeCall(IdentityRegistryUpgradeable.initialize, ()));
 
         r.validation = address(
             new ERC1967Proxy(r.bootstrapImpl, abi.encodeCall(ERC8004Bootstrap.initialize, (owner, r.identity)))
         );
-        UUPSUpgradeable(r.validation).upgradeToAndCall(
-            r.validationImpl, abi.encodeCall(ValidationRegistryUpgradeable.initialize, (r.identity))
-        );
+        UUPSUpgradeable(r.validation)
+            .upgradeToAndCall(r.validationImpl, abi.encodeCall(ValidationRegistryUpgradeable.initialize, (r.identity)));
     }
 }

@@ -10,8 +10,12 @@ interface IERC8004Identity {
 
 /// @notice The subset of the ERC-8004 reference Validation Registry that Brake writes.
 interface IERC8004Validation {
-    function validationRequest(address validatorAddress, uint256 agentId, string calldata requestURI, bytes32 requestHash)
-        external;
+    function validationRequest(
+        address validatorAddress,
+        uint256 agentId,
+        string calldata requestURI,
+        bytes32 requestHash
+    ) external;
     function validationResponse(
         bytes32 requestHash,
         uint8 response,

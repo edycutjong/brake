@@ -31,6 +31,8 @@ aevum = { key = "blockscout", url = "https://explorer-test.qday.info/api", chain
 
 [fmt]
 line_length = 120
+# vendored ERC-8004 reference registries stay byte-identical to upstream
+ignore = ["src/vendor/**"]
 
 [lint]
 lint_on_build = false

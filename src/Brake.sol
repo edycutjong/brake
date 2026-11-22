@@ -414,7 +414,9 @@ contract Brake is ReentrancyGuard {
         LineState storage l = _lines[runId][idx];
         if (!l.requested && !_request(runId, idx)) return; // ReceiptFailed already emitted; stays pending
         bytes32 rh = requestHashOf(runId, idx);
-        try validation.validationResponse(rh, l.pendingResponse, l.pendingUri, l.pendingEvidence, _tagString(l.pendingReason)) {
+        try validation.validationResponse(
+            rh, l.pendingResponse, l.pendingUri, l.pendingEvidence, _tagString(l.pendingReason)
+        ) {
             l.receiptPending = false;
             emit ReceiptRecorded(runId, idx, rh, l.pendingResponse, l.pendingReason);
         } catch {

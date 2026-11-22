@@ -93,7 +93,8 @@ contract BrakeTest is BrakeFixture {
         brake.hold(RUN, 1, "INJECTION_FLAGGED", keccak256("inj"));
         assertEq(uint8(_status(1)), uint8(Brake.Status.HELD));
         // the ERC-8004 record follows the hold (a2a arch r01): response 50, tag = reason, evidence hash bound
-        (,, uint8 held, bytes32 heldHash, string memory heldTag,) = validation.getValidationStatus(brake.requestHashOf(RUN, 1));
+        (,, uint8 held, bytes32 heldHash, string memory heldTag,) =
+            validation.getValidationStatus(brake.requestHashOf(RUN, 1));
         assertEq(held, brake.RESPONSE_HOLD());
         assertEq(heldTag, "INJECTION_FLAGGED");
         assertEq(heldHash, keccak256("inj"));
