@@ -165,14 +165,14 @@ The model runs used `claude-sonnet-5-5` through a local CLI adapter (labelled in
 | Held-out | rules only | 6 | 2 | 2 | 0 | 0 | 0 |
 | Held-out | claude-sonnet-5-5 | 6 | 6 | 0 | 0 | 0 | 1 |
 
-n is small (25), so read these as a regression suite, not a detection rate. "Collateral" lines are emails that name the fraud wallet, which is also the on-file payee of another line, so that line stops too; each is reported per row. The 6 held-out emails were committed before tuning (`680805f`). Source: `bench/results.json`, `evidence/g4/`.
+n is small (25), so read these as a regression suite, not a detection rate. The rules-only rows' other misses are HOLD-labelled injection emails that rules alone leave unflagged: 7 in the tune split, 2 held out (`evidence/g4/*-none.json`). "Collateral" lines are emails that name the fraud wallet, which is also the on-file payee of another line, so that line stops too; each is reported per row. The 6 held-out emails were committed before tuning (`680805f`). Source: `bench/results.json`, `evidence/g4/`.
 
 ### Attacks defeated
 
 | Control | Why it is load-bearing | Test |
 |---|---|---|
-| The agent cannot pay | `agentHoldsNoSpendingPower_brakeNeverHoldsFunds` | `test/Brake.t.sol:255` |
-| Only the grant holder acts; revoked and expired agents are refused | stranger, revoked, expired | `test/Brake.t.sol:232` |
+| The agent cannot pay | `agentHoldsNoSpendingPower_brakeNeverHoldsFunds` | `test/Brake.t.sol:256` |
+| Only the grant holder acts; revoked and expired agents are refused | stranger, revoked, expired | `test/Brake.t.sol:233` |
 | No model output can turn a rule STOP into ALLOW or HOLD | invariant I4 | `packages/engine/test/agent.test.ts:203` |
 | … for any generated model output (10,000 cases) | property: rules are consulted first | `packages/engine/test/properties.test.ts` |
 | A fabricated quote never verifies (10,000 cases) | property: quotes must be verbatim | `packages/engine/test/properties.test.ts` |
@@ -181,7 +181,7 @@ n is small (25), so read these as a regression suite, not a detection rate. "Col
 | A paraphrased or misattributed model quote is dropped | verbatim quote check | `packages/engine/test/agent.test.ts:168` |
 | Email text cannot forge the prompt's data tags | | `packages/engine/test/agent.test.ts:123` |
 | Model failure never becomes ALLOW | rules still STOP; the rest stay undecided | `packages/engine/test/agent.test.ts:107` |
-| Stop is idempotent and charges the budget once | | `test/Brake.t.sol:156` |
+| Stop is idempotent and charges the budget once | | `test/Brake.t.sol:157` |
 | Payment lands first: TOO LATE, no budget charged | | `test/BrakeLifecycle.t.sol:228` |
 | A hostile registry cannot re-enter during the receipt | | `test/BrakeLifecycle.t.sol:258` |
 | A failing registry never blocks a stop | receipt retried later | `test/BrakeReceipts.t.sol:15` |
