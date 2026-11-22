@@ -177,7 +177,7 @@ jobs:
       - name: Lighthouse — app (/, /judge)
         run: pnpm --filter @brake/web exec lhci autorun
       - name: Lighthouse — landing page + pitch deck (docs/, served at brake.edycu.dev)
-        run: pnpm --filter @brake/web exec lhci autorun --config=../../lighthouserc.landing.json
+        run: apps/web/node_modules/.bin/lhci autorun --config=lighthouserc.landing.json # repo root, so staticDistDir ./docs resolves
 
   # ── STAGE 6 · Deploy gate (main only) ─────────────────────────────────────────────
   deploy-gate:
