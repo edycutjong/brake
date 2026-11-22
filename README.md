@@ -38,6 +38,12 @@
 
 ## 📸 See it in Action
 
+<p align="center">
+  <a href="https://app.brake.edycu.dev/"><img src="docs/assets/broll-live.gif" alt="Live b-roll from app.brake.edycu.dev on Aevum testnet 44005: the For-judges headline, then the run sheet where line 3 carries a STOP PAYMENT stamp with cancel tx 0x8832…a581, the agent desk's Line 3 STOP card with rules fired: none, the payday receipt where line 3's replay reverts with FiatTokenV2: authorization is used or canceled, and the Verify page reading the agent's tUSD8 allowance and balance as 0." width="100%"></a>
+</p>
+
+<sub>Recorded from the live app (read-only view of run <code>run_10a538daf1c0b674</code> on Aevum testnet 44005); every hash shown is on the explorer. Full walkthrough with voiceover: <a href="https://youtu.be/AHshl1gDvHs">demo video</a>.</sub>
+
 These screens were captured on a local anvil fork of Aevum 44005 during the build (each is labelled). The same flow has since run on the live chain: the live hero took 71.1 s end to end (`evidence/hero-live.json`), and the app at [app.brake.edycu.dev](https://app.brake.edycu.dev/) shows that run with explorer links.
 
 | Run sheet (Monday: every line ALLOWED) | Run sheet (Tuesday: line 3 STOPPED) |
