@@ -1,0 +1,110 @@
+{
+  "gate": "G1 cancel authority (kill test)",
+  "mode": "live (Aevum testnet 44005)",
+  "rpc": "https://rpc-test.qday.info",
+  "explorer": "https://explorer-test.qday.info/tx/",
+  "token": "0x456569838f1d43009A91ebA4263147Afd7233483",
+  "payer": "0x3Cd6774cc2D26914EA3dEf355314131399ecFb2D",
+  "caller": "0xB39Da12037431F915fF5e0a50e0aa2C7C267ca08",
+  "payee": "0x000000000000000000000000000000000000bEEF",
+  "value": "10000",
+  "startedAt": "2026-11-22T09:00:45.388Z",
+  "finishedAt": "2026-11-22T09:16:08.459Z",
+  "verdict": "PASS",
+  "steps": [
+    {
+      "step": "0 domain",
+      "ok": true,
+      "detail": {
+        "name": "tUSD8",
+        "version": "2",
+        "chainId": 44005,
+        "separator": "0x7838e6c46f8f9874236c9747d9896552a03d22c7c3e701b198879de2cb658022",
+        "impl": "0xd6be708f41b07b2f4a7b48889b8e16626e317597",
+        "implCodeHash": "0x4502bbaa17e9d02985ef04ecf150b2d1ff330b907efd9f312e76ca2743ec5dc2"
+      }
+    },
+    {
+      "step": "control eth_call cancel",
+      "ok": true,
+      "detail": {
+        "fromA": "ok",
+        "fromB": "ok"
+      }
+    },
+    {
+      "step": "1 cancel from EOA B",
+      "ok": true,
+      "detail": {
+        "tx": "0x8cb8d550f03616e14ef00682022dd20a4ade46e090c8466766d6799dc98330c2",
+        "status": "success",
+        "events": [
+          "AuthorizationCanceled"
+        ],
+        "authorizationState": true
+      }
+    },
+    {
+      "step": "2 cancel via CancelRelay contract",
+      "ok": true,
+      "detail": {
+        "relay": "0xfab8af8ecf255edd819e7486b1e9921f797c9c23",
+        "deployTx": "0x39bce6ace0b037602e55f03ad6b2d6c6f9ee9620b2b23b72a0df3c3b41e7e19e",
+        "tx": "0x50c5cfcc0d470f71ab91b75cbea227cc820df0c19543bd919e4d293fd2c12df5",
+        "status": "success",
+        "simulation": "ok",
+        "events": [
+          "AuthorizationCanceled"
+        ],
+        "authorizationState": true
+      }
+    },
+    {
+      "step": "1b re-cancel reverts",
+      "ok": true,
+      "detail": {
+        "reason": "FiatTokenV2: authorization is used or canceled"
+      }
+    },
+    {
+      "step": "5a early submit reverts",
+      "ok": true,
+      "detail": {
+        "tx": "0x827d5d1467d2efe2093da9fc175d338de61493a43639c01ae733c01eb809f5a5",
+        "status": "reverted",
+        "reason": "FiatTokenV2: authorization is not yet valid"
+      }
+    },
+    {
+      "step": "3a transfer of EOA-cancelled pair reverts",
+      "ok": true,
+      "detail": {
+        "tx": "0x07dbb27599ac8615360e0e52e04475ec2193c334c330e76ffd2b6dd52529bb7d",
+        "status": "reverted",
+        "reason": "FiatTokenV2: authorization is used or canceled"
+      }
+    },
+    {
+      "step": "3b transfer of relay-cancelled pair reverts",
+      "ok": true,
+      "detail": {
+        "tx": "0x3a31f229d2e97802a6815051e6da6032fb1d0988f94365f1fc6c5d5f85020d85",
+        "status": "reverted",
+        "reason": "FiatTokenV2: authorization is used or canceled"
+      }
+    },
+    {
+      "step": "5b pay via Multicall3 after validAfter",
+      "ok": true,
+      "detail": {
+        "tx": "0xeede0269b682d1274bf301deb638b606cc41ea7b84dfeb8e0bd11b930359fbae",
+        "status": "success",
+        "payeeDelta": "10000",
+        "events": [
+          "AuthorizationUsed",
+          "Transfer"
+        ]
+      }
+    }
+  ]
+}
