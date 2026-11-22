@@ -1,6 +1,6 @@
 # Brake — demo and reproduce steps
 
-**Every hash on this page is a live transaction on Aevum testnet 44005** and opens on [explorer-test.qday.info](https://explorer-test.qday.info). The model step is `claude-sonnet-5-5` through the Anthropic API. Amounts are the seed invoices × 0.0001 (`seedScale` in each file) so the faucet can fund them: line 3 is 0.5 tUSD8 for invoice INV-8812.
+**Every hash on this page except the labelled fork-only `sign_local` run is a live transaction on Aevum testnet 44005** and opens on [explorer-test.qday.info](https://explorer-test.qday.info). The model step is `claude-sonnet-5-5` through the Anthropic API. Amounts are the seed invoices × 0.0001 (`seedScale` in each file) so the faucet can fund them: line 3 is 0.5 tUSD8 for invoice INV-8812.
 
 ## Hero: Monday ALLOW, Tuesday email, line 3 stopped (model only), re-issue
 
@@ -46,12 +46,12 @@ The first live hero attempt failed safe: `claude-sonnet-5-5` rejected the forced
 
 ## Benchmarks (live, claude-sonnet-5-5 through the Anthropic API)
 
-`bench/results.json`; reproduce with `python3 scripts/bench.py` (reads `evidence/bench-rows.json`, which `--export` extracts from the live Postgres plus receipts from the Aevum RPC). The 10 samples are every agent stop that reached the chain in the live runs: hero 1, flood 2, TOO LATE 7 (the TOO LATE demo was run 7 times).
+`bench/results.json`; reproduce with `python3 scripts/bench.py` (reads `evidence/bench-rows.json`, which `--export` extracts from the live Postgres plus receipts from the Aevum RPC). The 10 samples are every agent stop that reached the chain in the live runs: hero 1, flood 2 (these 3 cancelled a payment), TOO LATE 7 (the TOO LATE demo was run 7 times; each stop landed on an already-used nonce and was recorded as CONSUMED).
 
 | Metric | Value |
 |---|---|
-| Email to cancel confirmed, n=10 | p50 4,987 ms · p95 10,093 ms · mean 5,958 · min 4,100 · max 11,919 |
-| Gas, median | stop that cancels ~183,000 (n=3) · stop on a used nonce 58,941 (n=7) · allow 302,846 · hold 172,903 · payday 109,418 · reissue 312,789 · financeAllow 300,600 · sweep 87,458 · openRun 376,160 |
+| Email to agent stop confirmed, n=10 | p50 4,987 ms · p95 10,093 ms · mean 5,958 · min 4,100 · max 11,919. Of the 10 stops, 3 cancelled a payment (4,404, 6,770, 7,861 ms) and 7 were TOO LATE stops on an already-used nonce |
+| Gas, median | stop that cancels ~183,000 (n=3) · stop on a used nonce 58,941 (n=7) · allow 302,846 · hold 172,903 · payday 109,418 · reissue 312,789 (n=1) · financeAllow 300,600 (n=1) · sweep 87,458 · openRun 376,160. allow, payday and openRun medians are dominated by 1-line TOO LATE runs; the hero's 4-line openRun used 1,065,120, its 4-line allow 1,092,474 and its 3-line payday 238,112 |
 | Agent-initiated transfers | 0 |
 | Injection suite, held-out (n=6) | rules only 2/6 correct; claude-sonnet-5-5 6/6, 0 false stops, 0 false holds, 0 collateral lines |
 | Injection suite, tune (n=19) | rules only 4/19; claude-sonnet-5-5 19/19, 0 false stops, 3 collateral lines |

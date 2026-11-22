@@ -48,7 +48,7 @@ flowchart TB
 ## Trust boundaries
 
 - The model sees messages as quoted data and has one tool, `record_findings`. It holds no signature and no key. `packages/engine/test/invariants.test.ts` asserts the agent module has no path to signatures, keys or the database.
-- Deterministic rules can only STOP. No model finding can turn a rule STOP into ALLOW or HOLD (invariant I4, `agent.test.ts:203`).
+- Deterministic rules can only STOP. No model finding can turn a rule STOP into ALLOW or HOLD (invariant I4, `agent.test.ts:229`).
 - The agent wallet holds 0 tUSD8 and no allowance. Its on-chain powers are `allow`, `hold` and `stop` on a run that names it, within `agentExpiry` and `maxStops`.
 - The executor holds cancel signatures and the keeper holds payment signatures (encrypted at rest); both are in the server. In wallet mode the server receives signatures only.
 

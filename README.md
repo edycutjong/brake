@@ -61,7 +61,7 @@ For every line of a payment run, finance signs two EIP-712 messages once: the pa
 - **Hold:** Brake's keeper will not pay the line until finance decides, and the hold is recorded on-chain; one payer `allow` releases it without re-signing. A hold is not a token-level block: the signed payment stays valid at tUSD8 until `validBefore`, so a confirmed risk is a `stop`.
 - **Re-issue:** finance replaces a falsely stopped line in one click (demo mode; in a non-custodial run the server holds no payer key and refuses, so the payer would call `Brake.reissue` from their own wallet, which `scripts/sign_local.ts` does not do yet).
 
-The agent holds 0 tUSD8 and no allowance (checked on `/verify`). A hijacked agent can delay a payment; it cannot create one or change where one goes. Brake does not claim to stop BEC in general. It stops a signed line when a signal arrives before payday (see [Honest Limitations](#attacks-defeated-and-honest-limitations)).
+The agent holds 0 tUSD8 and no allowance (checked on `/verify`). A hijacked agent can delay a payment; it cannot create one or change where one goes. Brake does not claim to stop BEC in general. It stops a signed line when a signal arrives before payday (see [Honest limits](#honest-limits-12)).
 
 Nearest neighbours and why Brake differs: [docs/COMPARISON.md](docs/COMPARISON.md).
 
@@ -114,8 +114,8 @@ Full component and sequence diagrams: [ARCHITECTURE.md](ARCHITECTURE.md).
 | Contracts | Solidity 0.8, Foundry, OpenZeppelin; `src/Brake.sol`, `src/ERC8004Bootstrap.sol` |
 | Signing | `packages/brake-signer` (viem), pairs payment + cancel |
 | Engine | `packages/engine` (TypeScript): agent, executor, keeper, reconciler, API handlers |
-| App | Next.js 16 on Vercel (config prepared), Postgres (planned: Neon via Vercel Marketplace; not provisioned yet) |
-| Model | `claude-sonnet-5-5`, one forced tool (`record_findings`), no temperature parameter set, no pay tool, no signatures |
+| App | Next.js 16 on Vercel (live at app.brake.edycu.dev), Neon Postgres |
+| Model | `claude-sonnet-5-5`, one strict-schema tool (`record_findings`, `tool_choice: auto`; a missing tool call holds the line), no temperature parameter set, no pay tool, no signatures |
 | Batching | Multicall3 `aggregate3` for the payday batch |
 
 ## 🏆 QDay Aevum Integration
@@ -146,9 +146,9 @@ Brake builds on what is live on Aevum 44005 (checked with `eth_getCode` / `eth_c
 
 | Contract | Address on Aevum testnet 44005 | Source |
 |---|---|---|
-| Brake | [`0xbDB614Ce4f1319f78DBF3856070092Cc83405B59`](https://explorer-test.qday.info/address/0xbDB614Ce4f1319f78DBF3856070092Cc83405B59) | verified on the explorer |
-| ERC-8004 IdentityRegistry (proxy) | [`0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e`](https://explorer-test.qday.info/address/0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e) | implementation [`0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8`](https://explorer-test.qday.info/address/0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8) verified |
-| ERC-8004 ValidationRegistry (proxy) | [`0xC4496D7B66f2b768Ea61922A9Fe923f272007b83`](https://explorer-test.qday.info/address/0xC4496D7B66f2b768Ea61922A9Fe923f272007b83) | implementation [`0x1bE269891c41D728aC4B94fd528eb0A70F346E48`](https://explorer-test.qday.info/address/0x1bE269891c41D728aC4B94fd528eb0A70F346E48) verified |
+| Brake | [`0xbDB614Ce4f1319f78DBF3856070092Cc83405B59`](https://explorer-test.qday.info/address/0xbDB614Ce4f1319f78DBF3856070092Cc83405B59) | source verified on the explorer (`evidence/explorer-verification.json`) |
+| ERC-8004 IdentityRegistry (proxy) | [`0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e`](https://explorer-test.qday.info/address/0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e) | proxy and implementation [`0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8`](https://explorer-test.qday.info/address/0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8) source verified |
+| ERC-8004 ValidationRegistry (proxy) | [`0xC4496D7B66f2b768Ea61922A9Fe923f272007b83`](https://explorer-test.qday.info/address/0xC4496D7B66f2b768Ea61922A9Fe923f272007b83) | proxy and implementation [`0x1bE269891c41D728aC4B94fd528eb0A70F346E48`](https://explorer-test.qday.info/address/0x1bE269891c41D728aC4B94fd528eb0A70F346E48) source verified |
 | tUSD8 (Circle FiatToken v2.2 clone, not ours) | [`0x456569838f1d43009A91ebA4263147Afd7233483`](https://explorer-test.qday.info/address/0x456569838f1d43009A91ebA4263147Afd7233483) | live on 44005 |
 | Multicall3 | `0xcA11bde05977b3631167028862bE2a173976CA11` | live on 44005 |
 
@@ -163,7 +163,7 @@ Agent identity: ERC-8004 agentId 0, owned by the demo payer; deployed at block 3
 | Stop budget (`evidence/flood-live.json`, 70.7 s) | three lookalike "goods not received" emails: stop #1, stop #2 fires `StopAlarm`, attempt #3 hits `StopBudgetExhausted` and becomes an on-chain HOLD with an escalation ticket; payday pays line 4 and proves both stops | stop #1 [`0xc30c865e…6646`](https://explorer-test.qday.info/tx/0xc30c865e80d60948d52352bbeae3abde4a7ce9b9b4f0ff479f56fe64e48b6646) · stop #2 + alarm [`0x4d848357…97a6`](https://explorer-test.qday.info/tx/0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6) · budget hold [`0x6e88f1d1…7f6b`](https://explorer-test.qday.info/tx/0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b) · payday [`0x3309930c…acde`](https://explorer-test.qday.info/tx/0x3309930c6a8d6ae103930b6d27f1ea8e0ce130cfae90f0e372a940b613abacde) |
 | G1 kill test (`evidence/g1.json`) | the token itself enforces the cancel: any caller can submit the payer's pre-signed cancel, and the paired payment then reverts | see the tUSD8 bullet in the sponsor section |
 
-Still fork-only: the authorization-only `sign_local.ts` run (`evidence/sign-local-fork.json`) and the forge suite, which pins tUSD8 state at block 3,252,000 so CI is reproducible. Fork files are labelled `deployment: fork` and their hashes never appear on the explorer.
+Still fork-only: the authorization-only `sign_local.ts` run (`evidence/sign-local-fork.json`) and the forge suite, which pins tUSD8 state at block 3,252,000 so CI is reproducible. Fork files are labelled `deployment: fork` (or `mode: fork`) and their hashes never appear on the explorer.
 
 ## 📊 Engineering Rigor
 
@@ -173,8 +173,8 @@ Still fork-only: the authorization-only `sign_local.ts` run (`evidence/sign-loca
 | Property checks (fast-check) | 3 properties × 10,000 generated cases = 30,000, 0 counterexamples | `packages/engine/test/properties.test.ts` |
 | E2E (Playwright) | 24 passing: `/judge` with no credentials, no-key smoke, responsive 375/768/1440, desktop + Pixel 7 | `apps/web/e2e/*.spec.ts` |
 | Forge tests run against | tUSD8 state at fork block 3252000 | `evidence/test-counts.json` |
-| Latency, email to cancel confirmed (live, n=10) | p50 4,987 ms, p95 10,093 ms (with n=10, p95 sits near the slowest run, 11.9 s) | `bench/results.json`, rows in `evidence/bench-rows.json` |
-| Gas, live median | stop that cancels ~183,000 (n=3) · stop on an already-used nonce 58,941 (n=7, TOO LATE) · allow 302,846 · payday 109,418 · reissue 312,789 · openRun 376,160 | `evidence/bench-rows.json` (receipts from the Aevum RPC) |
+| Latency, email to agent stop confirmed (live, n=10) | p50 4,987 ms, p95 10,093 ms over every live agent stop: 3 that cancelled a payment (4,404, 6,770 and 7,861 ms) and 7 TOO LATE stops that landed on an already-used nonce. With n=10, p95 sits near the slowest run (11.9 s) | `bench/results.json`, rows in `evidence/bench-rows.json` |
+| Gas, live median | stop that cancels ~183,000 (n=3) · stop on an already-used nonce 58,941 (n=7, TOO LATE) · allow 302,846 · payday 109,418 · reissue 312,789 (n=1) · openRun 376,160. allow, payday and openRun medians are dominated by 1-line TOO LATE runs; the hero's 4-line openRun used 1,065,120, its 4-line allow 1,092,474 and its 3-line payday 238,112 | `evidence/bench-rows.json` (receipts from the Aevum RPC) |
 | Agent-initiated transfers | 0 | `bench/results.json` |
 | Hero, model-only stop (5 runs) | line 3 STOP 5/5 with 0 rules fired; Monday ALLOW all lines 5/5; with the model stubbed, line 3 is ALLOWED | `evidence/g4/hero-sonnet-5-5.json` |
 | Injection suite (25 emails) | with the model: tune 19/19, held-out 6/6, 0 missed, 0 false stops; rules alone: 4/19 and 2/6 | `evidence/g4/{tune,holdout}-{sonnet-5-5,none}.json` |
@@ -188,7 +188,7 @@ The model figures come from `claude-sonnet-5-5` through the Anthropic API (the p
 | Tune | rules only | 19 | 4 | 8 | 0 | 0 | 0 |
 | Tune | claude-sonnet-5-5 | 19 | 19 | 0 | 0 | 0 | 3 |
 | Held-out | rules only | 6 | 2 | 2 | 0 | 0 | 0 |
-| Held-out | claude-sonnet-5-5 | 6 | 6 | 0 | 0 | 0 | 1 |
+| Held-out | claude-sonnet-5-5 | 6 | 6 | 0 | 0 | 0 | 0 |
 
 n is small (25), so read these as a regression suite, not a detection rate. The rules-only rows' other misses are HOLD-labelled injection emails that rules alone leave unflagged: 7 in the tune split, 2 held out (`evidence/g4/*-none.json`). "Collateral" lines are emails that name the fraud wallet, which is also the on-file payee of another line, so that line stops too; each is reported per row. The 6 held-out emails were committed before tuning (`680805f`). Source: `bench/results.json`, `evidence/g4/`.
 
@@ -198,12 +198,12 @@ n is small (25), so read these as a regression suite, not a detection rate. The 
 |---|---|---|
 | The agent cannot pay | `agentHoldsNoSpendingPower_brakeNeverHoldsFunds` | `test/Brake.t.sol:256` |
 | Only the grant holder acts; revoked and expired agents are refused | stranger, revoked, expired | `test/Brake.t.sol:233` |
-| No model output can turn a rule STOP into ALLOW or HOLD | invariant I4 | `packages/engine/test/agent.test.ts:203` |
+| No model output can turn a rule STOP into ALLOW or HOLD | invariant I4 | `packages/engine/test/agent.test.ts:229` |
 | … for any generated model output (10,000 cases) | property: rules are consulted first | `packages/engine/test/properties.test.ts` |
 | A fabricated quote never verifies (10,000 cases) | property: quotes must be verbatim | `packages/engine/test/properties.test.ts` |
 | Unverified findings never ALLOW (10,000 cases) | property: fail-closed | `packages/engine/test/properties.test.ts` |
-| Injection alone HOLDs, never ALLOWs | | `packages/engine/test/agent.test.ts:218` |
-| A paraphrased or misattributed model quote is dropped | verbatim quote check | `packages/engine/test/agent.test.ts:168` |
+| Injection alone HOLDs, never ALLOWs | | `packages/engine/test/agent.test.ts:244` |
+| A paraphrased or misattributed model quote is dropped | verbatim quote check | `packages/engine/test/agent.test.ts:194` |
 | Email text cannot forge the prompt's data tags | | `packages/engine/test/agent.test.ts:123` |
 | Model failure never becomes ALLOW | rules still STOP; the rest stay undecided | `packages/engine/test/agent.test.ts:107` |
 | Stop is idempotent and charges the budget once | | `test/Brake.t.sol:157` |
@@ -297,7 +297,7 @@ pnpm ci                                      # fmt + forge + typecheck + tests +
 
 | Stage | Gate |
 |---|---|
-| 1 · Quality | `forge fmt --check`, `forge build --sizes`, 50 fork tests · typecheck + unit/property tests on node 22 and 24 |
+| 1 · Quality | `forge fmt --check`, `forge build --sizes`, 50 fork tests · typecheck + unit/property tests on node 22 (and 24 on pushes to main) |
 | 2 · Security | gitleaks over full history · `pnpm audit --prod` · licence check (no GPL-3.0/AGPL-3.0) |
 | 3 · Build | Next.js production build · bundle budget (warn 1,500 KB, fail 2,000 KB) · `brake-signer` pack |
 | 4 · E2E | Playwright on desktop Chrome + Pixel 7 |
@@ -327,8 +327,6 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 - [x] Agent: rules, model, policy, verbatim-quote check; injection suite
 - [x] Product app and guided hero walk
 - [x] `sign_local.ts` authorization-only run (fork)
-- [ ] Live deploy on 44005, explorer verification, live hero / TOO LATE / flood runs (needs funded wallets)
-- [ ] Re-measure the model step through the Anthropic SDK path
 - [x] Live deploy on 44005, live hero / TOO LATE / stop-budget runs, live bench
 - [ ] `sign_local.ts` authorization-only run on the live chain (needs one more faucet claim)
 - [ ] `brake-signer` npm publish (human step)

@@ -83,9 +83,9 @@ export default function Judge() {
           </dd>
           <dt>Injection suite</dt>
           <dd>19/19 tuning, 6/6 held out with the model; rules alone 4/19 and 2/6 — a 25-email regression suite, not a detection rate</dd>
-          <dt>Email → cancel confirmed</dt>
+          <dt>Email → agent stop confirmed</dt>
           <dd>
-            p50 4,987 ms · p95 10,093 ms, n=10, live (<a href={blob("bench/results.json")}>bench/results.json</a>)
+            p50 4,987 ms · p95 10,093 ms, n=10, live (3 cancels at 4.4, 6.8, 7.9 s; 7 TOO LATE stops) (<a href={blob("bench/results.json")}>bench/results.json</a>)
           </dd>
           <dt>Agent-initiated transfers</dt>
           <dd>0</dd>

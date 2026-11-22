@@ -23,7 +23,7 @@ Measured on the live Aevum testnet 44005 with `claude-sonnet-5-5` through the An
 | Property checks | 30,000 generated cases, 0 counterexamples: no model output overrides a rule STOP; a fabricated quote never verifies; unverified findings never ALLOW | [`packages/engine/test/properties.test.ts`](packages/engine/test/properties.test.ts) |
 | Model-only stop | line 3 stopped in 5/5 runs with zero rules fired; with the model removed, line 3 pays | [`DEMO.md`](DEMO.md) |
 | Injection suite | 19/19 tuning, 6/6 held out with the model; rules alone 4/19 and 2/6 (a 25-email regression suite, not a detection rate) | [`DEMO.md`](DEMO.md) |
-| Email → cancel confirmed | p50 4,987 ms · p95 10,093 ms (n=10, live) | [`bench/results.json`](bench/results.json) |
+| Email → agent stop confirmed | p50 4,987 ms · p95 10,093 ms (n=10, live: 3 cancels at 4.4, 6.8 and 7.9 s + 7 TOO LATE stops) | [`bench/results.json`](bench/results.json) |
 | Agent-initiated transfers | 0 | [`bench/results.json`](bench/results.json) |
 | Live runs | hero (model-only stop + re-issue), TOO LATE, stop budget: every hash on the explorer | [`DEMO.md`](DEMO.md) |
 

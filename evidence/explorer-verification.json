@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-11-22T12:29:07Z",
+  "source": "https://explorer-test.qday.info/api/v2/smart-contracts/<address> (Blockscout)",
+  "contracts": {
+    "brake": {
+      "address": "0xbDB614Ce4f1319f78DBF3856070092Cc83405B59",
+      "name": "Brake",
+      "is_verified": true
+    },
+    "identityProxy": {
+      "address": "0xe1326D6e2B1D3Efa43a38bC95A8d87b50c4CEa2e",
+      "name": "ERC1967Proxy",
+      "is_verified": true
+    },
+    "identityImpl": {
+      "address": "0x9bd1d89081D9cEC5D16BBd239e852A382A8944a8",
+      "name": "IdentityRegistryUpgradeable",
+      "is_verified": true
+    },
+    "validationProxy": {
+      "address": "0xC4496D7B66f2b768Ea61922A9Fe923f272007b83",
+      "name": "ERC1967Proxy",
+      "is_verified": true
+    },
+    "validationImpl": {
+      "address": "0x1bE269891c41D728aC4B94fd528eb0A70F346E48",
+      "name": "ValidationRegistryUpgradeable",
+      "is_verified": true
+    },
+    "bootstrapImpl": {
+      "address": "0x7B021034EEE1B62F0E35B0D1A189D03A772172B5",
+      "name": "ERC8004Bootstrap",
+      "is_verified": true
+    }
+  }
+}

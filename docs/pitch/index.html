@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Brake: pitch deck (v1.0 · 2026-11-16)
+  Brake: pitch deck (v0.1.0 · 2026-11-22)
   Keys: → / Space next · ← previous · Home / End · Esc slide overview · P presenter mode (speaker notes)
   Print: Cmd/Ctrl+P → Save as PDF → one slide per page (16in × 9in), backgrounds on.
   Images: ../assets/demo-line3-deck.png (header + line 3), a crop of the real run sheet (line 3 stopped) captured on a fork during the build, labelled FORK.
@@ -226,7 +226,7 @@ body.overview #grid { display: grid; }
   <div class="brandmark"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="3" y="3" width="58" height="58" fill="none" stroke="currentColor" stroke-width="4"/><rect x="10" y="10" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2"/><text x="32" y="45" text-anchor="middle" font-family="Ibarra Real Nova, Georgia, serif" font-weight="700" font-size="34" fill="currentColor">B</text></svg>Brake</div>
   <h1 class="rise d2">The agent reads the inbox. It can <span class="nw"><span class="stamp">stop</span>,</span> never pay.</h1>
   <div class="line3 rise d3"><span>3</span><span class="v">Acme Logistics<small>INV-8812 · Tuesday’s email</small></span><span class="amt">0.500</span><span class="stamp land">Stop payment<small>No. 0x8832…a581 · live</small></span></div>
-  <div class="foot"><span>Pre-signed stop-payments for stablecoin payment runs · v1.0 · 2026-11-16</span></div>
+  <div class="foot"><span>Pre-signed stop-payments for stablecoin payment runs · v0.1.0 · 2026-11-22</span></div>
   <aside class="speaker-notes">Brake lets finance sign each vendor payment together with its own cancellation. A monitor agent reads the inbox and can stop a line before payday, but it holds no funds and cannot pay. Everything you will see ran live on Aevum testnet 44005, and every hash opens on the explorer.</aside>
 </section>
 
@@ -331,11 +331,11 @@ body.overview #grid { display: grid; }
   <div class="rcpts rise d2">
     <div><div class="n">131</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
     <div><div class="n">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
-    <div><div class="n">5.0 s</div><p>median email → cancel (live, n = 10)</p><code>bench/results.json</code></div>
+    <div><div class="n">5.0 s</div><p>median email → stop confirmed (live, n = 10)</p><code>bench/results.json</code></div>
     <div><div class="n">25/25</div><p>injection emails; rules alone 6</p><code>evidence/g4/</code></div>
   </div>
   <p class="small">n = 25 regression suite, claude-sonnet-5-5 through the Anthropic API.</p>
-  <aside class="speaker-notes">131 tests across forge, the signer package and the engine. The latency is the live median from vendor email to a confirmed cancel over every agent stop on the live chain, ten of them; p95 is 10.1 seconds. The model numbers are claude-sonnet-5-5 through the Anthropic API.</aside>
+  <aside class="speaker-notes">131 tests across forge, the signer package and the engine. The latency is the live median from vendor email to the agent’s stop confirmed on chain, over all ten live stops: three that cancelled a payment, at 4.4, 6.8 and 7.9 seconds, and seven TOO LATE stops on an already-used nonce. p95 is 10.1 seconds. The model numbers are claude-sonnet-5-5 through the Anthropic API.</aside>
 </section>
 
 <!-- 9 · AEVUM -->
