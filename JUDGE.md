@@ -41,7 +41,7 @@ The model path is real: with no model configured the engine fails closed and hol
 ## Honest limitations
 
 - Brake stops only what its rules or model flag; a missed fraud pays as it would without Brake.
-- The cancellation budget binds only the Brake path: anyone holding a raw cancel signature can submit it, so a compromised server could cancel every line (it still could not pay one).
+- The cancellation budget binds only the Brake path: anyone holding a raw cancel signature can submit it, so a compromised server could cancel every line (it still could not change a payee or amount).
 - Demo mode signs with a server-held testnet key; the non-custodial path is the local signing script.
 - The tUSD8 issuer holds pause and blacklist powers. Tested on Aevum testnet only.
 

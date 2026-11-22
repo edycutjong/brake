@@ -10,6 +10,7 @@
   <br/>
 
   [![Live App](https://img.shields.io/badge/🚀_Live_App-app.brake.edycu.dev-2E6B4F?style=for-the-badge)](https://app.brake.edycu.dev/)
+  [![Demo Video](https://img.shields.io/badge/▶️_Demo-Video-B3261E?style=for-the-badge)](https://youtu.be/AHshl1gDvHs)
   [![For Judges](https://img.shields.io/badge/⚖️_For-Judges-2F4FA2?style=for-the-badge)](JUDGE.md)
   [![Landing](https://img.shields.io/badge/🌐_Landing-brake.edycu.dev-06b6d4?style=for-the-badge)](https://brake.edycu.dev/)
   [![Pitch Deck](https://img.shields.io/badge/📊_Pitch-Deck-f59e0b?style=for-the-badge)](https://brake.edycu.dev/pitch/)
@@ -333,7 +334,7 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 
 ## 📽️ Demo Materials
 
-Reproduce steps with the live hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: https://brake.edycu.dev/ ([source](docs/index.html)). Pitch deck: https://brake.edycu.dev/pitch/ ([source](docs/pitch/index.html)). One page for judges: [JUDGE.md](JUDGE.md) (also `/judge` in the app). Live app: https://app.brake.edycu.dev/ (Aevum testnet 44005).
+Demo video (3 min): https://youtu.be/AHshl1gDvHs. Reproduce steps with the live hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: https://brake.edycu.dev/ ([source](docs/index.html)). Pitch deck: https://brake.edycu.dev/pitch/ ([source](docs/pitch/index.html)). One page for judges: [JUDGE.md](JUDGE.md) (also `/judge` in the app). Live app: https://app.brake.edycu.dev/ (Aevum testnet 44005).
 
 ## 📄 License
 
