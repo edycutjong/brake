@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/brand/icon.svg" alt="Brake icon: a payment register line stamped STOP" width="144">
+  <img src="docs/assets/brand/icon-animated.svg" alt="Brake icon: a payment register line stamped STOP" width="144">
   <h1>Brake 🛑</h1>
   <p><em>Pre-signed stop-payments for stablecoin payment runs.</em></p>
   <img src="docs/assets/brand/readme-hero-animated.svg" alt="Brake — a cancel-only agent stops a pre-signed tUSD8 payment line before payday: A red STOP PAYMENT stamp lands across line 3 — 5,000 tUSD8 — with the cancel tx hash as its serial number." width="100%">
@@ -9,9 +9,9 @@
 
   <br/>
 
+  [![For Judges](https://img.shields.io/badge/⚖️_For-Judges-2F4FA2?style=for-the-badge)](JUDGE.md)
   [![Landing](https://img.shields.io/badge/🌐_Landing-brake.edycu.dev-06b6d4?style=for-the-badge)](https://brake.edycu.dev/)
   [![Pitch Deck](https://img.shields.io/badge/📊_Pitch-Deck-f59e0b?style=for-the-badge)](https://brake.edycu.dev/pitch/)
-  [![For Judges](https://img.shields.io/badge/⚖️_For-Judges-2F4FA2?style=for-the-badge)](JUDGE.md)
   [![QDay Aevum Builder Challenge](https://img.shields.io/badge/DoraHacks-QDay_Aevum_Builder_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/qday/detail)
 
   <br/>
@@ -145,7 +145,7 @@ Fork evidence (each file is labelled `deployment: fork`; `g1-fork.json` records 
 
 | Metric | Value | Source |
 |---|---|---|
-| Tests | 124 passing: forge 50 + brake-signer 12 + engine 62 | `evidence/test-counts.json` |
+| Tests | 126 passing: forge 50 + brake-signer 12 + engine 64 | `evidence/test-counts.json` |
 | Property checks (fast-check) | 3 properties × 10,000 generated cases = 30,000, 0 counterexamples | `packages/engine/test/properties.test.ts` |
 | E2E (Playwright) | 24 passing: `/judge` with no credentials, no-key smoke, responsive 375/768/1440, desktop + Pixel 7 | `apps/web/e2e/*.spec.ts` |
 | Forge tests run against | tUSD8 state at fork block 3252000 | `evidence/test-counts.json` |
@@ -259,7 +259,7 @@ Contract surface (`src/Brake.sol`): `openRun`, `allow`, `hold`, `stop`, `finance
 ```bash
 forge test                                   # 50 fork tests (tUSD8 state at block 3252000)
 pnpm --filter brake-signer test              # 12
-pnpm --filter @brake/engine test             # 62 incl. 3 fast-check properties (integration tests skip without a fork and local keys)
+pnpm --filter @brake/engine test             # 64 incl. 3 fast-check properties (integration tests skip without a fork and local keys)
 pnpm g4                                      # the 25-email injection suite
 python3 scripts/bench.py                     # reproduce bench/results.json from evidence/bench-rows.json
 python3 apps/web/e2e/hero_walk.py            # the hero through the real UI (needs pnpm fork:up)

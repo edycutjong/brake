@@ -60,7 +60,7 @@ export default function Judge() {
         <dl className="kv">
           <dt>Tests</dt>
           <dd>
-            124 green: 50 Foundry fork tests, 12 brake-signer, 62 engine (<a href={blob("evidence/test-counts.json")}>test-counts.json</a>)
+            126 green: 50 Foundry fork tests, 12 brake-signer, 64 engine (<a href={blob("evidence/test-counts.json")}>test-counts.json</a>)
           </dd>
           <dt>Property checks</dt>
           <dd>

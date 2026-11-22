@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { formatEther, parseAbi, type Hex } from "viem";
 import { eip3009Abi } from "brake-signer";
 import type { ChainCtx } from "./chain.js";
@@ -76,7 +76,10 @@ export function createApi(deps: ApiDeps) {
         return await h(req, m.groups ?? {}, d);
       } catch (e) {
         if (e instanceof HttpError) return json(e.status, { error: e.message, ...e.body });
-        return json(500, { error: "internal error", detail: String((e as Error).message ?? e).slice(0, 300) });
+        // log server-side only; the client gets an opaque reference (CodeQL js/stack-trace-exposure)
+        const ref = randomUUID().slice(0, 8);
+        console.error(`[api ${ref}] ${req.method} ${url.pathname}`, e);
+        return json(500, { error: "internal error", ref });
       }
     }
     return json(404, { error: "no route" });

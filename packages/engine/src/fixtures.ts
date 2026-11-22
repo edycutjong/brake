@@ -55,7 +55,13 @@ export function payeeAddress(mnemonic: string, idx: number): Address {
 export const toUnits = (amount: number, scale: number): bigint => BigInt(Math.round(amount * scale * 1e6));
 export const fromUnits = (u: bigint): string => {
   const s = u.toString().padStart(7, "0");
-  return `${s.slice(0, -6)}.${s.slice(-6)}`.replace(/\.?0+$/, "") || "0";
+  // trim trailing zeros of the fraction by index, not regex (CodeQL js/polynomial-redos on /\.?0+$/)
+  let frac = s.slice(-6);
+  let end = frac.length;
+  while (end > 0 && frac[end - 1] === "0") end--;
+  frac = frac.slice(0, end);
+  const whole = s.slice(0, -6);
+  return frac ? `${whole}.${frac}` : whole;
 };
 
 export function parseEml(id: string, text: string): MailTemplate {

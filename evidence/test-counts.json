@@ -20,11 +20,11 @@
  },
  "engine": {
   "command": "pnpm --filter @brake/engine test",
-  "passed": 62,
+  "passed": 64,
   "failed": 0,
-  "note": "agent 21 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 19 (incl. the P1c wallet-mode test; skipped when the fork or local keys are absent) = 59 | a2a arch r01+r02 added 6 agent tests (fail-closed model output, unverified findings HOLD + evidence binding, prompt-safe quotes, rules on model failure) and 3 integration tests (reorg rollback, stuck-tx replacement, lost final-attempt job) | 2026-11-22: +3 property-based tests (fast-check, 3 x 10,000 generated cases: rule STOP never overridden by model output; fabricated quotes never verify; unverified findings never ALLOW) = 62, run with the local anvil fork up (all 19 integration tests executed)"
+  "note": "agent 21 + I1 boundary 5 + executor table 14 + API/chain integration on a local anvil fork 19 (incl. the P1c wallet-mode test; skipped when the fork or local keys are absent) = 59 | a2a arch r01+r02 added 6 agent tests (fail-closed model output, unverified findings HOLD + evidence binding, prompt-safe quotes, rules on model failure) and 3 integration tests (reorg rollback, stuck-tx replacement, lost final-attempt job) | 2026-11-22: +3 property-based tests (fast-check, 3 x 10,000 generated cases: rule STOP never overridden by model output; fabricated quotes never verify; unverified findings never ALLOW) = 62, run with the local anvil fork up (all 19 integration tests executed) | 2026-11-22: +2 fixtures tests (fromUnits formatting + linear time on 50,000 zeros; regressions for CodeQL alerts #1/#2) = 64, fork up, nothing skipped"
  },
- "total": 124,
+ "total": 126,
  "webE2E": {
   "command": "python3 apps/web/e2e/hero_walk.py",
   "note": "full hero through the real UI on a local fork, ~61 s; interaction_qa.py 0 failures; 390 px no horizontal scroll on 5 pages",

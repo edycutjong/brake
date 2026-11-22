@@ -59,4 +59,4 @@ python3 scripts/bench.py      # bench/results.json
 cd apps/web && python3 e2e/hero_walk.py   # hero through the real UI (about a minute)
 ```
 
-Tests: `forge test` (50), `pnpm --filter brake-signer test` (12), `pnpm --filter @brake/engine test` (62, incl. 3 fast-check properties × 10,000 cases), 124 in total (`evidence/test-counts.json`).
+Tests: `forge test` (50), `pnpm --filter brake-signer test` (12), `pnpm --filter @brake/engine test` (64, incl. 3 fast-check properties × 10,000 cases), 126 in total (`evidence/test-counts.json`).

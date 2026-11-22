@@ -19,7 +19,7 @@ Measured on an anvil fork of Aevum testnet 44005 (live tUSD8 bytecode and state 
 
 | What | Result | Source |
 |---|---|---|
-| Tests | 124 green: 50 Foundry fork tests, 12 brake-signer, 62 engine | [`evidence/test-counts.json`](evidence/test-counts.json) |
+| Tests | 126 green: 50 Foundry fork tests, 12 brake-signer, 64 engine | [`evidence/test-counts.json`](evidence/test-counts.json) |
 | Property checks | 30,000 generated cases, 0 counterexamples: no model output overrides a rule STOP; a fabricated quote never verifies; unverified findings never ALLOW | [`packages/engine/test/properties.test.ts`](packages/engine/test/properties.test.ts) |
 | Model-only stop | line 3 stopped in 5/5 runs with zero rules fired; with the model removed, line 3 pays | [`DEMO.md`](DEMO.md) |
 | Injection suite | 19/19 tuning, 6/6 held out with the model; rules alone 4/19 and 2/6 (a 25-email regression suite, not a detection rate) | [`DEMO.md`](DEMO.md) |
