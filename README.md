@@ -15,6 +15,10 @@
   [![Landing](https://img.shields.io/badge/🌐_Landing-brake.edycu.dev-06b6d4?style=for-the-badge)](https://brake.edycu.dev/)
   [![Pitch Deck](https://img.shields.io/badge/📊_Pitch-Deck-f59e0b?style=for-the-badge)](https://brake.edycu.dev/pitch/)
   [![QDay Aevum Builder Challenge](https://img.shields.io/badge/DoraHacks-QDay_Aevum_Builder_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/qday/detail)
+  [![DoraHacks BUIDL](https://img.shields.io/badge/DoraHacks-BUIDL_51649-8b5cf6?style=for-the-badge)](https://dorahacks.io/build/51649)
+  [![Track: Invoice Payments](https://img.shields.io/badge/Track-Invoice_Payments-2E6B4F?style=for-the-badge)](https://dorahacks.io/hackathon/qday/detail)
+  [![X post](https://img.shields.io/badge/X-Launch_post-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/edycutjong/status/2124558401846067223)
+  [![dev.to article](https://img.shields.io/badge/dev.to-Give_your_AI_agent_the_cancel-0A0A0A?style=for-the-badge&logo=devdotto&logoColor=white)](https://dev.to/edycutjong/give-your-ai-agent-the-cancel-not-the-key-3g4)
 
   <br/>
 
