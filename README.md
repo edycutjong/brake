@@ -1,13 +1,17 @@
 <div align="center">
+  <img src="docs/assets/brand/icon.svg" alt="Brake icon: a payment register line stamped STOP" width="144">
   <h1>Brake 🛑</h1>
-  <p><em>Pre-signed stop-payments for stablecoin payment runs. We gave the agent the inbox. It still can't move a cent.</em></p>
-
+  <p><em>Pre-signed stop-payments for stablecoin payment runs.</em></p>
+  <img src="docs/assets/brand/readme-hero-animated.svg" alt="Brake — a cancel-only agent stops a pre-signed tUSD8 payment line before payday: A red STOP PAYMENT stamp lands across line 3 — 5,000 tUSD8 — with the cancel tx hash as its serial number." width="100%">
   <p>Finance signs each payment together with its cancellation. A monitor agent can stop a line or hold it for finance, and it cannot create a payment or change where one goes.</p>
 
   <p><strong>Status: built and tested on an anvil fork of Aevum 44005. The live testnet deployment, live URL and explorer-verified contracts are pending testnet funding</strong> (see <a href="#%EF%B8%8F-live-deployment">Live Deployment</a>).</p>
 
   <br/>
 
+  [![Landing](https://img.shields.io/badge/🌐_Landing-brake.edycu.dev-06b6d4?style=for-the-badge)](https://brake.edycu.dev/)
+  [![Pitch Deck](https://img.shields.io/badge/📊_Pitch-Deck-f59e0b?style=for-the-badge)](https://brake.edycu.dev/pitch/)
+  [![For Judges](https://img.shields.io/badge/⚖️_For-Judges-2F4FA2?style=for-the-badge)](JUDGE.md)
   [![QDay Aevum Builder Challenge](https://img.shields.io/badge/DoraHacks-QDay_Aevum_Builder_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/qday/detail)
 
   <br/>
@@ -19,6 +23,8 @@
   ![viem](https://img.shields.io/badge/viem-1e1e1e?style=flat)
   ![Postgres](https://img.shields.io/badge/Postgres-336791?style=flat&logo=postgresql&logoColor=white)
   [![License](https://img.shields.io/badge/License-MIT-yellow)](https://opensource.org/licenses/MIT)
+  [![CI](https://github.com/edycutjong/brake/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/brake/actions/workflows/ci.yml)
+  [![Release](https://img.shields.io/github/v/release/edycutjong/brake?sort=semver)](https://github.com/edycutjong/brake/releases/latest)
 
 </div>
 
@@ -139,7 +145,9 @@ Fork evidence (each file is labelled `deployment: fork`; `g1-fork.json` records 
 
 | Metric | Value | Source |
 |---|---|---|
-| Tests | 121 passing: forge 50 + brake-signer 12 + engine 59 | `evidence/test-counts.json` |
+| Tests | 124 passing: forge 50 + brake-signer 12 + engine 62 | `evidence/test-counts.json` |
+| Property checks (fast-check) | 3 properties × 10,000 generated cases = 30,000, 0 counterexamples | `packages/engine/test/properties.test.ts` |
+| E2E (Playwright) | 24 passing: `/judge` with no credentials, no-key smoke, responsive 375/768/1440, desktop + Pixel 7 | `apps/web/e2e/*.spec.ts` |
 | Forge tests run against | tUSD8 state at fork block 3252000 | `evidence/test-counts.json` |
 | Latency, email to cancel confirmed (fork, n=11) | p50 4,116 ms, p95 6,285 ms | `bench/results.json` |
 | Gas, median | stop 183,023 · allow 1,092,452 · payday 109,418 · reissue 312,767 (measured at `494c2a6`, before the a2a architecture contract change) | `bench/results.json` |
@@ -159,13 +167,16 @@ The model runs used `claude-sonnet-5-5` through a local CLI adapter (labelled in
 
 n is small (25), so read these as a regression suite, not a detection rate. "Collateral" lines are emails that name the fraud wallet, which is also the on-file payee of another line, so that line stops too; each is reported per row. The 6 held-out emails were committed before tuning (`680805f`). Source: `bench/results.json`, `evidence/g4/`.
 
-### Attacks defeated and honest limitations
+### Attacks defeated
 
 | Control | Why it is load-bearing | Test |
 |---|---|---|
 | The agent cannot pay | `agentHoldsNoSpendingPower_brakeNeverHoldsFunds` | `test/Brake.t.sol:255` |
 | Only the grant holder acts; revoked and expired agents are refused | stranger, revoked, expired | `test/Brake.t.sol:232` |
 | No model output can turn a rule STOP into ALLOW or HOLD | invariant I4 | `packages/engine/test/agent.test.ts:203` |
+| … for any generated model output (10,000 cases) | property: rules are consulted first | `packages/engine/test/properties.test.ts` |
+| A fabricated quote never verifies (10,000 cases) | property: quotes must be verbatim | `packages/engine/test/properties.test.ts` |
+| Unverified findings never ALLOW (10,000 cases) | property: fail-closed | `packages/engine/test/properties.test.ts` |
 | Injection alone HOLDs, never ALLOWs | | `packages/engine/test/agent.test.ts:218` |
 | A paraphrased or misattributed model quote is dropped | verbatim quote check | `packages/engine/test/agent.test.ts:168` |
 | Email text cannot forge the prompt's data tags | | `packages/engine/test/agent.test.ts:123` |
@@ -175,20 +186,20 @@ n is small (25), so read these as a regression suite, not a detection rate. "Col
 | A hostile registry cannot re-enter during the receipt | | `test/BrakeLifecycle.t.sol:258` |
 | A failing registry never blocks a stop | receipt retried later | `test/BrakeReceipts.t.sol:15` |
 
-**Limitations (kept on the judged page):**
+### Honest limits (12)
 
-- **Brake prevents only what it detects.** A wrong stop costs a late payment (re-issue). A fraud that neither the rules nor the model flag, such as a BEC email from the vendor's real, compromised mailbox with no payee change on file, pays as it would without Brake. A prompt injection can suppress a stop that only the model would have made; it cannot create a payment or change a payee.
-- **Brake trusts the vendor file's recorded verifications.** It cannot prove a past "phone-verified" change used an independent number.
-- **Brake acts only on what arrives before payday.** Had the attacker stayed silent, line 3 in the hero would have paid.
-- **If a payment was already redeemed,** Brake reports TOO LATE and opens a recovery ticket. It cannot claw funds back.
-- **The stop budget binds only the Brake path.** Anyone holding a raw cancel signature can submit it to tUSD8 directly, so a compromised server can cancel every line (a delayed run). The same server holds the encrypted payment signatures, so a compromise can also pay an undecided line to its signed payee without review; it cannot change payee or amount. A hijacked agent can cancel up to `maxStops` lines per run (set per run by the payer; the demo scenarios use 2, 1 and 2) and can HOLD any line, so it can delay a run. Each stop is re-issuable and each hold is released by one payer `allow`.
-- **A HELD line with finance away** stays unpaid until `validBefore` (payday + 48 h), then shows EXPIRED and needs a re-signed line.
-- **Revocation scope.** `revokeAgent` blocks Brake-routed stops at once; signatures already issued stay valid (cancels until the line is consumed, payments until `validBefore`).
-- **Demo mode is custodial:** the server holds a testnet demo payer key. The authorization-only mode is `scripts/sign_local.ts` (your key signs, the server holds only signed authorizations; ran on the fork in `evidence/sign-local-fork.json`).
-- **Finality.** Statuses are provisional for `CONFIRMATIONS` blocks (3). The `finalized` tag lagged `latest` by 4,643 blocks (about 78 min) when observed (`evidence/finality-observation.json`); reorg depth on Aevum was not measured.
-- **Privacy:** vendor email text goes to the Anthropic API for the model step; only hashes go on-chain.
-- Tested on Aevum's tUSD8 only; the mechanism should port to other FiatToken-v2 chains. The issuer can pause or blacklist tUSD8, which blocks both payments and cancels.
-- Not built: IMAP inbox, Docker image, npm publish of `brake-signer` (human step).
+1. **Brake prevents only what it detects.** A wrong stop costs a late payment (re-issue). A fraud that neither the rules nor the model flag, such as a BEC email from the vendor's real, compromised mailbox with no payee change on file, pays as it would without Brake. A prompt injection can suppress a stop that only the model would have made; it cannot create a payment or change a payee.
+2. **Brake trusts the vendor file's recorded verifications.** It cannot prove a past "phone-verified" change used an independent number.
+3. **Brake acts only on what arrives before payday.** Had the attacker stayed silent, line 3 in the hero would have paid.
+4. **If a payment was already redeemed,** Brake reports TOO LATE and opens a recovery ticket. It cannot claw funds back.
+5. **The stop budget binds only the Brake path.** Anyone holding a raw cancel signature can submit it to tUSD8 directly, so a compromised server can cancel every line (a delayed run). The same server holds the encrypted payment signatures, so a compromise can also pay an undecided line to its signed payee without review; it cannot change payee or amount. A hijacked agent can cancel up to `maxStops` lines per run (set per run by the payer; the demo scenarios use 2, 1 and 2) and can HOLD any line, so it can delay a run. Each stop is re-issuable and each hold is released by one payer `allow`.
+6. **A HELD line with finance away** stays unpaid until `validBefore` (payday + 48 h), then shows EXPIRED and needs a re-signed line.
+7. **Revocation scope.** `revokeAgent` blocks Brake-routed stops at once; signatures already issued stay valid (cancels until the line is consumed, payments until `validBefore`).
+8. **Demo mode is custodial:** the server holds a testnet demo payer key. The authorization-only mode is `scripts/sign_local.ts` (your key signs, the server holds only signed authorizations; ran on the fork in `evidence/sign-local-fork.json`).
+9. **Finality.** Statuses are provisional for `CONFIRMATIONS` blocks (3). The `finalized` tag lagged `latest` by 4,643 blocks (about 78 min) when observed (`evidence/finality-observation.json`); reorg depth on Aevum was not measured.
+10. **Privacy:** vendor email text goes to the Anthropic API for the model step; only hashes go on-chain.
+11. Tested on Aevum's tUSD8 only; the mechanism should port to other FiatToken-v2 chains. The issuer can pause or blacklist tUSD8, which blocks both payments and cancels.
+12. Not built: IMAP inbox, Docker image, npm publish of `brake-signer` (human step).
 
 ## 🚀 Getting Started
 
@@ -248,13 +259,27 @@ Contract surface (`src/Brake.sol`): `openRun`, `allow`, `hold`, `stop`, `finance
 ```bash
 forge test                                   # 50 fork tests (tUSD8 state at block 3252000)
 pnpm --filter brake-signer test              # 12
-pnpm --filter @brake/engine test             # 59 (integration tests skip without a fork and local keys)
+pnpm --filter @brake/engine test             # 62 incl. 3 fast-check properties (integration tests skip without a fork and local keys)
 pnpm g4                                      # the 25-email injection suite
 python3 scripts/bench.py                     # reproduce bench/results.json from evidence/bench-rows.json
-python3 apps/web/e2e/hero_walk.py            # the hero through the real UI
+python3 apps/web/e2e/hero_walk.py            # the hero through the real UI (needs pnpm fork:up)
+pnpm e2e                                     # Playwright: /judge no-auth, smoke, responsive
+pnpm lighthouse                              # Lighthouse CI: app + landing/deck
+pnpm ci                                      # fmt + forge + typecheck + tests + build
 ```
 
-GitHub Actions workflows exist (`.github/workflows/ci.yml`, `tick.yml`), but Actions did not run remotely (account billing blocked), so there is no CI badge. The counts above come from local runs.
+**6-stage pipeline** (`.github/workflows/ci.yml`): Quality → Security → Build → E2E → Performance → Deploy gate.
+
+| Stage | Gate |
+|---|---|
+| 1 · Quality | `forge fmt --check`, `forge build --sizes`, 50 fork tests · typecheck + unit/property tests on node 22 and 24 |
+| 2 · Security | gitleaks over full history · `pnpm audit --prod` · licence check (no GPL-3.0/AGPL-3.0) |
+| 3 · Build | Next.js production build · bundle budget (warn 1,500 KB, fail 2,000 KB) · `brake-signer` pack |
+| 4 · E2E | Playwright on desktop Chrome + Pixel 7 |
+| 5 · Performance | Lighthouse CI on the app and the landing/deck; accessibility ≥ 0.9 is a hard gate |
+| 6 · Deploy gate | main only, after every stage above |
+
+Also: CodeQL (`codeql.yml`), Dependabot (grouped, monthly), and `release.yml`, which tags a semantic version from Angular-convention commits (`feat:` minor, `fix:` patch). The 19 engine integration tests need a local anvil fork and keys, so CI runs them as skipped; they pass locally with `pnpm fork:up` (`evidence/test-counts.json`).
 
 ## 📁 Project Structure
 
@@ -284,7 +309,7 @@ docs/                 DX-REPORT.md, COMPARISON.md, screenshots
 
 ## 📽️ Demo Materials
 
-Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: [docs/index.html](docs/index.html) (served at https://edycutjong.github.io/brake/ once the repo is public). Pitch deck: [docs/pitch/index.html](docs/pitch/index.html) (both open as HTML source on GitHub until Pages is enabled). No live app URL or demo video yet.
+Reproduce steps and fork hashes: [DEMO.md](DEMO.md). Friction log for QDay: [docs/DX-REPORT.md](docs/DX-REPORT.md). Landing page: https://brake.edycu.dev/ ([source](docs/index.html)). Pitch deck: https://brake.edycu.dev/pitch/ ([source](docs/pitch/index.html)). One page for judges: [JUDGE.md](JUDGE.md) (also `/judge` in the app). No live app URL or demo video yet.
 
 ## 📄 License
 
