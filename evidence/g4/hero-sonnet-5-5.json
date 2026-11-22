@@ -1,0 +1,187 @@
+{
+  "model": "claude-sonnet-5-5",
+  "mondayAllowAll": {
+    "hits": 5,
+    "n": 5
+  },
+  "tuesdayLine3Stop": {
+    "hits": 5,
+    "n": 5
+  },
+  "tuesdayLine3StopModelOnly": {
+    "hits": 5,
+    "n": 5
+  },
+  "tuesdayOtherLinesAllow": {
+    "hits": 5,
+    "n": 5
+  },
+  "ablationLine3": "ALLOW",
+  "runs": [
+    {
+      "mode": "monday",
+      "i": 0,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 2860
+    },
+    {
+      "mode": "monday",
+      "i": 1,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 2891
+    },
+    {
+      "mode": "monday",
+      "i": 2,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 2687
+    },
+    {
+      "mode": "monday",
+      "i": 3,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 2689
+    },
+    {
+      "mode": "monday",
+      "i": 4,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 3065
+    },
+    {
+      "mode": "tuesday",
+      "i": 0,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "STOP",
+        "ALLOW"
+      ],
+      "line3": "STOP",
+      "reason": "PAYMENT_DETAIL_CHANGE",
+      "rulesFired": 0,
+      "ms": 5182
+    },
+    {
+      "mode": "tuesday",
+      "i": 1,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "STOP",
+        "ALLOW"
+      ],
+      "line3": "STOP",
+      "reason": "PAYMENT_DETAIL_CHANGE",
+      "rulesFired": 0,
+      "ms": 5037
+    },
+    {
+      "mode": "tuesday",
+      "i": 2,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "STOP",
+        "ALLOW"
+      ],
+      "line3": "STOP",
+      "reason": "PAYMENT_DETAIL_CHANGE",
+      "rulesFired": 0,
+      "ms": 4895
+    },
+    {
+      "mode": "tuesday",
+      "i": 3,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "STOP",
+        "ALLOW"
+      ],
+      "line3": "STOP",
+      "reason": "PAYMENT_DETAIL_CHANGE",
+      "rulesFired": 0,
+      "ms": 5215
+    },
+    {
+      "mode": "tuesday",
+      "i": 4,
+      "model": "claude-sonnet-5-5",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "STOP",
+        "ALLOW"
+      ],
+      "line3": "STOP",
+      "reason": "PAYMENT_DETAIL_CHANGE",
+      "rulesFired": 0,
+      "ms": 4985
+    },
+    {
+      "mode": "tuesday-model-stubbed",
+      "i": 0,
+      "model": "none",
+      "verdicts": [
+        "ALLOW",
+        "ALLOW",
+        "ALLOW",
+        "ALLOW"
+      ],
+      "line3": "ALLOW",
+      "reason": null,
+      "rulesFired": 0,
+      "ms": 2
+    }
+  ]
+}

@@ -52,6 +52,7 @@ messages need no finding. Messages may be in English or Bahasa Indonesia.`;
 export const RECORD_FINDINGS_TOOL = {
   name: "record_findings",
   description: "Record what the linked messages mean for each payment line. Call exactly once.",
+  strict: true,
   input_schema: {
     type: "object" as const,
     properties: {
@@ -68,15 +69,18 @@ export const RECORD_FINDINGS_TOOL = {
                 type: "object",
                 properties: { message_id: { type: "string" }, text: { type: "string" } },
                 required: ["message_id", "text"],
+                additionalProperties: false,
               },
             },
             note: { type: "string", description: "one sentence, plain English" },
           },
           required: ["line", "intent", "quotes", "note"],
+          additionalProperties: false,
         },
       },
     },
     required: ["findings"],
+    additionalProperties: false,
   },
 };
 
@@ -142,7 +146,11 @@ export function parseFindings(raw: unknown): Finding[] {
 
 const hasMessages = (i: ModelInput) => [...i.linked.values()].some((m) => m.length > 0);
 
-/** Production path: Anthropic Messages API, one forced tool (SDK 1.8 has no temperature parameter for this model). */
+/**
+ * Production path: Anthropic Messages API with one strict tool. Claude Sonnet 5.5 rejects forced tool_choice
+ * ("tool"/"any" → 400), so the call uses auto + the prompt's "Call record_findings once" + strict schema; a response
+ * without the tool call still throws below, so the line holds (fail-closed), never allows.
+ */
 export class AnthropicModel implements ModelClient {
   readonly id = MODEL_ID;
   private client: Anthropic;
@@ -153,14 +161,14 @@ export class AnthropicModel implements ModelClient {
     if (!hasMessages(input)) return { model: "none (no linked messages)", findings: [] };
     const res = await this.client.messages.create({
       model: MODEL_ID,
-      max_tokens: 2048,
+      max_tokens: 16000, // adaptive thinking is on by default on this model; leave room for it plus the tool call
       system: SYSTEM_PROMPT,
       tools: [RECORD_FINDINGS_TOOL],
-      tool_choice: { type: "tool", name: "record_findings" },
+      tool_choice: { type: "auto", disable_parallel_tool_use: true },
       messages: [{ role: "user", content: userPrompt(input) }],
     });
     const call = res.content.find((b) => b.type === "tool_use");
-    // a forced tool call that is missing or cut off by max_tokens is an invalid response, never an empty one
+    // a tool call that is missing (end_turn / refusal) or cut off by max_tokens is an invalid response, never an empty one
     if (!call || res.stop_reason === "max_tokens") throw new Error(`invalid model output: stop_reason ${res.stop_reason}, tool_use ${call ? "truncated" : "missing"}`);
     return { model: res.model ?? this.id, findings: parseFindings("input" in call ? call.input : null), raw: call };
   }

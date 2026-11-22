@@ -1,0 +1,182 @@
+{
+  "deployment": "live",
+  "scenario": "hero",
+  "run": "run_3be8da3472883133",
+  "runId": "0x21766d0a05e06f70782796350985f887842abd1f7daa2d683e6939dc5f257e7e",
+  "brake": "0xbDB614Ce4f1319f78DBF3856070092Cc83405B59",
+  "seedScale": 0.0001,
+  "model": "claude-sonnet-5-5",
+  "lines": [
+    {
+      "line": 1,
+      "invoice": "INV-1204",
+      "payee": "0x669D8351C0619383d4680753Fd2726548cEA5f7a",
+      "amount": "0.125",
+      "status": "HELD",
+      "paidTx": null,
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null,
+      "reissuedFrom": null
+    },
+    {
+      "line": 2,
+      "invoice": "INV-2047",
+      "payee": "0x9068521AeA6782FDA7Dac855CB877Ce8fB6e801d",
+      "amount": "0.24",
+      "status": "HELD",
+      "paidTx": null,
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null,
+      "reissuedFrom": null
+    },
+    {
+      "line": 3,
+      "invoice": "INV-8812",
+      "payee": "0xFe832Fb0ecfF7a966DaE61B01df0bD106374a5De",
+      "amount": "0.5",
+      "status": "HELD",
+      "paidTx": null,
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null,
+      "reissuedFrom": null
+    },
+    {
+      "line": 4,
+      "invoice": "INV-0311",
+      "payee": "0x1AC8e535247450EB282a19E89DF514d8335f8330",
+      "amount": "0.038",
+      "status": "HELD",
+      "paidTx": null,
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null,
+      "reissuedFrom": null
+    }
+  ],
+  "decisions": [],
+  "steps": [
+    {
+      "step": "run created + signed (payment + paired cancel per line, sealed at rest)",
+      "at": "2026-11-22T09:24:31.635Z",
+      "sinceStartMs": 1742,
+      "run": "run_3be8da3472883133",
+      "runId": "0x21766d0a05e06f70782796350985f887842abd1f7daa2d683e6939dc5f257e7e",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "step": "openRun (payer)",
+      "at": "2026-11-22T09:24:34.634Z",
+      "sinceStartMs": 4741,
+      "tx": "0xd9921d8c41ac9b628c823299f60a51b7e7037fdb8b7b9ed5bf4ca413f2311298",
+      "link": "https://explorer-test.qday.info/tx/0xd9921d8c41ac9b628c823299f60a51b7e7037fdb8b7b9ed5bf4ca413f2311298"
+    },
+    {
+      "step": "review (open)",
+      "at": "2026-11-22T09:24:36.651Z",
+      "sinceStartMs": 6758,
+      "ms": 717,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHizoi7HsvQ68aL9mCxp\"}"
+    },
+    {
+      "step": "review (open)",
+      "at": "2026-11-22T09:24:36.651Z",
+      "sinceStartMs": 6758,
+      "ms": 592,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHizrbjtfu3pP2JKcQMc\"}"
+    },
+    {
+      "step": "review (open)",
+      "at": "2026-11-22T09:24:36.651Z",
+      "sinceStartMs": 6758,
+      "ms": 618,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHizuDkSXtK78VEgZ5Pc\"}"
+    },
+    {
+      "step": "deliver E4 (Tuesday's email)",
+      "at": "2026-11-22T09:24:36.925Z",
+      "sinceStartMs": 7032,
+      "linkedLines": [
+        3
+      ]
+    },
+    {
+      "step": "review (seed:E4)",
+      "at": "2026-11-22T09:24:38.799Z",
+      "sinceStartMs": 8906,
+      "ms": 615,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHizyFqhNzvAGcDtrv2j\"}"
+    },
+    {
+      "step": "review (seed:E4)",
+      "at": "2026-11-22T09:24:38.799Z",
+      "sinceStartMs": 8906,
+      "ms": 583,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHj11xooHEHvEMH6y7zD\"}"
+    },
+    {
+      "step": "review (seed:E4)",
+      "at": "2026-11-22T09:24:38.799Z",
+      "sinceStartMs": 8906,
+      "ms": 585,
+      "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"},\"request_id\":\"req_011ChHj14YLCVb4CFxqToojq\"}"
+    },
+    {
+      "step": "payday 1: waiting for validAfter",
+      "at": "2026-11-22T09:24:38.980Z",
+      "sinceStartMs": 9087,
+      "secondsLeft": 32
+    },
+    {
+      "step": "payday 1",
+      "at": "2026-11-22T09:25:19.417Z",
+      "sinceStartMs": 49524,
+      "link": null,
+      "simulation": [],
+      "paid": [],
+      "proofs": [],
+      "held": [
+        {
+          "idx": 0,
+          "reason": "REVIEW_STALE (never reviewed)",
+          "tx": "0x3533f6f2f8479e8394c9cc890e6a100402a39684f51cd3a5ab4fcba30a9dc97f"
+        },
+        {
+          "idx": 1,
+          "reason": "REVIEW_STALE (never reviewed)",
+          "tx": "0x19433cbfadc55bdd2949d84ddb6ef1dda37912fefd8eaa76e43f9aae23bfa9b2"
+        },
+        {
+          "idx": 2,
+          "reason": "REVIEW_STALE (never reviewed)",
+          "tx": "0x6c87a9b97bf46b8c9520d3661f166bba8f432ae8854f86100efd6044f74eb56b"
+        },
+        {
+          "idx": 3,
+          "reason": "REVIEW_STALE (never reviewed)",
+          "tx": "0x09c3f380d81fcf9f89f4cf7ad207ec7c47ea8201c747722ad23ce56a28e6f1ec"
+        }
+      ]
+    },
+    {
+      "step": "reconcile",
+      "at": "2026-11-22T09:25:19.965Z",
+      "sinceStartMs": 50072,
+      "from": "3821610",
+      "to": "3821686",
+      "events": 9,
+      "updates": 0,
+      "retried": 0
+    },
+    {
+      "step": "sweep-back to payer",
+      "at": "2026-11-22T09:25:20.004Z",
+      "sinceStartMs": 50111,
+      "tx": null,
+      "swept": 0
+    }
+  ],
+  "totalMs": 50148
+}
