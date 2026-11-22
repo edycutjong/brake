@@ -4,10 +4,11 @@ import { Ibarra_Real_Nova, Libre_Franklin, Courier_Prime } from "next/font/googl
 import "./globals.css";
 import Mast, { Mark } from "@/components/Mast";
 
-const display = Ibarra_Real_Nova({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-display", display: "swap" });
-const body = Libre_Franklin({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--nf-body", display: "swap" });
+// fallbacks are the metric-matched faces measured for the landing page (globals.css), so the swap does not shift layout
+const display = Ibarra_Real_Nova({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-display", display: "swap", adjustFontFallback: false, fallback: ["Ibarra Fallback", "Georgia", "serif"] });
+const body = Libre_Franklin({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--nf-body", display: "swap", adjustFontFallback: false, fallback: ["Franklin Fallback", "Arial", "sans-serif"] });
 // next/font has no monospace fallback metrics (it would fall back to Arial and reflow every data line); Courier New is metric-matched
-const data = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-data", display: "swap", adjustFontFallback: false, fallback: ["Courier New", "monospace"] });
+const data = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-data", display: "swap", adjustFontFallback: false, fallback: ["Courier Fallback", "Courier New", "monospace"] });
 
 const TITLE = "Brake — stop a payment run before it clears";
 const DESCRIPTION =

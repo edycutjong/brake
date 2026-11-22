@@ -1,3 +1,7 @@
+/* metric-matched fallbacks, measured from the woff2 files for the landing page (docs/index.html) */
+@font-face { font-family: "Ibarra Fallback"; src: local("Georgia"); size-adjust: 94.4%; ascent-override: 100.6%; descent-override: 31.8%; line-gap-override: 0%; }
+@font-face { font-family: "Franklin Fallback"; src: local("Arial"), local("Helvetica"); size-adjust: 102.4%; ascent-override: 94.3%; descent-override: 24%; line-gap-override: 0%; }
+@font-face { font-family: "Courier Fallback"; src: local("Courier New"); size-adjust: 99.9%; ascent-override: 78.2%; descent-override: 34.2%; line-gap-override: 0%; }
 /* Same cheque-register system as the landing page (docs/index.html): tokens, masthead, offset-shadow buttons,
    printed-form eyebrows, the textured stop stamp, ledger cards. Class names below are the app's own. */
 :root {
