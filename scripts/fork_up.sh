@@ -14,7 +14,9 @@ FUND_UNITS=${FORK_FUND_UNITS:-20000000} # 20 tUSD8 to the demo payer
 set -a; source "$HOME/.config/brake/wallets.env"; set +a
 
 if ! cast chain-id --rpc-url "$FORK" >/dev/null 2>&1; then
-  anvil --fork-url "$RPC_UPSTREAM" --port "$PORT" --block-time 1 --chain-id 44005 --silent >/tmp/brake-anvil.log 2>&1 &
+  # pinned just before the live deploy (block 3,821,162): Brake and the registries are CREATE2-deterministic, so a fork
+  # of a later block already holds them at the same addresses and the fork deploy would revert. FORK_BLOCK overrides.
+  anvil --fork-url "$RPC_UPSTREAM" --fork-block-number "${FORK_BLOCK:-3821000}" --port "$PORT" --block-time 1 --chain-id 44005 --silent >/tmp/brake-anvil.log 2>&1 &
   echo "anvil pid $! (log /tmp/brake-anvil.log)"
   for _ in $(seq 1 60); do cast chain-id --rpc-url "$FORK" >/dev/null 2>&1 && break; sleep 0.5; done
 fi
