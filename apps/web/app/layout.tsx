@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Ibarra_Real_Nova, Libre_Franklin, Courier_Prime } from "next/font/google";
 import "./globals.css";
+import Mast, { Mark } from "@/components/Mast";
 
 const display = Ibarra_Real_Nova({ subsets: ["latin"], weight: ["400", "700"], variable: "--nf-display", display: "swap" });
 const body = Libre_Franklin({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--nf-body", display: "swap" });
@@ -30,19 +31,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable} ${data.variable}`}>
       <body>
         <a className="skip" href="#main">Skip to content</a>
-        <div className="wrap">
-          <header className="top">
-            <Link href="/" className="brand"><i>B</i> Brake</Link>
-            <span className="note">
-              Aevum testnet · demo mode · <Link href="/judge">for judges</Link>
-            </span>
-          </header>
-          <main id="main">{children}</main>
-          <footer className="foot">
-            Testnet only. Demo runs are signed server-side by a labelled custodial demo payer; amounts are the seed invoices scaled for the faucet.
-            Seed emails are authored demo data.
-          </footer>
-        </div>
+        <Mast />
+        <main id="main" className="wrap">{children}</main>
+        <footer className="foot">
+          <div className="wrap">
+            <div>
+              <Link href="/" className="brand" style={{ fontSize: "1.3rem" }}><Mark />Brake</Link>
+              <p>Pre-signed stop-payments for stablecoin payment runs on Aevum testnet. Built for the QDay Aevum Builder Challenge #1 on DoraHacks.</p>
+            </div>
+            <div>
+              <h2 className="fh">App</h2>
+              <ul><li><Link href="/">Start a demo run</Link></li><li><Link href="/verify">Verify on-chain</Link></li><li><Link href="/judge">For judges</Link></li></ul>
+            </div>
+            <div>
+              <h2 className="fh">Project</h2>
+              <ul><li><a href="https://brake.edycu.dev/">Landing page</a></li><li><a href="https://brake.edycu.dev/pitch/">Pitch deck</a></li><li><a href="https://github.com/edycutjong/brake">Source on GitHub</a></li></ul>
+            </div>
+            <p className="legal">
+              Testnet only. Demo runs are signed server-side by a labelled custodial demo payer; amounts are the seed invoices scaled for the faucet.
+              Seed emails are authored demo data.
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );

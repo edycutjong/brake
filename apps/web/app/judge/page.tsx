@@ -17,7 +17,7 @@ const CLAIM = "We gave the agent the inbox. It still can't move a cent.";
 export default function Judge() {
   return (
     <>
-      <p className="label">For judges</p>
+      <p className="label"><span className="no">J-1</span> For judges · <b>five minutes</b></p>
       <h1>{CLAIM}</h1>
       <p className="lede">
         Finance signs each tUSD8 payment line together with its matching <span className="data">cancelAuthorization</span>. A monitor
@@ -29,24 +29,32 @@ export default function Judge() {
         <h2 id="path">The 30-second path</h2>
         <ol className="steps">
           <li>
+            <div>
             Open the <a href="https://brake.edycu.dev/">landing page</a> and press Replay on the recorded{" "}
             <span className="data">pnpm demo:hero · fork</span> terminal: four lines ALLOW, a vendor email arrives, line 3 is stopped,
             three lines pay in one batch, line 3&apos;s payment reverts with the token&apos;s own error.
+            </div>
           </li>
           <li>
+            <div>
             In this app, press <Link href="/">Start a demo run</Link>, then &ldquo;Play the hero&rdquo; on the run sheet (no wallet
             needed; a labelled custodial demo payer signs).
+            </div>
           </li>
           <li>
+            <div>
             Read the one test that pins the claim:{" "}
             <a href={blob("test/Brake.t.sol")} className="data">
               test_agentHoldsNoSpendingPower_brakeNeverHoldsFunds
             </a>
             .
+            </div>
           </li>
           <li>
+            <div>
             Check the evidence yourself on <Link href="/verify">Verify</Link>: contracts, tUSD8 observations and an in-browser
             recompute of each evidence hash.
+            </div>
           </li>
         </ol>
       </section>

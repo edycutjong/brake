@@ -16,7 +16,7 @@ for (const path of ["/", "/judge"]) {
         client: document.documentElement.clientWidth,
       }));
       expect(scroll).toBeLessThanOrEqual(client);
-      const header = await page.locator("header.top").boundingBox();
+      const header = await page.locator("header.mast").boundingBox();
       expect(header).not.toBeNull();
       expect(header!.x + header!.width).toBeLessThanOrEqual(vp.width + 1);
     });
