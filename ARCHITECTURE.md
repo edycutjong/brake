@@ -23,7 +23,7 @@ flowchart TB
   end
   DB[(Postgres schema.sql)]
   LLM[Anthropic API · claude-sonnet-5-5]
-  subgraph Aevum[Aevum 44005 · fork today, live pending]
+  subgraph Aevum[Aevum testnet 44005 · live]
     BR[Brake.sol]
     IR[ERC-8004 Identity]
     VR[ERC-8004 Validation]
@@ -106,4 +106,4 @@ The reconciler scans Brake and tUSD8 logs and derives status (including `Authori
 
 ## Deployment
 
-Next.js on Vercel (planned; not deployed yet) with `apps/web/vercel.json` (daily Cron tick), `.github/workflows/tick.yml` as a backstop tick, Postgres (planned: Neon). Reviews are event-driven (run on delivery through `after()`); the tick is a backstop only. Live deployment is pending funded testnet wallets.
+Next.js on Vercel at [app.brake.edycu.dev](https://app.brake.edycu.dev/) with `apps/web/vercel.json` (daily Cron tick), `.github/workflows/tick.yml` as a backstop tick every 5 minutes, and Neon Postgres. Reviews are event-driven (run on delivery through `after()`); the tick is a backstop only. Contracts are live on Aevum testnet 44005; addresses and the live run hashes are in the README.
