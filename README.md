@@ -66,6 +66,15 @@ Nearest neighbours and why Brake differs: [docs/COMPARISON.md](docs/COMPARISON.m
 
 ## 🏗️ Architecture & Tech Stack
 
+<p align="center">
+  <a href="https://brake.edycu.dev/architecture.html"><img src="docs/assets/architecture.png" alt="Brake architecture: finance signs a payment slip and a stop slip per line with the same EIP-3009 nonce; the agent reads vendor email through a six-step pipeline and can only return STOP, HOLD or ALLOW; the executor fires Brake.stop, which cancels the nonce at tUSD8; on payday the keeper's Multicall3 batch pays lines 1, 2 and 4 while line 3 reverts." width="100%"></a>
+</p>
+
+<sub>Full-size page: <a href="https://brake.edycu.dev/architecture.html">brake.edycu.dev/architecture.html</a> (source: <a href="docs/architecture.html">docs/architecture.html</a>).</sub>
+
+<details>
+<summary><b>Component graph (Mermaid)</b>: click to expand</summary>
+
 ```mermaid
 flowchart LR
   subgraph Web[apps/web · Next.js 16]
@@ -92,6 +101,8 @@ flowchart LR
   KP -->|aggregate3 transferWithAuthorization| MC --> T
   RC --> DB
 ```
+
+</details>
 
 Full component and sequence diagrams: [ARCHITECTURE.md](ARCHITECTURE.md).
 

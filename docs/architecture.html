@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brake Architecture</title>
+<meta name="description" content="How Brake works: finance pre-signs each payment line twice (a payment and its cancel, sharing one EIP-3009 nonce); an AI agent reads vendor email and can only fire the cancel.">
+<link rel="icon" href="assets/brand/icon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://brake.edycu.dev/architecture.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Ibarra+Real+Nova:ital,wght@0,400;0,700;1,400&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Tokens: specs/design.md §4 (cheque register, light). Colour means state, never decoration. */
+  :root {
+    --bg: #F3F1E7; --ink: #1C2230; --muted: #6B6F78; --label: #4F535E;
+    --before: #2F4FA2; --after: #C2272D; --cleared: #2E6B4F; --rule: #C9CDBF;
+    --paper: #FBFAF4; --paper-2: #E8E7DC; --carbon: #DCDFE6; --redwash: #F3E2DA; --greenwash: #DDE5D8;
+    --f-display: "Ibarra Real Nova", Georgia, serif;
+    --f-body: "Libre Franklin", Arial, sans-serif;
+    --f-data: "Courier Prime", "Courier New", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: var(--f-body); padding: 32px 16px 48px; -webkit-font-smoothing: antialiased; }
+  .sheet {
+    width: 100%; max-width: 1600px; margin: 0 auto; background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 55% 60% at 85% 30%, rgba(47,79,162,.05), transparent 70%),
+      radial-gradient(ellipse 40% 50% at 10% 95%, rgba(201,205,191,.35), transparent 70%);
+  }
+  body.export { padding: 0; }
+  body.export .sheet { width: 1600px; max-width: none; padding: 44px 0 30px; }
+
+  header { display: grid; grid-template-columns: 1fr auto; gap: 24px 48px; align-items: end; padding: 0 24px 22px; }
+  .eyebrow { font: 600 12px/1 var(--f-body); letter-spacing: .22em; text-transform: uppercase; color: var(--label); display: flex; gap: 10px; align-items: center; }
+  .eyebrow img { width: 22px; height: 22px; }
+  h1 { font: 700 clamp(30px, 4.2vw, 50px)/1.02 var(--f-display); letter-spacing: -.01em; margin-top: 12px; }
+  h1 em { font-style: italic; font-weight: 400; color: var(--after); }
+  .lede { font: 400 16px/1.5 var(--f-body); color: var(--label); max-width: 820px; margin-top: 12px; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .legend { display: grid; grid-template-columns: auto auto; gap: 9px 22px; font: 500 12.5px/1.2 var(--f-body); color: var(--label); }
+  .legend span { display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+  .legend i { width: 34px; height: 0; border-top: 2.5px solid; display: inline-block; }
+  .l-pay i { border-color: var(--before); }
+  .l-stop i { border-color: var(--after); }
+  .l-paid i { border-color: var(--cleared); border-top-style: solid; }
+  .l-data i { border-color: #8A8E96; border-top-style: dashed; }
+  .rule-top { height: 0; border-top: 1.5px solid var(--ink); margin: 0 24px; }
+  .rule-top + .rule-top { border-top-width: .75px; margin-top: 3px; }
+
+  svg.diagram { display: block; width: 100%; height: auto; margin-top: 10px; }
+  footer { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 6px 24px 0; font: 400 12.5px/1.5 var(--f-body); color: var(--label); }
+  footer code { font: 400 12.5px var(--f-data); color: var(--ink); }
+  footer .steps b { font: 700 12.5px var(--f-data); color: var(--ink); margin-right: 3px; }
+  footer .steps { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  footer .steps span { white-space: nowrap; }
+
+  /* SVG type */
+  .zl { font: 600 12px var(--f-body); letter-spacing: .2em; text-transform: uppercase; fill: var(--label); }
+  .zn { font: 700 12px var(--f-data); fill: var(--ink); }
+  .h  { font: 700 21px var(--f-display); fill: var(--ink); }
+  .h2 { font: 700 16px var(--f-display); fill: var(--ink); }
+  .b  { font: 400 12.5px var(--f-body); fill: var(--label); }
+  .bi { font: 600 12.5px var(--f-body); fill: var(--ink); }
+  .s  { font: 400 11.5px var(--f-body); fill: var(--label); }
+  .d  { font: 400 11.5px var(--f-data); fill: var(--ink); }
+  .dm { font: 400 11px var(--f-data); fill: var(--label); }
+  .db { font: 700 11.5px var(--f-data); fill: var(--ink); }
+  .cap { font: 700 10px var(--f-body); letter-spacing: .16em; text-transform: uppercase; }
+  .num { font: 700 11px var(--f-data); fill: var(--bg); }
+  .stamp { font: 700 13px var(--f-data); letter-spacing: .12em; fill: var(--after); }
+
+  @media (max-width: 900px) {
+    header { grid-template-columns: 1fr; }
+    .legend { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) { .legend { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<script>if (new URLSearchParams(location.search).has("export")) document.body.classList.add("export");</script>
+<div class="sheet" id="sheet">
+  <header>
+    <div>
+      <div class="eyebrow"><img src="assets/brand/icon.svg" alt="">Brake · system architecture</div>
+      <h1>The agent can <em>stop</em> a payment. It can't make one.</h1>
+      <p class="lede">Finance pre-signs every line <b>twice</b>: an EIP-3009 payment and its cancel, sharing one nonce. The agent reads vendor email, and its only power over money is to fire the cancel before payday. Its wallet holds <b>0 tUSD8</b> and <b>no allowance</b>.</p>
+    </div>
+    <div class="legend" aria-label="Legend">
+      <span class="l-pay"><i></i>pay path · payment slips</span>
+      <span class="l-stop"><i></i>stop path · stop slips</span>
+      <span class="l-paid"><i></i>cleared · paid on payday</span>
+      <span class="l-data"><i></i>reads, data, payer calls</span>
+    </div>
+  </header>
+  <div class="rule-top"></div><div class="rule-top"></div>
+
+  <svg class="diagram" viewBox="0 0 1600 912" role="img" aria-labelledby="dt dd" xmlns="http://www.w3.org/2000/svg">
+    <title id="dt">Brake architecture</title>
+    <desc id="dd">Three zones. Finance signs a payment slip and a stop slip per line with the same nonce and opens the run on Brake.sol. The Brake server's agent reads vendor email as quoted data through a six-step pipeline (retrieve, model findings, verify quotes, rules, policy, evidence) and returns STOP, HOLD or ALLOW. The executor holds the stop slips and calls Brake.stop, which calls tUSD8 cancelAuthorization in the same transaction. The keeper holds the payment slips and pays the run on payday through one Multicall3 aggregate3 batch; lines 1, 2 and 4 clear, line 3 reverts because its authorization was cancelled.</desc>
+    <defs>
+      <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F4FA2"/></marker>
+      <marker id="aRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#C2272D"/></marker>
+      <marker id="aInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1C2230"/></marker>
+      <marker id="aGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8A8E96"/></marker>
+      <pattern id="ruled" width="8" height="22" patternUnits="userSpaceOnUse"><path d="M0 21.5 H8" stroke="#C9CDBF" stroke-width=".6"/></pattern>
+      <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V6" stroke="#C2272D" stroke-width="1" opacity=".22"/></pattern>
+      <filter id="lift" x="-5%" y="-5%" width="110%" height="120%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#1C2230" flood-opacity=".10"/></filter>
+    </defs>
+
+    <!-- ═════════ ZONES ═════════ -->
+    <g fill="none" stroke="#1C2230">
+      <rect x="24" y="22" width="330" height="878" rx="4" stroke-opacity=".28" stroke-dasharray="2 4"/>
+      <rect x="378" y="22" width="760" height="878" rx="4" stroke-opacity=".28" stroke-dasharray="2 4"/>
+      <rect x="1162" y="22" width="414" height="878" rx="4" stroke-opacity=".28" stroke-dasharray="2 4"/>
+    </g>
+    <g>
+      <text x="40" y="48"><tspan class="zn">01 </tspan><tspan class="zl" dx="4">Finance · the payer</tspan></text>
+      <text x="394" y="48"><tspan class="zn">02 </tspan><tspan class="zl" dx="4">Brake server · packages/engine</tspan></text>
+      <text x="1178" y="48"><tspan class="zn">03 </tspan><tspan class="zl" dx="4">Aevum testnet · chain 44005</tspan></text>
+      <path d="M40 58 H338 M394 58 H1122 M1178 58 H1560" stroke="#1C2230" stroke-opacity=".5" stroke-width=".8"/>
+    </g>
+
+    <!-- ═════════ PAYER BUS: openRun · allow · financeStop · reissue ═════════ -->
+    <path d="M338 132 H366 V80 H1150 V232 H1176" fill="none" stroke="#8A8E96" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#aGrey)"/>
+    <rect x="462" y="70" width="626" height="20" fill="#F3F1E7"/>
+    <text x="775" y="84" text-anchor="middle" class="dm">payer wallet → openRun(agentId, maxStops, agentExpiry) · allow · financeStop · reissue</text>
+    <circle cx="366" cy="106" r="9" fill="#1C2230"/><text x="366" y="110" text-anchor="middle" class="num">2</text>
+
+    <!-- ═════════ ZONE 01 · RUN SHEET ═════════ -->
+    <g filter="url(#lift)"><rect x="40" y="100" width="298" height="340" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/></g>
+    <text x="58" y="132" class="h">Run sheet</text>
+    <text x="58" y="151" class="dm">apps/web · Next.js 16</text>
+    <rect x="40" y="166" width="298" height="200" fill="url(#ruled)"/>
+    <g class="cap" fill="#4F535E"><text x="58" y="182">#</text><text x="80" y="182">Pay to</text><text x="214" y="182">Invoice</text><text x="322" y="182" text-anchor="end">tUSD8</text></g>
+    <path d="M52 189 H326" stroke="#1C2230" stroke-width=".8"/>
+    <g>
+      <text x="58" y="210" class="db">1</text><text x="80" y="210" class="b">Kopi Nusantara</text><text x="214" y="210" class="dm">INV-1204</text><text x="322" y="210" text-anchor="end" class="d">1,250</text>
+      <text x="58" y="242" class="db">2</text><text x="80" y="242" class="b">Studio Garis</text><text x="214" y="242" class="dm">INV-2047</text><text x="322" y="242" text-anchor="end" class="d">2,400</text>
+      <rect x="48" y="256" width="282" height="28" fill="url(#hatch)"/>
+      <text x="58" y="274" class="db" fill="#C2272D" style="fill:#C2272D">3</text><text x="80" y="274" class="bi">Acme Logistics</text><text x="214" y="274" class="dm">INV-8812</text><text x="322" y="274" text-anchor="end" class="db">5,000</text>
+      <text x="58" y="306" class="db">4</text><text x="80" y="306" class="b">Cloudnine Hosting</text><text x="214" y="306" class="dm">INV-0311</text><text x="322" y="306" text-anchor="end" class="d">380</text>
+    </g>
+    <!-- the stamp: the frozen moment -->
+    <g transform="translate(228 269) rotate(-6)" opacity=".95">
+      <rect x="-48" y="-12" width="96" height="22" rx="2" fill="#FBFAF4" fill-opacity=".7" stroke="#C2272D" stroke-width="1.8"/>
+      <rect x="-45" y="-9" width="90" height="16" rx="1" fill="none" stroke="#C2272D" stroke-width=".7"/>
+      <text x="0" y="3" text-anchor="middle" class="stamp" style="font-size:9.5px;letter-spacing:.06em">STOP PAYMENT</text>
+    </g>
+    <text x="58" y="340" class="s">Seed invoices; demo runs scale them for the faucet.</text>
+    <path d="M52 356 H326" stroke="#C9CDBF"/>
+    <text x="58" y="378" class="cap" fill="#4F535E">Finance desk</text>
+    <text x="58" y="398" class="b">Release a hold · financeStop</text>
+    <text x="58" y="416" class="b">Re-issue a stopped line (fresh nonce)</text>
+
+    <!-- ═════════ ZONE 01 · SIGNER ═════════ -->
+    <g filter="url(#lift)"><rect x="40" y="462" width="298" height="424" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/></g>
+    <circle cx="322" cy="482" r="9" fill="#1C2230"/><text x="322" y="486" text-anchor="middle" class="num">1</text>
+    <text x="58" y="494" class="h">Every line, signed twice</text>
+    <text x="58" y="513" class="dm">packages/brake-signer · openRun()</text>
+    <!-- stop slip -->
+    <rect x="58" y="532" width="262" height="98" rx="2" fill="#FBFAF4" stroke="#C2272D" stroke-width="1.4" stroke-dasharray="6 3"/>
+    <text x="72" y="553" class="cap" fill="#C2272D">Stop slip</text>
+    <text x="72" y="574" class="db">cancelAuthorization</text>
+    <text x="72" y="593" class="dm">authorizer: payer</text>
+    <text x="72" y="611" class="dm">nonce: n₃</text>
+    <!-- payment slip -->
+    <rect x="58" y="652" width="262" height="112" rx="2" fill="#DCDFE6" stroke="#2F4FA2" stroke-width="1.4"/>
+    <text x="72" y="673" class="cap" fill="#2F4FA2">Payment slip</text>
+    <text x="72" y="694" class="db">transferWithAuthorization</text>
+    <text x="72" y="713" class="dm">from payer → to vendor, value</text>
+    <text x="72" y="731" class="dm">validAfter: payday</text>
+    <text x="72" y="749" class="dm">nonce: n₃</text>
+    <!-- same-nonce bracket -->
+    <path d="M50 600 H46 V744 H50" fill="none" stroke="#1C2230" stroke-width="1.2"/>
+    <text x="58" y="790" class="bi">Same nonce. Whichever lands first wins.</text>
+    <text x="58" y="809" class="b">Once the cancel consumes n₃, the payment</text>
+    <text x="58" y="826" class="b">reverts at tUSD8. Nothing to claw back.</text>
+    <text x="58" y="860" class="dm">EIP-3009 typed data</text>
+
+    <!-- ═════════ ZONE 02 · INBOX ═════════ -->
+    <g filter="url(#lift)"><rect x="394" y="100" width="214" height="360" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/></g>
+    <text x="410" y="132" class="h">Vendor inbox</text>
+    <text x="410" y="151" class="s">Untrusted. Read as quoted data.</text>
+    <g>
+      <rect x="406" y="166" width="190" height="56" rx="2" fill="#F3F1E7" stroke="#C9CDBF"/>
+      <text x="416" y="184" class="dm">kopinusantara.example</text>
+      <text x="416" y="202" class="b">Invoice INV-1204</text>
+      <rect x="406" y="230" width="190" height="56" rx="2" fill="#F3F1E7" stroke="#C9CDBF"/>
+      <text x="416" y="248" class="dm">studiogaris.example</text>
+      <text x="416" y="266" class="b">Invoice INV-2047</text>
+      <rect x="406" y="294" width="190" height="152" rx="2" fill="#FBFAF4" stroke="#C2272D" stroke-width="1.4"/>
+      <rect x="406" y="294" width="4" height="152" fill="#C2272D"/>
+      <text x="418" y="312" class="dm">billing@acme-logistics</text>
+      <text x="418" y="330" class="bi">Re: INV-8812 payment</text>
+      <text x="418" y="350" class="s">"goes to the updated</text>
+      <text x="418" y="366" class="s">payout address … please</text>
+      <text x="418" y="382" class="s">don't call"</text>
+      <rect x="416" y="394" width="172" height="40" rx="2" fill="url(#hatch)" stroke="#C2272D" stroke-opacity=".5" stroke-dasharray="3 2"/>
+      <text x="424" y="410" class="s" style="font-style:italic">+ an instruction aimed</text>
+      <text x="424" y="426" class="s" style="font-style:italic">at the payment assistant</text>
+    </g>
+    <path d="M596 204 H644" stroke="#1C2230" stroke-width="1.6" marker-end="url(#aInk)"/>
+    <circle cx="620" cy="190" r="9" fill="#1C2230"/><text x="620" y="194" text-anchor="middle" class="num">3</text>
+
+    <!-- ═════════ ZONE 02 · AGENT SANDBOX ═════════ -->
+    <rect x="630" y="100" width="492" height="360" rx="4" fill="#E8E7DC" fill-opacity=".55" stroke="#1C2230" stroke-width="1.3" stroke-dasharray="7 4"/>
+    <text x="646" y="128" class="h">Agent</text>
+    <text x="712" y="128" class="b">reads, never pays</text>
+    <text x="1106" y="128" text-anchor="end" class="cap" fill="#C2272D">no keys · no signatures · no db</text>
+
+    <!-- pipeline boxes: row 1 L→R, row 2 R→L -->
+    <g>
+      <g filter="url(#lift)">
+        <rect x="646" y="148" width="140" height="96" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+        <rect x="804" y="148" width="140" height="96" rx="3" fill="#FBFAF4" stroke="#1C2230" stroke-width="1.2"/>
+        <rect x="962" y="148" width="144" height="96" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+        <rect x="962" y="268" width="144" height="96" rx="3" fill="#FBFAF4" stroke="#C2272D" stroke-width="1.2"/>
+        <rect x="804" y="268" width="140" height="96" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+        <rect x="646" y="268" width="140" height="96" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+      </g>
+      <text x="658" y="168" class="dm">01</text><text x="658" y="188" class="h2">Retrieve</text>
+      <text x="658" y="207" class="s">link mail to lines:</text><text x="658" y="222" class="s">sender domain, invoice,</text><text x="658" y="237" class="s">payee address</text>
+
+      <text x="816" y="168" class="dm">02</text><text x="816" y="188" class="h2">Model findings</text>
+      <text x="816" y="207" class="dm">claude-sonnet-5-5</text><text x="816" y="222" class="s">one forced tool:</text><text x="816" y="237" class="dm">record_findings</text>
+
+      <text x="974" y="168" class="dm">03</text><text x="974" y="188" class="h2">Verify quotes</text>
+      <text x="974" y="207" class="s">each quote must appear</text><text x="974" y="222" class="s">in the email, or the</text><text x="974" y="237" class="s">finding is dropped</text>
+
+      <text x="974" y="288" class="dm">04</text><text x="974" y="308" class="h2">Rules</text>
+      <text x="974" y="327" class="s">deterministic: lookalike</text><text x="974" y="342" class="s">domain, unverified bank</text><text x="974" y="357" class="s">change · can only STOP</text>
+
+      <text x="816" y="288" class="dm">05</text><text x="816" y="308" class="h2">Policy</text>
+      <text x="816" y="327" class="s">a rule STOP is final</text><text x="816" y="342" class="s">(invariant I4) · unverified</text><text x="816" y="357" class="s">findings → HOLD</text>
+
+      <text x="658" y="288" class="dm">06</text><text x="658" y="308" class="h2">Evidence</text>
+      <text x="658" y="327" class="s">reason code + hash</text><text x="658" y="342" class="s">bound to the line,</text><text x="658" y="357" class="s">written on-chain</text>
+    </g>
+    <g stroke="#1C2230" stroke-width="1.4" fill="none">
+      <path d="M786 196 H802" marker-end="url(#aInk)"/>
+      <path d="M944 196 H960" marker-end="url(#aInk)"/>
+      <path d="M1034 244 V266" marker-end="url(#aInk)"/>
+      <path d="M962 316 H946" marker-end="url(#aInk)"/>
+      <path d="M804 316 H788" marker-end="url(#aInk)"/>
+      <path d="M716 364 V386" marker-end="url(#aInk)"/>
+    </g>
+    <!-- verdict rail -->
+    <text x="646" y="408" class="cap" fill="#4F535E">Verdict</text>
+    <g>
+      <rect x="646" y="416" width="140" height="30" rx="15" fill="#FBFAF4" stroke="#1C2230" stroke-opacity=".5"/>
+      <text x="716" y="435" text-anchor="middle" class="db">ALLOW · 100</text>
+      <rect x="804" y="416" width="140" height="30" rx="15" fill="#E8E7DC" stroke="#6B6F78"/>
+      <text x="874" y="435" text-anchor="middle" class="db">HOLD · 50</text>
+      <rect x="962" y="416" width="144" height="30" rx="15" fill="#C2272D"/>
+      <text x="1034" y="435" text-anchor="middle" class="db" style="fill:#FBFAF4">STOP · 0</text>
+    </g>
+    <path d="M716 386 V398 H1034 V412" fill="none" stroke="#1C2230" stroke-opacity=".35" stroke-width="1"/>
+    <path d="M874 398 V412" fill="none" stroke="#1C2230" stroke-opacity=".35" stroke-width="1"/>
+    <path d="M716 398 V412" fill="none" stroke="#1C2230" stroke-opacity=".35" stroke-width="1"/>
+
+    <!-- STOP → executor -->
+    <path d="M1034 446 V494" stroke="#C2272D" stroke-width="2.4" marker-end="url(#aRed)"/>
+    <circle cx="1052" cy="472" r="9" fill="#C2272D"/><text x="1052" y="476" text-anchor="middle" class="num">4</text>
+
+    <!-- ═════════ ZONE 02 · EXECUTOR ═════════ -->
+    <g filter="url(#lift)"><rect x="394" y="500" width="728" height="122" rx="3" fill="#FBFAF4" stroke="#C2272D" stroke-width="1.3"/></g>
+    <text x="410" y="530" class="h">Executor</text>
+    <text x="510" y="530" class="dm">executor.ts</text>
+    <text x="410" y="554" class="b">Holds the <tspan class="bi" style="fill:#C2272D">stop slips</tspan> (encrypted at rest) and acts as the agent wallet.</text>
+    <text x="410" y="576" class="d">STOP  → Brake.stop(runId, idx, reason, evidenceHash) + stop slip</text>
+    <text x="410" y="594" class="d">HOLD  → Brake.hold    ALLOW → Brake.allow</text>
+    <!-- agent wallet stamp -->
+    <g transform="translate(1000 560) rotate(-3)">
+      <rect x="-96" y="-38" width="192" height="72" rx="3" fill="#FBFAF4" stroke="#1C2230" stroke-width="1.6"/>
+      <rect x="-91" y="-33" width="182" height="62" rx="2" fill="none" stroke="#1C2230" stroke-width=".6"/>
+      <text x="0" y="-16" text-anchor="middle" class="cap" fill="#4F535E">Agent wallet</text>
+      <text x="0" y="6" text-anchor="middle" style="font:700 19px 'Courier Prime',monospace;fill:#1C2230">0 tUSD8</text>
+      <text x="0" y="23" text-anchor="middle" class="dm">no allowance · gas only</text>
+    </g>
+    <path d="M1122 548 H1174" stroke="#C2272D" stroke-width="2.4" marker-end="url(#aRed)"/>
+    <circle cx="1148" cy="532" r="9" fill="#C2272D"/><text x="1148" y="536" text-anchor="middle" class="num">5</text>
+    <!-- signer → executor -->
+    <path d="M320 580 H390" stroke="#C2272D" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#aRed)"/>
+
+    <!-- ═════════ ZONE 02 · KEEPER ═════════ -->
+    <g filter="url(#lift)"><rect x="394" y="648" width="728" height="122" rx="3" fill="#FBFAF4" stroke="#2F4FA2" stroke-width="1.3"/></g>
+    <text x="410" y="678" class="h">Keeper</text>
+    <text x="494" y="678" class="dm">keeper.ts</text>
+    <text x="410" y="702" class="b">Holds the <tspan class="bi" style="fill:#2F4FA2">payment slips</tspan> (encrypted at rest). On payday it submits them all at once.</text>
+    <text x="410" y="724" class="d">payday → Multicall3.aggregate3(transferWithAuthorization × 4)</text>
+    <text x="410" y="742" class="d">allowFailure: true per line, so one revert never sinks the batch</text>
+    <text x="410" y="760" class="dm">a HELD line is skipped until finance releases it</text>
+    <path d="M320 708 H390" stroke="#2F4FA2" stroke-width="2" marker-end="url(#aBlue)"/>
+    <path d="M1122 700 H1174" stroke="#2F4FA2" stroke-width="2.4" marker-end="url(#aBlue)"/>
+    <circle cx="1148" cy="684" r="9" fill="#2F4FA2"/><text x="1148" y="688" text-anchor="middle" class="num">6</text>
+
+    <!-- ═════════ ZONE 02 · DATA STRIP ═════════ -->
+    <g filter="url(#lift)"><rect x="394" y="794" width="728" height="92" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/></g>
+    <path d="M636 806 V874 M878 806 V874" stroke="#C9CDBF"/>
+    <text x="410" y="820" class="h2">Postgres</text>
+    <text x="410" y="840" class="dm">schema.sql · runs, lines,</text>
+    <text x="410" y="856" class="dm">mail, encrypted slips</text>
+    <text x="410" y="874" class="s">Neon (planned)</text>
+    <text x="652" y="820" class="h2">Reconciler</text>
+    <text x="652" y="840" class="dm">reconciler.ts</text>
+    <text x="652" y="856" class="s">Brake + tUSD8 logs → status</text>
+    <text x="652" y="874" class="s">provisional for 3 blocks</text>
+    <text x="894" y="820" class="h2">Jobs</text>
+    <text x="894" y="840" class="dm">jobs.ts · api.ts</text>
+    <text x="894" y="856" class="s">review on mail delivery;</text>
+    <text x="894" y="874" class="s">cron tick is the backstop</text>
+    <path d="M1176 846 H1126" stroke="#8A8E96" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#aGrey)"/>
+    <text x="1150" y="838" text-anchor="middle" class="dm">logs</text>
+
+    <!-- ═════════ ZONE 03 · ERC-8004 ═════════ -->
+    <g filter="url(#lift)">
+      <rect x="1178" y="76" width="184" height="104" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+      <rect x="1376" y="76" width="184" height="104" rx="3" fill="#FBFAF4" stroke="#C9CDBF"/>
+    </g>
+    <text x="1192" y="98" class="cap" fill="#4F535E">ERC-8004</text>
+    <text x="1192" y="120" class="h2">Identity</text>
+    <text x="1192" y="140" class="s">the agent's agentId;</text>
+    <text x="1192" y="156" class="s">openRun checks the payer</text>
+    <text x="1192" y="172" class="s">owns or is approved for it</text>
+    <text x="1390" y="98" class="cap" fill="#4F535E">ERC-8004</text>
+    <text x="1390" y="120" class="h2">Validation</text>
+    <text x="1390" y="140" class="s">one receipt per decision</text>
+    <text x="1390" y="158" class="d">100 · 50 · 0</text>
+    <text x="1390" y="174" class="s">registries self-deployed</text>
+
+    <!-- ═════════ ZONE 03 · BRAKE.SOL ═════════ -->
+    <g filter="url(#lift)"><rect x="1178" y="208" width="382" height="400" rx="3" fill="#FBFAF4" stroke="#1C2230" stroke-width="1.6"/></g>
+    <rect x="1178" y="208" width="382" height="6" fill="#1C2230"/>
+    <path d="M1270 208 V184" stroke="#8A8E96" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#aGrey)"/>
+    <path d="M1468 208 V184" stroke="#8A8E96" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#aGrey)"/>
+    <text x="1196" y="246" class="h" style="font-size:26px">Brake.sol</text>
+    <text x="1196" y="266" class="b">the stop-payment order, on-chain</text>
+
+    <text x="1196" y="298" class="cap" fill="#4F535E">Who can do what</text>
+    <path d="M1196 305 H1542" stroke="#1C2230" stroke-width=".8"/>
+    <text x="1196" y="326" class="bi">Agent</text>
+    <text x="1262" y="326" class="d">allow · hold · stop</text>
+    <text x="1262" y="343" class="s">only on a run that names it, before</text>
+    <text x="1262" y="359" class="s">agentExpiry, at most maxStops</text>
+    <path d="M1196 371 H1542" stroke="#C9CDBF"/>
+    <text x="1196" y="392" class="bi">Payer</text>
+    <text x="1262" y="392" class="d">openRun · allow · financeStop</text>
+    <text x="1262" y="409" class="d">reissue · revokeAgent</text>
+    <path d="M1196 421 H1542" stroke="#C9CDBF"/>
+    <text x="1196" y="442" class="bi">Anyone</text>
+    <text x="1262" y="442" class="d">retryReceipt</text>
+    <text x="1262" y="459" class="s">a registry failure never blocks a stop</text>
+
+    <text x="1196" y="492" class="cap" fill="#4F535E">Line states</text>
+    <path d="M1196 499 H1542" stroke="#1C2230" stroke-width=".8"/>
+    <g>
+      <rect x="1196" y="510" width="62" height="22" rx="2" fill="#DCDFE6" stroke="#2F4FA2"/><text x="1227" y="525" text-anchor="middle" class="db" style="font-size:10.5px;fill:#2F4FA2">OPEN</text>
+      <path d="M1258 521 H1272" stroke="#1C2230" marker-end="url(#aInk)"/>
+      <rect x="1274" y="510" width="74" height="22" rx="2" fill="#FBFAF4" stroke="#1C2230" stroke-opacity=".5"/><text x="1311" y="525" text-anchor="middle" class="db" style="font-size:10.5px">ALLOWED</text>
+      <rect x="1354" y="510" width="56" height="22" rx="2" fill="#E8E7DC" stroke="#6B6F78"/><text x="1382" y="525" text-anchor="middle" class="db" style="font-size:10.5px">HELD</text>
+      <rect x="1416" y="510" width="76" height="22" rx="2" fill="#C2272D"/><text x="1454" y="525" text-anchor="middle" class="db" style="font-size:10.5px;fill:#FBFAF4">STOPPED</text>
+      <text x="1196" y="556" class="s">STOPPED → REISSUED (payer, fresh nonce)</text>
+      <text x="1196" y="573" class="s">nonce used outside Brake → TOO_LATE /</text>
+      <text x="1196" y="590" class="s">EXTERNALLY_CANCELLED (reconciler)</text>
+    </g>
+
+    <!-- Brake → tUSD8 cancel (stop path) -->
+    <path d="M1416 608 V748" stroke="#C2272D" stroke-width="2.4" marker-end="url(#aRed)"/>
+    <text x="1426" y="652" class="db" style="fill:#C2272D">cancelAuthorization</text>
+    <text x="1426" y="668" class="dm">(payer, n₃, sig)</text>
+    <text x="1426" y="684" class="s">same tx as stop()</text>
+
+    <!-- ═════════ ZONE 03 · MULTICALL3 ═════════ -->
+    <g filter="url(#lift)"><rect x="1178" y="642" width="222" height="84" rx="3" fill="#FBFAF4" stroke="#2F4FA2" stroke-width="1.2"/></g>
+    <text x="1192" y="668" class="h2">Multicall3</text>
+    <text x="1192" y="688" class="d">aggregate3</text>
+    <text x="1192" y="706" class="s">one payday batch</text>
+    <path d="M1290 726 V748" stroke="#2F4FA2" stroke-width="2.4" marker-end="url(#aBlue)"/>
+
+    <!-- ═════════ ZONE 03 · tUSD8 ═════════ -->
+    <g filter="url(#lift)"><rect x="1178" y="754" width="382" height="132" rx="3" fill="#FBFAF4" stroke="#1C2230" stroke-width="1.2"/></g>
+    <text x="1192" y="778" class="h2">tUSD8</text>
+    <text x="1252" y="778" class="dm">FiatToken v2.2 · EIP-3009 · nonce register</text>
+    <path d="M1192 788 H1546" stroke="#1C2230" stroke-width=".8"/>
+    <g>
+      <rect x="1192" y="796" width="172" height="22" rx="2" fill="#DDE5D8"/><text x="1200" y="811" class="d">n₁ used</text><text x="1356" y="811" text-anchor="end" class="db" style="fill:#2E6B4F">PAID</text>
+      <rect x="1374" y="796" width="172" height="22" rx="2" fill="#DDE5D8"/><text x="1382" y="811" class="d">n₂ used</text><text x="1538" y="811" text-anchor="end" class="db" style="fill:#2E6B4F">PAID</text>
+      <rect x="1192" y="824" width="172" height="22" rx="2" fill="#F3E2DA" stroke="#C2272D"/><text x="1200" y="839" class="db" style="fill:#C2272D">n₃ cancelled</text><text x="1356" y="839" text-anchor="end" class="db" style="fill:#C2272D">STOPPED</text>
+      <rect x="1374" y="824" width="172" height="22" rx="2" fill="#DDE5D8"/><text x="1382" y="839" class="d">n₄ used</text><text x="1538" y="839" text-anchor="end" class="db" style="fill:#2E6B4F">PAID</text>
+    </g>
+    <text x="1192" y="870" class="s">Line 3's payment reverts: <tspan class="dm" style="fill:#C2272D">authorization is used or canceled</tspan></text>
+  </svg>
+
+  <footer>
+    <div class="steps"><span><b>1</b>sign twice</span><span><b>2</b>open the run</span><span><b>3</b>mail arrives</span><span><b>4</b>verdict</span><span><b>5</b>stop lands</span><span><b>6</b>payday</span></div>
+    <div>Drawn from <code>src/Brake.sol</code> · <code>packages/engine/src</code> · <code>packages/brake-signer/src</code> · brake.edycu.dev</div>
+  </footer>
+</div>
+</body>
+</html>
