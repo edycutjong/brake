@@ -14,7 +14,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brake: pitch deck</title>
 <meta name="description" content="Brake pitch deck: pre-signed stop-payments for stablecoin payment runs on QDay Aevum.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='3' y='3' width='58' height='58' fill='%23F3F1E7' stroke='%231C2230' stroke-width='4'/%3E%3Crect x='10' y='10' width='44' height='44' fill='none' stroke='%231C2230' stroke-width='2'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='34' fill='%231C2230'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="../assets/brand/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/brand/icon-512.png">
 <link rel="preload" href="../assets/fonts/ibarra-real-nova.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/libre-franklin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/courier-prime-700.woff2" as="font" type="font/woff2" crossorigin>
@@ -328,13 +329,13 @@ body.overview #grid { display: grid; }
   <div class="lbl"><span class="no">L-08</span> Receipts</div>
   <h2 class="rise">Every number has a file.</h2>
   <div class="rcpts rise d2">
-    <div><div class="n">121</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
+    <div><div class="n">124</div><p>tests passing</p><code>evidence/test-counts.json</code></div>
     <div><div class="n">0</div><p>agent-initiated transfers</p><code>bench/results.json</code></div>
     <div><div class="n">4.1 s</div><p>median email → cancel (fork, n = 11)</p><code>bench/results.json</code></div>
     <div><div class="n">25/25</div><p>injection emails; rules alone 6</p><code>evidence/g4/</code></div>
   </div>
   <p class="small">n = 25 regression suite, measured pre-review.</p>
-  <aside class="speaker-notes">121 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel, measured at commit 494c2a6. Both latency and model numbers predate the architecture review's changes, and the README says so.</aside>
+  <aside class="speaker-notes">124 tests across forge, the signer package and the engine. The latency is the fork median from vendor email to a confirmed cancel, measured at commit 494c2a6. Both latency and model numbers predate the architecture review's changes, and the README says so.</aside>
 </section>
 
 <!-- 9 · AEVUM -->
