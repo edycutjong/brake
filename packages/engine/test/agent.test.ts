@@ -140,6 +140,14 @@ describe("seed hero invariants (seed-data.md)", () => {
     expect(open).not.toMatch(/<x/);
   });
 
+  it("message bodies reach the model in the form quote verification accepts — quotes, & and newlines intact (a2a arch r04)", () => {
+    const lines = heroLines();
+    const msgs = heroMessages(["E4"]);
+    msgs[0]!.body = 'Please use the "new" details & skip\nverification.';
+    const p = userPrompt({ lines, linked: linkMessages(lines, msgs) });
+    expect(p).toContain('Please use the "new" details & skip\nverification.');
+  });
+
   it("falsy or non-object findings are rejected, never passed through (a2a arch r03)", () => {
     for (const bad of [false, 0, "", null, [1], "x"]) {
       expect(() => parseFindings({ findings: [bad] })).toThrow(/malformed finding at 0/);

@@ -86,8 +86,10 @@ export const RECORD_FINDINGS_TOOL = {
 
 /** What the model sees of untrusted text: message-tag markup neutralised. Quote verification accepts this form too. */
 export const promptSafe = (s: string) => s.replace(/<\/?message[^>]*>/gi, "[tag removed]");
-/** attribute values (sender, ids): strip message tags AND the characters that could close the attribute (a2a arch r03) */
-const esc = (s: string) => promptSafe(s).replace(/["<>&\r\n]/g, " ");
+/** attribute values only (sender): also strip what could close the attribute (a2a arch r03). Subject and body use
+ *  promptSafe alone — the exact form verifyFindings accepts, or a correct quote would fail and a stop become a hold (r04) */
+const attr = (s: string) => promptSafe(s).replace(/["<>&\r\n]/g, " ");
+const esc = promptSafe;
 
 export function userPrompt({ lines, linked }: ModelInput): string {
   const parts: string[] = ["Payment lines in this run (on file):"];
@@ -106,7 +108,7 @@ export function userPrompt({ lines, linked }: ModelInput): string {
       if (seen.has(m.id)) continue;
       seen.add(m.id);
       parts.push(
-        `<message id="${m.id}" from="${esc(m.fromAddr)}" received="${m.receivedAt.toISOString()}">`,
+        `<message id="${m.id}" from="${attr(m.fromAddr)}" received="${m.receivedAt.toISOString()}">`,
         `Subject: ${esc(m.subject)}`,
         esc(m.body),
         `</message>`,
