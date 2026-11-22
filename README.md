@@ -9,9 +9,9 @@
 
   <br/>
 
-  [![Live App](https://img.shields.io/badge/🚀_Live_App-app.brake.edycu.dev-2E6B4F?style=for-the-badge)](https://app.brake.edycu.dev/)
-  [![Demo Video](https://img.shields.io/badge/▶️_Demo-Video-B3261E?style=for-the-badge)](https://youtu.be/AHshl1gDvHs)
   [![For Judges](https://img.shields.io/badge/⚖️_For-Judges-2F4FA2?style=for-the-badge)](JUDGE.md)
+  [![Demo Video](https://img.shields.io/badge/▶️_Demo-Video-B3261E?style=for-the-badge)](https://youtu.be/AHshl1gDvHs)
+  [![Live App](https://img.shields.io/badge/🚀_Live_App-app.brake.edycu.dev-2E6B4F?style=for-the-badge)](https://app.brake.edycu.dev/)
   [![Landing](https://img.shields.io/badge/🌐_Landing-brake.edycu.dev-06b6d4?style=for-the-badge)](https://brake.edycu.dev/)
   [![Pitch Deck](https://img.shields.io/badge/📊_Pitch-Deck-f59e0b?style=for-the-badge)](https://brake.edycu.dev/pitch/)
   [![QDay Aevum Builder Challenge](https://img.shields.io/badge/DoraHacks-QDay_Aevum_Builder_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/qday/detail)
