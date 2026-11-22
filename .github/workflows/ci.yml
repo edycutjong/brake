@@ -117,7 +117,7 @@ jobs:
         run: |
           pnpm --filter brake-signer build
           cd packages/brake-signer && npm pack --dry-run 2>&1 | tail -15
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web-build
           path: apps/web/.next
@@ -137,7 +137,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: web-build
           path: apps/web/.next
@@ -148,7 +148,7 @@ jobs:
         env:
           NODE_ENV: production
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
@@ -169,7 +169,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: web-build
           path: apps/web/.next
