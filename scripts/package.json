@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "brake-signer": "workspace:*",
-    "viem": "^2.57.20",
+    "viem": "^2.58.1",
     "@brake/engine": "workspace:*"
   },
   "devDependencies": {

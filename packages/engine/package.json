@@ -9,15 +9,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.8.0",
+    "@anthropic-ai/sdk": "^1.10.0",
     "brake-signer": "workspace:*",
     "pg": "^8.13.0",
-    "viem": "^2.57.20"
+    "viem": "^2.58.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/pg": "^8.11.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
