@@ -30,7 +30,7 @@ def psql(db, sql):
 
 
 def rpc(url, method, params):
-    req = urllib.request.Request(url, json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode(), {"content-type": "application/json"})
+    req = urllib.request.Request(url, json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode(), {"content-type": "application/json", "user-agent": "brake-bench/1.0"})  # the Aevum RPC 403s the default Python-urllib agent
     return json.load(urllib.request.urlopen(req, timeout=30)).get("result")
 
 

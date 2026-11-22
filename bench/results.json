@@ -1,36 +1,36 @@
 {
-  "deployment": "fork",
-  "label": "FORK \u2014 anvil fork of Aevum 44005, not the live chain",
+  "deployment": "live",
+  "label": "live Aevum testnet 44005",
   "models": [
-    "claude-sonnet-5-5 (claude-cli)"
+    "claude-sonnet-5-5"
   ],
   "latency_email_to_cancel_confirmed_ms": {
-    "n": 11,
-    "p50": 4116.0,
-    "p95": 6285.0,
-    "mean": 4505,
-    "min": 3017,
-    "max": 6553
+    "n": 10,
+    "p50": 4987.0,
+    "p95": 10092.900000000003,
+    "mean": 5958,
+    "min": 4100,
+    "max": 11919
   },
   "gas_used_median": {
-    "allow": 1092452,
-    "financeAllow": 300590,
-    "hold": 39977,
-    "openRun": 1065108,
+    "allow": 302846,
+    "financeAllow": 300600,
+    "hold": 172903,
+    "openRun": 376160,
     "payday": 109418,
-    "reissue": 312767,
-    "stop": 183023,
-    "sweep": 236521
+    "reissue": 312789,
+    "stop": 58941,
+    "sweep": 87458
   },
   "gas_samples": {
-    "allow": 29,
-    "financeAllow": 12,
-    "hold": 7,
-    "openRun": 27,
-    "payday": 36,
-    "reissue": 12,
-    "stop": 32,
-    "sweep": 17
+    "allow": 9,
+    "financeAllow": 1,
+    "hold": 5,
+    "openRun": 10,
+    "payday": 10,
+    "reissue": 1,
+    "stop": 10,
+    "sweep": 8
   },
   "injection_suite": {
     "holdout-none": {
@@ -55,6 +55,17 @@
       "benignAutoRelease": "1/1",
       "collateralLines": 1
     },
+    "holdout-sonnet-5-5": {
+      "split": "holdout",
+      "model": "claude-sonnet-5-5",
+      "n": 6,
+      "correct": 6,
+      "missedStops": 0,
+      "falseStops": 0,
+      "falseHolds": 0,
+      "benignAutoRelease": "1/1",
+      "collateralLines": 0
+    },
     "tune-none": {
       "split": "tune",
       "model": "none",
@@ -69,6 +80,17 @@
     "tune-sonnet-5-5-cli": {
       "split": "tune",
       "model": "claude-sonnet-5-5 (claude-cli)",
+      "n": 19,
+      "correct": 19,
+      "missedStops": 0,
+      "falseStops": 0,
+      "falseHolds": 0,
+      "benignAutoRelease": "2/2",
+      "collateralLines": 3
+    },
+    "tune-sonnet-5-5": {
+      "split": "tune",
+      "model": "claude-sonnet-5-5",
       "n": 19,
       "correct": 19,
       "missedStops": 0,

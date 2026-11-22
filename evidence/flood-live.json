@@ -1,0 +1,415 @@
+{
+  "deployment": "live",
+  "scenario": "flood",
+  "run": "run_6187b4180f823dc1",
+  "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+  "brake": "0xbDB614Ce4f1319f78DBF3856070092Cc83405B59",
+  "model": "claude-sonnet-5-5",
+  "lines": [
+    {
+      "line": 1,
+      "invoice": "INV-1204",
+      "amount": "0.125",
+      "status": "STOPPED",
+      "paidTx": null,
+      "stopTx": "0xc30c865e80d60948d52352bbeae3abde4a7ce9b9b4f0ff479f56fe64e48b6646",
+      "proofTx": "0xb738f9be924fcb1819a0db50c543754229623d2bdf442ede01bd5dcc8c2202b9",
+      "proofReason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
+    },
+    {
+      "line": 2,
+      "invoice": "INV-2047",
+      "amount": "0.24",
+      "status": "STOPPED",
+      "paidTx": null,
+      "stopTx": "0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6",
+      "proofTx": "0x70aa1dbf7dae59da0de937378e536e4e3dbc49bca3db21d038a8f75403e4998f",
+      "proofReason": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
+    },
+    {
+      "line": 3,
+      "invoice": "INV-0311",
+      "amount": "0.038",
+      "status": "HELD",
+      "paidTx": null,
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null
+    },
+    {
+      "line": 4,
+      "invoice": "INV-5520",
+      "amount": "0.09",
+      "status": "PAID",
+      "paidTx": "0x3309930c6a8d6ae103930b6d27f1ea8e0ce130cfae90f0e372a940b613abacde",
+      "stopTx": null,
+      "proofTx": null,
+      "proofReason": null
+    }
+  ],
+  "decisions": [
+    {
+      "idx": 0,
+      "verdict": "ALLOW",
+      "rev": 0,
+      "reason_code": null,
+      "rules_fired": [],
+      "model": "none (no linked messages)",
+      "evidence_hash": "0x3fda7cb60c060f227abda5df9bce00cc6277e34d41d7f8830daf2eca5d3ea3a9",
+      "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+      "chain_status": "ALLOWED"
+    },
+    {
+      "idx": 1,
+      "verdict": "ALLOW",
+      "rev": 0,
+      "reason_code": null,
+      "rules_fired": [],
+      "model": "none (no linked messages)",
+      "evidence_hash": "0x1e312f100d31cbe9096bea8cb1c573c9bcfb615422fb4b0d4a29a170157c4c4a",
+      "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+      "chain_status": "ALLOWED"
+    },
+    {
+      "idx": 2,
+      "verdict": "ALLOW",
+      "rev": 0,
+      "reason_code": null,
+      "rules_fired": [],
+      "model": "none (no linked messages)",
+      "evidence_hash": "0xb484c8f924e9794b40352d08ea040b1ca89ba6b66e79d2f2ec4d4fe78db4e12f",
+      "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+      "chain_status": "ALLOWED"
+    },
+    {
+      "idx": 3,
+      "verdict": "ALLOW",
+      "rev": 0,
+      "reason_code": null,
+      "rules_fired": [],
+      "model": "none (no linked messages)",
+      "evidence_hash": "0x5d7fd160673ce9c2dc8e05ce17c46a8a418ec13ebc5ba216dccba2843c0fb37f",
+      "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+      "chain_status": "ALLOWED"
+    },
+    {
+      "idx": 0,
+      "verdict": "STOP",
+      "rev": 1,
+      "reason_code": "SENDER_LOOKALIKE",
+      "rules_fired": [
+        {
+          "id": "R-DOM",
+          "detail": "msg_5f6ca88decd5b45e from kopi-nusantara.example imitates kopinusantara.example",
+          "reason": "SENDER_LOOKALIKE"
+        }
+      ],
+      "model": "claude-sonnet-5-5",
+      "evidence_hash": "0xdc8d501e3f3f57248ecf3d18103de2c819f75e231127b205352089c0a816f522",
+      "tx": "0xc30c865e80d60948d52352bbeae3abde4a7ce9b9b4f0ff479f56fe64e48b6646",
+      "chain_status": "STOPPED"
+    },
+    {
+      "idx": 1,
+      "verdict": "STOP",
+      "rev": 1,
+      "reason_code": "SENDER_LOOKALIKE",
+      "rules_fired": [
+        {
+          "id": "R-DOM",
+          "detail": "msg_9ace36a19f6293d9 from studio-garis.example imitates studiogaris.example",
+          "reason": "SENDER_LOOKALIKE"
+        }
+      ],
+      "model": "claude-sonnet-5-5",
+      "evidence_hash": "0x10e015eeb6842fed8bb4e0e686c0f2058df3387e8fd658f90de48174b9835b18",
+      "tx": "0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6",
+      "chain_status": "STOPPED"
+    },
+    {
+      "idx": 2,
+      "verdict": "STOP",
+      "rev": 1,
+      "reason_code": "SENDER_LOOKALIKE",
+      "rules_fired": [
+        {
+          "id": "R-DOM",
+          "detail": "msg_30da89c36bf77c01 from cloudnlne.example imitates cloudnine.example",
+          "reason": "SENDER_LOOKALIKE"
+        }
+      ],
+      "model": "claude-sonnet-5-5",
+      "evidence_hash": "0x6087cff6c2c423a671f2023155072a02856917b7839806e65ca5188597db4120",
+      "tx": "0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b",
+      "chain_status": "HELD"
+    }
+  ],
+  "alarms": [
+    {
+      "name": "StopAlarm",
+      "tx_hash": "0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6",
+      "args": {
+        "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+        "stops": 2
+      }
+    },
+    {
+      "name": "LineHeld",
+      "tx_hash": "0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b",
+      "args": {
+        "idx": "2",
+        "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+        "reason": "0x4255444745545f45584841555354454400000000000000000000000000000000",
+        "evidenceHash": "0x6087cff6c2c423a671f2023155072a02856917b7839806e65ca5188597db4120"
+      }
+    }
+  ],
+  "tickets": [
+    {
+      "kind": "held",
+      "idx": 2,
+      "body": "line 3 held (BUDGET_EXHAUSTED) — finance decides: allow or stop"
+    },
+    {
+      "kind": "escalation",
+      "idx": 2,
+      "body": "stop budget exhausted: agent wants to stop line 3 (SENDER_LOOKALIKE) — confirm? Held for finance"
+    }
+  ],
+  "steps": [
+    {
+      "step": "run created + signed",
+      "at": "2026-11-22T11:54:52.693Z",
+      "sinceStartMs": 1522,
+      "run": "run_6187b4180f823dc1",
+      "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "step": "openRun (payer)",
+      "at": "2026-11-22T11:54:55.455Z",
+      "sinceStartMs": 4284,
+      "tx": "0x15c47f097abf308b80ea211ff8f23feedb38ea1ac134258877596ae005126105"
+    },
+    {
+      "step": "review (open: open)",
+      "at": "2026-11-22T11:54:58.202Z",
+      "sinceStartMs": 7031,
+      "model": "none (no linked messages)",
+      "ms": 2680,
+      "executed": [
+        {
+          "idx": 0,
+          "verdict": "ALLOW",
+          "action": "allow",
+          "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 1,
+          "verdict": "ALLOW",
+          "action": "allow",
+          "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 2,
+          "verdict": "ALLOW",
+          "action": "allow",
+          "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 3,
+          "verdict": "ALLOW",
+          "action": "allow",
+          "tx": "0xfdde3c5690b78feb9597445dbc7ce63e2f689592d62dca5596d5de796f117017",
+          "chainStatus": "ALLOWED"
+        }
+      ]
+    },
+    {
+      "step": "deliver E14",
+      "at": "2026-11-22T11:54:58.485Z",
+      "sinceStartMs": 7314,
+      "linkedLines": [
+        1
+      ]
+    },
+    {
+      "step": "review (E14: seed:E14)",
+      "at": "2026-11-22T11:55:05.649Z",
+      "sinceStartMs": 14478,
+      "model": "claude-sonnet-5-5",
+      "ms": 7102,
+      "executed": [
+        {
+          "idx": 0,
+          "verdict": "STOP",
+          "action": "stop",
+          "tx": "0xc30c865e80d60948d52352bbeae3abde4a7ce9b9b4f0ff479f56fe64e48b6646",
+          "chainStatus": "STOPPED",
+          "note": "SENDER_LOOKALIKE"
+        },
+        {
+          "idx": 1,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 2,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 3,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        }
+      ]
+    },
+    {
+      "step": "deliver E15",
+      "at": "2026-11-22T11:55:05.948Z",
+      "sinceStartMs": 14777,
+      "linkedLines": [
+        2
+      ]
+    },
+    {
+      "step": "review (E15: seed:E15)",
+      "at": "2026-11-22T11:55:10.618Z",
+      "sinceStartMs": 19447,
+      "model": "claude-sonnet-5-5",
+      "ms": 4610,
+      "executed": [
+        {
+          "idx": 1,
+          "verdict": "STOP",
+          "action": "stop",
+          "tx": "0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6",
+          "chainStatus": "STOPPED",
+          "note": "SENDER_LOOKALIKE"
+        },
+        {
+          "idx": 2,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        },
+        {
+          "idx": 3,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        }
+      ]
+    },
+    {
+      "step": "deliver E16",
+      "at": "2026-11-22T11:55:10.908Z",
+      "sinceStartMs": 19737,
+      "linkedLines": [
+        3
+      ]
+    },
+    {
+      "step": "review (E16: seed:E16)",
+      "at": "2026-11-22T11:55:15.826Z",
+      "sinceStartMs": 24655,
+      "model": "claude-sonnet-5-5",
+      "ms": 4859,
+      "executed": [
+        {
+          "idx": 2,
+          "verdict": "STOP",
+          "action": "budget-hold",
+          "tx": "0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b",
+          "chainStatus": "HELD",
+          "note": "StopBudgetExhausted → held (SENDER_LOOKALIKE)"
+        },
+        {
+          "idx": 3,
+          "verdict": "ALLOW",
+          "action": "noop",
+          "chainStatus": "ALLOWED"
+        }
+      ]
+    },
+    {
+      "step": "payday",
+      "at": "2026-11-22T11:56:00.848Z",
+      "sinceStartMs": 69677,
+      "batchTx": "0x3309930c6a8d6ae103930b6d27f1ea8e0ce130cfae90f0e372a940b613abacde",
+      "paid": [
+        4
+      ],
+      "held": [
+        {
+          "idx": 2,
+          "reason": "HELD on-chain (finance decides)"
+        }
+      ],
+      "proofs": [
+        {
+          "line": 1,
+          "tx": "0xb738f9be924fcb1819a0db50c543754229623d2bdf442ede01bd5dcc8c2202b9",
+          "replayed": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
+        },
+        {
+          "line": 2,
+          "tx": "0x70aa1dbf7dae59da0de937378e536e4e3dbc49bca3db21d038a8f75403e4998f",
+          "replayed": "Execution reverted with reason: FiatTokenV2: authorization is used or canceled."
+        }
+      ]
+    },
+    {
+      "step": "reconcile",
+      "at": "2026-11-22T11:56:01.819Z",
+      "sinceStartMs": 70648,
+      "events": 20,
+      "updates": []
+    },
+    {
+      "step": "events + tickets",
+      "at": "2026-11-22T11:56:01.856Z",
+      "sinceStartMs": 70685,
+      "alarms": [
+        {
+          "name": "StopAlarm",
+          "tx_hash": "0x4d84835728be7f72550411e40828106899ce714dcea977baa5dd78682e4d97a6",
+          "args": {
+            "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+            "stops": 2
+          }
+        },
+        {
+          "name": "LineHeld",
+          "tx_hash": "0x6e88f1d18478a1c07622f317615f969b25041eb21cbf07d4fa6779656e617f6b",
+          "args": {
+            "idx": "2",
+            "runId": "0xb4d96df64f2abdfa132f3d67f0cf36f578eba874c5f5150c9598bef5ae5902cb",
+            "reason": "0x4255444745545f45584841555354454400000000000000000000000000000000",
+            "evidenceHash": "0x6087cff6c2c423a671f2023155072a02856917b7839806e65ca5188597db4120"
+          }
+        }
+      ],
+      "tickets": [
+        {
+          "kind": "held",
+          "idx": 2,
+          "body": "line 3 held (BUDGET_EXHAUSTED) — finance decides: allow or stop"
+        },
+        {
+          "kind": "escalation",
+          "idx": 2,
+          "body": "stop budget exhausted: agent wants to stop line 3 (SENDER_LOOKALIKE) — confirm? Held for finance"
+        }
+      ]
+    }
+  ],
+  "totalMs": 70722
+}
